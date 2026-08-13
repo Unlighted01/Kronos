@@ -71,7 +71,7 @@ export const WidgetView: React.FC = () => {
 
   const handleSkip = () => {
     audioSynth.playChime();
-    skipPhase();
+    skipPhase(true);
   };
 
   const handleToggleAlwaysOnTop = async () => {

@@ -26,7 +26,7 @@ interface TimerState {
   startTimer: () => void;
   pauseTimer: () => void;
   resetTimer: () => void;
-  skipPhase: () => void;
+  skipPhase: (isManualSkip?: boolean) => void;
   tick: () => void;
   setTaskInfo: (taskName: string, category: string) => void;
   updateSettings: (newSettings: Partial<TimerSettings>) => void;
@@ -73,49 +73,67 @@ export const useTimerStore = create<TimerState>((set, get) => ({
     });
   },
 
-  skipPhase: () => {
-    const { mode, completedSessions, settings, sessionStartTime, activeTaskName, activeCategory } = get();
+  skipPhase: (isManualSkip = false) => {
+    const { mode, completedSessions, settings, sessionStartTime, activeTaskName, activeCategory, timeLeft } = get();
     const now = new Date();
 
     if (mode === 'work') {
+      // 1. Calculate Actual Elapsed Time
+      let elapsedSeconds = 0;
+      if (!isManualSkip) {
+        // Natural timer completion -> full work duration
+        elapsedSeconds = settings.workDuration;
+      } else if (sessionStartTime) {
+        // Manual skip with recorded session start time
+        elapsedSeconds = Math.max(0, Math.floor((now.getTime() - new Date(sessionStartTime).getTime()) / 1000));
+      } else {
+        // Fallback manual skip calculation
+        elapsedSeconds = Math.max(0, settings.workDuration - timeLeft);
+      }
+
+      const elapsedMinutes = Math.floor(elapsedSeconds / 60);
+
+      // 2. Minimum 1-Minute Threshold for DTR Logging & Rewards
+      if (elapsedMinutes >= 1) {
+        const completionRatio = Math.min(1, elapsedSeconds / settings.workDuration);
+        const coinsEarned = Math.round(completionRatio * 100);
+        const expEarned = Math.round(completionRatio * 50);
+
+        // Format DateKey in Local Timezone (YYYY-MM-DD)
+        const dateKey = now.toLocaleDateString('en-CA');
+
+        // Auto-Log DTR Session into Dexie IndexedDB
+        db.dtrSessions.add({
+          taskName: activeTaskName,
+          category: activeCategory,
+          startTime: sessionStartTime || new Date(now.getTime() - elapsedSeconds * 1000).toISOString(),
+          endTime: now.toISOString(),
+          durationMinutes: elapsedMinutes,
+          status: isManualSkip ? 'skipped' : 'completed',
+          coinsEarned,
+          expEarned,
+          dateKey,
+        }).catch(() => {});
+
+        // Update Pet Stats (Coins & EXP)
+        initPetStats().then((pet) => {
+          const nextExp = pet.exp + expEarned;
+          const levelUp = nextExp >= pet.level * 100;
+          db.petStats.put({
+            ...pet,
+            coins: pet.coins + coinsEarned,
+            exp: levelUp ? nextExp - pet.level * 100 : nextExp,
+            level: levelUp ? pet.level + 1 : pet.level,
+            lastUpdated: now.toISOString(),
+          });
+        }).catch(() => {});
+      }
+
+      // 3. Phase Transition logic
       const nextSessions = completedSessions + 1;
       const isLongBreak = nextSessions % 4 === 0;
       const nextMode: TimerMode = isLongBreak ? 'longBreak' : 'shortBreak';
       const nextDuration = isLongBreak ? settings.longBreakDuration : settings.shortBreakDuration;
-      const durationMinutes = Math.max(1, Math.round(settings.workDuration / 60));
-      const coinsEarned = 100;
-      const expEarned = 50;
-
-      // Auto-Log DTR Session into Dexie IndexedDB
-      const startTimeIso = sessionStartTime || new Date(now.getTime() - settings.workDuration * 1000).toISOString();
-      const dateKey = now.toISOString().split('T')[0];
-
-      db.dtrSessions.add({
-        taskName: activeTaskName,
-        category: activeCategory,
-        startTime: startTimeIso,
-        endTime: now.toISOString(),
-        durationMinutes,
-        status: 'completed',
-        coinsEarned,
-        expEarned,
-        dateKey,
-      }).catch(() => {
-        // Fallback catch
-      });
-
-      // Update Pet Stats (Coins & EXP)
-      initPetStats().then((pet) => {
-        const nextExp = pet.exp + expEarned;
-        const levelUp = nextExp >= pet.level * 100;
-        db.petStats.put({
-          ...pet,
-          coins: pet.coins + coinsEarned,
-          exp: levelUp ? nextExp - pet.level * 100 : nextExp,
-          level: levelUp ? pet.level + 1 : pet.level,
-          lastUpdated: now.toISOString(),
-        });
-      }).catch(() => {});
 
       set({
         mode: nextMode,
@@ -125,6 +143,7 @@ export const useTimerStore = create<TimerState>((set, get) => ({
         sessionStartTime: null,
       });
     } else {
+      // Transitioning from Break back to Work
       set({
         mode: 'work',
         status: settings.autoStartWork ? 'running' : 'idle',
@@ -141,7 +160,7 @@ export const useTimerStore = create<TimerState>((set, get) => ({
     if (timeLeft > 1) {
       set({ timeLeft: timeLeft - 1 });
     } else {
-      get().skipPhase();
+      get().skipPhase(false); // Natural completion
     }
   },
 
