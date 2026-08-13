@@ -37,6 +37,7 @@ function createWidgetWindow(): void {
             contextIsolation: true,
         },
     });
+    widgetWindow.setAlwaysOnTop(true, "screen-saver");
 
     if (VITE_DEV_SERVER_URL) {
         widgetWindow.loadURL(`${VITE_DEV_SERVER_URL}#widget`);
@@ -177,7 +178,7 @@ ipcMain.handle("widget-toggle-always-on-top", (_event, flag?: boolean) => {
     if (!widgetWindow) return false;
     const current = widgetWindow.isAlwaysOnTop();
     const nextState = flag !== undefined ? flag : !current;
-    widgetWindow.setAlwaysOnTop(nextState);
+    widgetWindow.setAlwaysOnTop(nextState, "screen-saver");
     return nextState;
 });
 
