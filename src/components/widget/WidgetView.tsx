@@ -74,23 +74,34 @@ export const WidgetView: React.FC = () => {
     skipPhase(true);
   };
 
-  const handleToggleAlwaysOnTop = async () => {
+  const handleToggleAlwaysOnTop = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    audioSynth.playClick();
     if (window.kronosElectron) {
       const nextState = await window.kronosElectron.toggleAlwaysOnTop();
       setAlwaysOnTop(nextState);
+    } else {
+      setAlwaysOnTop(!alwaysOnTop);
     }
   };
 
-  const handleOpenDashboard = () => {
+  const handleOpenDashboard = (e: React.MouseEvent) => {
+    e.stopPropagation();
     audioSynth.playClick();
     if (window.kronosElectron) {
       window.kronosElectron.openDashboard();
+    } else {
+      window.location.hash = '#dashboard';
     }
   };
 
-  const handleClose = () => {
+  const handleClose = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    audioSynth.playClick();
     if (window.kronosElectron) {
       window.kronosElectron.closeWidget();
+    } else {
+      window.close();
     }
   };
 
@@ -116,11 +127,12 @@ export const WidgetView: React.FC = () => {
           </span>
         </div>
 
+        {/* Buttons container with strict no-drag region */}
         <div className="no-drag flex items-center space-x-1">
           <button
             onClick={handleToggleAlwaysOnTop}
             title={alwaysOnTop ? 'Pinned Always on Top' : 'Unpinned'}
-            className={`p-1 rounded transition-colors ${
+            className={`no-drag p-1 rounded transition-colors ${
               alwaysOnTop ? 'text-indigo-400 bg-indigo-500/20' : 'text-slate-400 hover:text-white'
             }`}
           >
@@ -129,14 +141,14 @@ export const WidgetView: React.FC = () => {
           <button
             onClick={handleOpenDashboard}
             title="Open Full Dashboard"
-            className="p-1 text-slate-400 hover:text-white rounded transition-colors"
+            className="no-drag p-1 text-slate-400 hover:text-white rounded transition-colors"
           >
             <LayoutDashboard size={12} />
           </button>
           <button
             onClick={handleClose}
-            title="Minimize to Tray"
-            className="p-1 text-slate-400 hover:text-rose-400 rounded transition-colors"
+            title="Quit Application"
+            className="no-drag p-1 text-slate-400 hover:text-rose-400 rounded transition-colors"
           >
             <X size={12} />
           </button>
@@ -165,7 +177,7 @@ export const WidgetView: React.FC = () => {
         <div className="no-drag flex items-center space-x-2">
           <button
             onClick={handleTogglePlay}
-            className="flex items-center space-x-1.5 px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-semibold text-xs shadow-lg shadow-indigo-600/30 transition-all active:scale-95"
+            className="no-drag flex items-center space-x-1.5 px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-semibold text-xs shadow-lg shadow-indigo-600/30 transition-all active:scale-95"
           >
             {status === 'running' ? <Pause size={14} /> : <Play size={14} />}
             <span>{status === 'running' ? 'Pause' : 'Start'}</span>
@@ -173,7 +185,7 @@ export const WidgetView: React.FC = () => {
 
           <button
             onClick={handleReset}
-            className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition-colors"
+            className="no-drag p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition-colors"
             title="Reset Timer"
           >
             <RotateCcw size={14} />
@@ -181,7 +193,7 @@ export const WidgetView: React.FC = () => {
 
           <button
             onClick={handleSkip}
-            className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition-colors"
+            className="no-drag p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition-colors"
             title="Skip Phase"
           >
             <SkipForward size={14} />

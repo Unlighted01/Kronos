@@ -1,17 +1,17 @@
-import { create } from 'zustand';
+import { create } from "zustand";
 
-export type WindowMode = 'widget' | 'dashboard';
+export type WindowMode = "widget" | "dashboard";
 
 interface AppState {
-  windowMode: WindowMode;
-  alwaysOnTop: boolean;
-  setWindowMode: (mode: WindowMode) => void;
-  setAlwaysOnTop: (alwaysOnTop: boolean) => void;
+    windowMode: WindowMode;
+    alwaysOnTop: boolean;
+    setWindowMode: (mode: WindowMode) => void;
+    setAlwaysOnTop: (alwaysOnTop: boolean) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
-  windowMode: 'widget',
-  alwaysOnTop: true,
-  setWindowMode: (mode: WindowMode) => set({ windowMode: mode }),
-  setAlwaysOnTop: (alwaysOnTop: boolean) => set({ alwaysOnTop }),
+    windowMode: "widget",
+    alwaysOnTop: true,
+    setWindowMode: (mode: WindowMode) => set({ windowMode: mode }),
+    setAlwaysOnTop: (alwaysOnTop: boolean) => set({ alwaysOnTop }),
 }));

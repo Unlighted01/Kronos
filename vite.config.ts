@@ -1,8 +1,38 @@
-import { defineConfig } from 'vite';
+import { defineConfig, Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import electron from 'vite-plugin-electron';
 import renderer from 'vite-plugin-electron-renderer';
 import path from 'path';
+import fs from 'fs';
+
+// Custom plugin to guarantee clean CommonJS preload.cjs without ESM imports/exports
+function buildPreloadCjsPlugin(): Plugin {
+  return {
+    name: 'build-preload-cjs',
+    closeBundle() {
+      const outDir = path.resolve(__dirname, 'dist-electron');
+      if (!fs.existsSync(outDir)) {
+        fs.mkdirSync(outDir, { recursive: true });
+      }
+      const cjsContent = `const { contextBridge, ipcRenderer } = require('electron');
+
+const kronosAPI = {
+  minimizeWidget: () => ipcRenderer.send('widget-minimize'),
+  closeWidget: () => ipcRenderer.send('widget-close'),
+  openDashboard: () => ipcRenderer.send('dashboard-open'),
+  closeDashboard: () => ipcRenderer.send('dashboard-close'),
+  toggleAlwaysOnTop: (flag) => ipcRenderer.invoke('widget-toggle-always-on-top', flag),
+  onTimerAction: (callback) => {
+    ipcRenderer.on('timer-action', (_event, action) => callback(action));
+  },
+};
+
+contextBridge.exposeInMainWorld('kronosElectron', kronosAPI);
+`;
+      fs.writeFileSync(path.join(outDir, 'preload.cjs'), cjsContent, 'utf-8');
+    },
+  };
+}
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -12,6 +42,9 @@ export default defineConfig({
       {
         // Main-process entry file of the Electron App.
         entry: 'electron/main.ts',
+        onstart(options) {
+          options.startup();
+        },
         vite: {
           build: {
             outDir: 'dist-electron',
@@ -21,19 +54,8 @@ export default defineConfig({
           },
         },
       },
-      {
-        entry: 'electron/preload.ts',
-        onstart(options) {
-          // Notify the Renderer-Process to reload the page when the Preload-Scripts build is finished
-          options.reload();
-        },
-        vite: {
-          build: {
-            outDir: 'dist-electron',
-          },
-        },
-      },
     ]),
+    buildPreloadCjsPlugin(),
     renderer(),
   ],
   resolve: {
