@@ -1,0 +1,66 @@
+{
+  "name": "kronos-desktop",
+  "version": "1.0.0",
+  "description": "2D Pixel Platformer Tamagotchi Virtual Pet Pomodoro Timer & Work DTR Desktop App",
+  "main": "dist-electron/main.js",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "package": "tsc --noEmit && vite build && electron-builder",
+    "compile:tsc": "tsc --noEmit",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "pomodoro",
+    "tamagotchi",
+    "virtual-pet",
+    "dtr",
+    "timer",
+    "electron",
+    "react",
+    "typescript",
+    "pixel-art",
+    "platformer"
+  ],
+  "author": "Kian",
+  "license": "MIT",
+  "dependencies": {
+    "dexie": "^4.0.10",
+    "dexie-react-hooks": "^1.1.7",
+    "lucide-react": "^0.475.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "zustand": "^5.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.4",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.3.4",
+    "electron": "^34.2.0",
+    "electron-builder": "^25.1.8",
+    "typescript": "^5.7.3",
+    "vite": "^6.1.0",
+    "vite-plugin-electron": "^0.29.0",
+    "vite-plugin-electron-renderer": "^0.14.6"
+  },
+  "build": {
+    "appId": "com.kronos.app",
+    "productName": "Kronos Tamagotchi DTR",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*"
+    ],
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}
