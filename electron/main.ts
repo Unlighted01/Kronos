@@ -10,9 +10,8 @@ app.commandLine.appendSwitch("max-old-space-size", "64");
 app.commandLine.appendSwitch("disable-background-timer-throttling");
 
 let widgetWindow: BrowserWindow | null = null;
-let dashboardWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
-let isWidgetPinned = true; // Default pinned state
+let isWidgetPinned = false; // Default unpinned on boot as requested
 
 const VITE_DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL;
 const isDev = !!VITE_DEV_SERVER_URL || !app.isPackaged;
@@ -39,8 +38,8 @@ function createWidgetWindow(): void {
         resizable: false,
         frame: false,
         transparent: true,
-        alwaysOnTop: true,
-        hasShadow: false, // Prevents DWM border shadow artifacts on transparent windows
+        alwaysOnTop: false, // Default unpinned on boot
+        hasShadow: false,
         skipTaskbar: false,
         webPreferences: {
             preload: path.join(__dirname, "preload.cjs"),
@@ -49,11 +48,10 @@ function createWidgetWindow(): void {
         },
     });
 
-    // Apply initial pin & position lock
+    // Apply initial unpinned & movable state
     applyPinAndLockState(widgetWindow, isWidgetPinned);
 
     // --- Windows OS Z-Order Resilience Handlers ---
-    // Re-assert alwaysOnTop on focus/show/restore to prevent DWM from dropping HWND_TOPMOST
     const reassertTopmost = () => {
         if (widgetWindow && isWidgetPinned) {
             widgetWindow.setAlwaysOnTop(true, "screen-saver");
@@ -80,41 +78,46 @@ function createWidgetWindow(): void {
     });
 }
 
-function createDashboardWindow(): void {
-    if (dashboardWindow) {
-        dashboardWindow.show();
-        dashboardWindow.focus();
+function openDashboardInSingleWindow(): void {
+    if (!widgetWindow) {
+        createWidgetWindow();
         return;
     }
 
-    dashboardWindow = new BrowserWindow({
-        width: 1040,
-        height: 720,
-        minWidth: 800,
-        minHeight: 600,
-        frame: true,
-        title: "Kronos - Tamagotchi Pomodoro & DTR Dashboard",
-        webPreferences: {
-            preload: path.join(__dirname, "preload.cjs"),
-            nodeIntegration: false,
-            contextIsolation: true,
-        },
-    });
+    // Expand existing widget window into full dashboard view
+    widgetWindow.setResizable(true);
+    widgetWindow.setMovable(true);
+    widgetWindow.setAlwaysOnTop(false, "normal");
+    widgetWindow.setSize(1040, 720);
+    widgetWindow.center();
 
     if (VITE_DEV_SERVER_URL) {
-        dashboardWindow.loadURL(`${VITE_DEV_SERVER_URL}#dashboard`);
-        if (isDev) {
-            dashboardWindow.webContents.openDevTools({ mode: "detach" });
-        }
+        widgetWindow.loadURL(`${VITE_DEV_SERVER_URL}#dashboard`);
     } else {
-        dashboardWindow.loadFile(path.join(__dirname, "../dist/index.html"), {
+        widgetWindow.loadFile(path.join(__dirname, "../dist/index.html"), {
             hash: "dashboard",
         });
     }
+}
 
-    dashboardWindow.on("closed", () => {
-        dashboardWindow = null;
-    });
+function openWidgetInSingleWindow(): void {
+    if (!widgetWindow) {
+        createWidgetWindow();
+        return;
+    }
+
+    // Shrink window back to compact widget overlay
+    widgetWindow.setSize(260, 320);
+    widgetWindow.setResizable(false);
+    applyPinAndLockState(widgetWindow, isWidgetPinned);
+
+    if (VITE_DEV_SERVER_URL) {
+        widgetWindow.loadURL(`${VITE_DEV_SERVER_URL}#widget`);
+    } else {
+        widgetWindow.loadFile(path.join(__dirname, "../dist/index.html"), {
+            hash: "widget",
+        });
+    }
 }
 
 function createSystemTray(): void {
@@ -134,17 +137,12 @@ function createSystemTray(): void {
         {
             label: "Kronos Widget",
             click: () => {
-                if (widgetWindow) {
-                    widgetWindow.show();
-                    widgetWindow.focus();
-                } else {
-                    createWidgetWindow();
-                }
+                openWidgetInSingleWindow();
             },
         },
         {
             label: "Open Full Dashboard (DTR & Shop)",
-            click: () => createDashboardWindow(),
+            click: () => openDashboardInSingleWindow(),
         },
         { type: "separator" },
         {
@@ -170,10 +168,7 @@ function createSystemTray(): void {
 
     tray.setContextMenu(contextMenu);
     tray.on("double-click", () => {
-        if (widgetWindow) {
-            widgetWindow.show();
-            widgetWindow.focus();
-        }
+        openWidgetInSingleWindow();
     });
 }
 
@@ -187,11 +182,15 @@ ipcMain.on("widget-close", () => {
 });
 
 ipcMain.on("dashboard-open", () => {
-    createDashboardWindow();
+    openDashboardInSingleWindow();
+});
+
+ipcMain.on("widget-open", () => {
+    openWidgetInSingleWindow();
 });
 
 ipcMain.on("dashboard-close", () => {
-    dashboardWindow?.close();
+    openWidgetInSingleWindow();
 });
 
 ipcMain.handle("widget-toggle-always-on-top", (_event, flag?: boolean) => {

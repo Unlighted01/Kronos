@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, Calendar, ShoppingBag, Settings, Award, Zap, Heart } from 'lucide-react';
+import { Home, Calendar, ShoppingBag, Settings, Award, Zap, Heart, Minimize2 } from 'lucide-react';
 import { DtrLogSheet } from '../dtr/DtrLogSheet';
 import { PetShop } from '../shop/PetShop';
 import { useLiveQuery } from 'dexie-react-hooks';
@@ -21,17 +21,35 @@ export const DashboardView: React.FC = () => {
   const maxExp = level * 100;
   const expPercent = Math.min(100, Math.round((exp / maxExp) * 100));
 
+  const handleReturnToWidget = () => {
+    if (window.kronosElectron?.openWidget) {
+      window.kronosElectron.openWidget();
+    } else {
+      window.location.hash = '#widget';
+    }
+  };
+
   return (
     <div className="w-screen h-screen bg-slate-900 text-slate-100 flex overflow-hidden">
       {/* Sidebar Navigation */}
       <aside className="w-60 bg-slate-950 border-r border-slate-800 p-4 flex flex-col justify-between">
         <div>
-          <div className="flex items-center space-x-3 px-2 py-3 mb-6">
-            <span className="text-2xl">⏳</span>
-            <div>
-              <h1 className="font-pixel text-xs text-indigo-400">KRONOS</h1>
-              <p className="text-[10px] text-slate-400">2D Platformer DTR</p>
+          <div className="flex items-center justify-between px-2 py-3 mb-6">
+            <div className="flex items-center space-x-3">
+              <span className="text-2xl">⏳</span>
+              <div>
+                <h1 className="font-pixel text-xs text-indigo-400">KRONOS</h1>
+                <p className="text-[10px] text-slate-400">2D Platformer DTR</p>
+              </div>
             </div>
+
+            <button
+              onClick={handleReturnToWidget}
+              title="Shrink to Floating Widget"
+              className="p-1.5 text-slate-400 hover:text-indigo-400 bg-slate-900 hover:bg-slate-800 rounded-lg border border-slate-800 transition-colors"
+            >
+              <Minimize2 size={14} />
+            </button>
           </div>
 
           <nav className="space-y-1">
@@ -145,16 +163,17 @@ export const DashboardView: React.FC = () => {
               </p>
               <div className="flex items-center space-x-3">
                 <button
-                  onClick={() => setActiveTab('shop')}
-                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs rounded-xl shadow-lg shadow-indigo-600/20"
+                  onClick={handleReturnToWidget}
+                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs rounded-xl shadow-lg shadow-indigo-600/20 flex items-center space-x-1.5"
                 >
-                  Visit Pet Shop
+                  <Minimize2 size={14} />
+                  <span>Return to Floating Widget</span>
                 </button>
                 <button
-                  onClick={() => setActiveTab('dtr')}
+                  onClick={() => setActiveTab('shop')}
                   className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs rounded-xl"
                 >
-                  View DTR Logs
+                  Visit Pet Shop
                 </button>
               </div>
             </div>

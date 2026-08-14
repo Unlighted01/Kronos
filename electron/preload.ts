@@ -3,6 +3,7 @@ import { contextBridge, ipcRenderer } from 'electron';
 export interface KronosElectronAPI {
   minimizeWidget: () => void;
   closeWidget: () => void;
+  openWidget: () => void;
   openDashboard: () => void;
   closeDashboard: () => void;
   toggleAlwaysOnTop: (flag?: boolean) => Promise<boolean>;
@@ -15,8 +16,9 @@ export interface KronosElectronAPI {
 const kronosAPI: KronosElectronAPI = {
   minimizeWidget: () => ipcRenderer.send('widget-minimize'),
   closeWidget: () => ipcRenderer.send('widget-close'),
+  openWidget: () => ipcRenderer.send('widget-open'),
   openDashboard: () => ipcRenderer.send('dashboard-open'),
-  closeDashboard: () => ipcRenderer.send('dashboard-close'),
+  closeDashboard: () => ipcRenderer.send('widget-open'),
   toggleAlwaysOnTop: (flag?: boolean) => ipcRenderer.invoke('widget-toggle-always-on-top', flag),
   pinWidget: (flag?: boolean) => ipcRenderer.invoke('widget-toggle-always-on-top', flag),
   togglePin: (flag?: boolean) => ipcRenderer.invoke('widget-toggle-always-on-top', flag),

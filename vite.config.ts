@@ -19,8 +19,9 @@ function buildPreloadCjsPlugin(): Plugin {
 const kronosAPI = {
   minimizeWidget: () => ipcRenderer.send('widget-minimize'),
   closeWidget: () => ipcRenderer.send('widget-close'),
+  openWidget: () => ipcRenderer.send('widget-open'),
   openDashboard: () => ipcRenderer.send('dashboard-open'),
-  closeDashboard: () => ipcRenderer.send('dashboard-close'),
+  closeDashboard: () => ipcRenderer.send('widget-open'),
   toggleAlwaysOnTop: (flag) => ipcRenderer.invoke('widget-toggle-always-on-top', flag),
   pinWidget: (flag) => ipcRenderer.invoke('widget-toggle-always-on-top', flag),
   togglePin: (flag) => ipcRenderer.invoke('widget-toggle-always-on-top', flag),
