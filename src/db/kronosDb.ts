@@ -5,6 +5,7 @@ export interface DtrSession {
   id?: number;
   taskName: string;
   category: string;
+  notes?: string;
   startTime: string; // ISO string
   endTime: string; // ISO string
   durationMinutes: number;
@@ -86,82 +87,6 @@ export const SHOP_ITEMS: ShopCatalogItem[] = [
     description: 'Restores +60 Joy & +20 Energy.',
     statBoost: { happiness: 60, energy: 20 },
   },
-
-  // --- Cozy House Rooms ---
-  {
-    id: 'room_bedroom',
-    name: 'Study Bedroom',
-    category: 'environment',
-    price: 0,
-    icon: '🛋️',
-    description: 'Default cozy study room with day/night sky window & oak desk.',
-    environmentId: 'room_bedroom',
-  },
-  {
-    id: 'room_living',
-    name: 'Living Room Lounge',
-    category: 'environment',
-    price: 150,
-    icon: '🛋️',
-    description: 'A cozy living room for relaxing with a soft sofa.',
-    environmentId: 'room_living',
-  },
-  {
-    id: 'room_library',
-    name: 'Attic Library',
-    category: 'environment',
-    price: 180,
-    icon: '📚',
-    description: 'Wooden timber rafters, bookshelves & stained glass window.',
-    environmentId: 'room_library',
-  },
-  {
-    id: 'room_kitchen',
-    name: 'Warm Bakery Kitchen',
-    category: 'environment',
-    price: 220,
-    icon: '🥐',
-    description: 'Terracotta tiled floor, brick baking oven & coffee machine.',
-    environmentId: 'room_kitchen',
-  },
-  {
-    id: 'room_greenhouse',
-    name: 'Plant Conservatory',
-    category: 'environment',
-    price: 260,
-    icon: '🌿',
-    description: 'Sunlit glass atrium, lush potted monsteras & hanging ivy.',
-    environmentId: 'room_greenhouse',
-  },
-
-  // --- Cozy Exterior Biomes ---
-  {
-    id: 'biome_sakura',
-    name: 'Sakura Garden',
-    category: 'environment',
-    price: 240,
-    icon: '🌸',
-    description: 'Pink cherry blossom tree, grassy lawn & drifting petals.',
-    environmentId: 'biome_sakura',
-  },
-  {
-    id: 'biome_campfire',
-    name: 'Starry Campfire',
-    category: 'environment',
-    price: 250,
-    icon: '🔥',
-    description: 'Galaxy nebula sky, pine trees, crackling campfire & embers.',
-    environmentId: 'biome_campfire',
-  },
-  {
-    id: 'biome_autumn',
-    name: 'Autumn Maple Grove',
-    category: 'environment',
-    price: 220,
-    icon: '🍂',
-    description: 'Golden-orange autumn maple trees & falling leaves.',
-    environmentId: 'biome_autumn',
-  },
 ];
 
 export class KronosDatabase extends Dexie {
@@ -199,6 +124,14 @@ export async function syncAndUnlockAllItems(): Promise<void> {
     await db.petStats.put(statsToSave);
 
     const existingInventory = await db.inventory.toArray();
+    
+    // Clean up legacy environment/room items
+    const legacyItems = existingInventory.filter(item => item.category === 'environment');
+    const legacyIds = legacyItems.map(item => item.id).filter((id): id is number => id !== undefined);
+    if (legacyIds.length > 0) {
+      await db.inventory.bulkDelete(legacyIds);
+    }
+
     const existingItemIds = new Set(existingInventory.map((item) => item.itemId));
 
     const itemsToAdd: InventoryItem[] = [];

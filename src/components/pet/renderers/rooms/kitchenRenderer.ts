@@ -67,14 +67,22 @@ export function renderWarmKitchen(
   ctx.fillStyle = '#0f172a';
   ctx.fillRect(ovenX + 8, ovenY + 12, 28, 24);
 
-  // Animated Fireplace Flame Core
+  // Glowing Iron Grate
+  ctx.fillStyle = '#1c1917';
+  for(let i=0; i<4; i++) {
+    ctx.fillRect(ovenX + 10 + i*6, ovenY + 24, 2, 12);
+  }
+
+  // Animated Hearth Fire (Pulsing warm glow)
   const fireFlicker = (frame % 4) * 2;
+  ctx.globalCompositeOperation = 'lighten';
   ctx.fillStyle = '#ef4444';
   ctx.fillRect(ovenX + 12, ovenY + 20 - fireFlicker, 20, 14);
   ctx.fillStyle = '#f97316';
   ctx.fillRect(ovenX + 14, ovenY + 22 - fireFlicker, 16, 12);
   ctx.fillStyle = '#fbbf24';
   ctx.fillRect(ovenX + 16, ovenY + 25 - fireFlicker, 12, 9);
+  ctx.globalCompositeOperation = 'source-over';
 
   // Animated Steam Motes rising from chimney
   ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
@@ -115,16 +123,30 @@ export function renderWarmKitchen(
   ctx.fillStyle = '#e2e8f0';
   ctx.fillRect(deskX + 20, deskY - 6, 4, 3); // Chrome Portafilter
 
-  // Fresh Golden Croissants & Strawberry Tart on Display
-  ctx.fillStyle = '#d97706';
-  ctx.fillRect(deskX + 4, deskY - 6, 8, 4); // Croissant
-  ctx.fillStyle = '#fbbf24';
-  ctx.fillRect(deskX + 5, deskY - 6, 6, 2); // Glaze
+  // Coffee Mug with animated steam curls
+  ctx.fillStyle = '#f8fafc';
+  ctx.fillRect(deskX + 22, deskY - 4, 4, 4);
+  ctx.fillStyle = 'rgba(255,255,255,0.7)';
+  const sOffset = Math.sin(frame * 0.1) * 2;
+  const sHeight = (frame % 15) * 0.5;
+  ctx.font = '8px sans-serif';
+  ctx.fillText('~', deskX + 22 + sOffset, deskY - 6 - sHeight);
 
-  ctx.fillStyle = '#f43f5e';
-  ctx.fillRect(deskX + 13, deskY - 7, 7, 5); // Berry Tart
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(deskX + 15, deskY - 9, 3, 2); // Whipped cream
+  // Detailed Pastry Display (Glass dome)
+  ctx.fillStyle = 'rgba(255,255,255,0.2)';
+  ctx.beginPath(); ctx.arc(deskX + 10, deskY, 9, Math.PI, 0); ctx.fill();
+
+  // Fresh Golden Croissants & Baguettes
+  ctx.fillStyle = '#d97706';
+  ctx.fillRect(deskX + 4, deskY - 5, 6, 3); // Croissant
+  ctx.fillStyle = '#fbbf24';
+  ctx.fillRect(deskX + 5, deskY - 5, 4, 1); // Glaze
+
+  ctx.fillStyle = '#b45309';
+  ctx.fillRect(deskX + 11, deskY - 6, 2, 5); // Baguette
+  ctx.fillStyle = '#f59e0b';
+  ctx.fillRect(deskX + 11, deskY - 5, 1, 1);
+  ctx.fillRect(deskX + 11, deskY - 3, 1, 1);
 
   // Stool
   ctx.fillStyle = '#92400e';

@@ -1,5 +1,12 @@
 import { RoomDoor, drawRoomDoors } from '../doorRenderer';
 
+export interface LivingRoomObjectStates {
+  firePokedTimer?: number;
+  vinylSpinBoost?: number;
+  isArcLampOn?: boolean;
+  paintingTilt?: number;
+}
+
 export function renderLivingRoom(
   ctx: CanvasRenderingContext2D,
   width: number,
@@ -8,7 +15,8 @@ export function renderLivingRoom(
   _mode?: string,
   _status?: string,
   doors: RoomDoor[] = [],
-  hoveredDoorId?: string | null
+  hoveredDoorId?: string | null,
+  objectStates: LivingRoomObjectStates = {}
 ): { platformY: number; deskX: number; deskY: number } {
   const platformY = 112;
 
@@ -59,33 +67,49 @@ export function renderLivingRoom(
   ctx.fillRect(fireX + 8, fireY - 14, 12, 10);
   ctx.fillStyle = '#f0f9ff';
   ctx.fillRect(fireX + 9, fireY - 13, 10, 8);
+  
+  // Wall Painting with tilt
+  ctx.save();
+  const tilt = objectStates.paintingTilt || 0;
+  ctx.translate(fireX + 35, fireY - 11);
+  ctx.rotate((tilt * Math.PI) / 180);
   ctx.fillStyle = '#cbd5e1'; // Silver frame
-  ctx.fillRect(fireX + 28, fireY - 18, 14, 14);
+  ctx.fillRect(-7, -7, 14, 14);
   ctx.fillStyle = '#0f172a';
-  ctx.fillRect(fireX + 29, fireY - 17, 12, 12);
+  ctx.fillRect(-6, -6, 12, 12);
+  ctx.restore();
 
   // Firebox
   ctx.fillStyle = '#000000';
   ctx.fillRect(fireX + 8, fireY + 16, 32, 34);
   
   // Animated Fire
+  const isFlared = objectStates.firePokedTimer && objectStates.firePokedTimer > 0;
+  const flareHeight = isFlared ? 12 : 0;
   ctx.fillStyle = '#ea580c';
   ctx.beginPath();
   const f1 = (frame % 10) > 4 ? 4 : 0;
   const f2 = (frame % 14) > 7 ? 6 : 0;
   ctx.moveTo(fireX + 12, platformY);
-  ctx.lineTo(fireX + 18, fireY + 28 - f1);
-  ctx.lineTo(fireX + 24, platformY - 10);
-  ctx.lineTo(fireX + 30, fireY + 20 - f2);
+  ctx.lineTo(fireX + 18, fireY + 28 - f1 - flareHeight);
+  ctx.lineTo(fireX + 24, platformY - 10 - (flareHeight/2));
+  ctx.lineTo(fireX + 30, fireY + 20 - f2 - flareHeight);
   ctx.lineTo(fireX + 36, platformY);
   ctx.fill();
   
   ctx.fillStyle = '#fde047'; // Inner flame
   ctx.beginPath();
   ctx.moveTo(fireX + 16, platformY);
-  ctx.lineTo(fireX + 24, fireY + 32);
+  ctx.lineTo(fireX + 24, fireY + 32 - (flareHeight * 0.8));
   ctx.lineTo(fireX + 32, platformY);
   ctx.fill();
+  
+  if (isFlared && frame % 4 === 0) {
+    // Crackling ember sparks
+    ctx.fillStyle = '#fef08a';
+    ctx.fillRect(fireX + 14 + (frame % 12), fireY + 20 - (frame % 8), 2, 2);
+    ctx.fillRect(fireX + 22 - (frame % 6), fireY + 16 - (frame % 10), 2, 2);
+  }
 
   // 3. Corduroy tufted lounge sofa with throw pillows
   const sofaX = 16;
@@ -147,12 +171,14 @@ export function renderLivingRoom(
   ctx.fill();
 
   // Light pool
-  ctx.fillStyle = 'rgba(253, 230, 138, 0.15)';
-  ctx.beginPath();
-  ctx.moveTo(lampX + 32, lampY + 10);
-  ctx.lineTo(lampX + 60, platformY);
-  ctx.lineTo(lampX + 4, platformY);
-  ctx.fill();
+  if (objectStates.isArcLampOn ?? true) {
+    ctx.fillStyle = 'rgba(253, 230, 138, 0.25)';
+    ctx.beginPath();
+    ctx.moveTo(lampX + 32, lampY + 10);
+    ctx.lineTo(lampX + 80, platformY);
+    ctx.lineTo(lampX + 4, platformY);
+    ctx.fill();
+  }
 
   // 6. Turntable vinyl record player on wooden credenza
   const credenzaX = width - 64;
@@ -174,21 +200,27 @@ export function renderLivingRoom(
   ctx.ellipse(credenzaX + 16, credenzaY - 6, 8, 2, 0, 0, Math.PI * 2);
   ctx.fill();
   // Center label (spinning)
-  const spinColor = (frame % 20 < 10) ? '#ef4444' : '#3b82f6';
+  const speed = 20 - Math.min(16, (objectStates.vinylSpinBoost || 0) * 2);
+  const spinFrame = Math.floor(frame / Math.max(1, (speed/4)));
+  const spinColor = (spinFrame % 2 === 0) ? '#ef4444' : '#3b82f6';
   ctx.fillStyle = spinColor;
   ctx.beginPath();
   ctx.ellipse(credenzaX + 16, credenzaY - 6, 3, 1, 0, 0, Math.PI * 2);
   ctx.fill();
   
   // Floating music notes
-  if (frame % 60 < 30) {
+  if (frame % 60 < 20) {
     ctx.fillStyle = '#475569';
     ctx.font = '10px sans-serif';
     ctx.fillText('♪', credenzaX + 10, credenzaY - 12 - (frame % 10));
-  } else {
+  } else if (frame % 60 < 40) {
     ctx.fillStyle = '#64748b';
     ctx.font = '12px sans-serif';
-    ctx.fillText('♫', credenzaX + 22, credenzaY - 16 - (frame % 8));
+    ctx.fillText('♫', credenzaX + 22, credenzaY - 16 - (frame % 12));
+  } else {
+    ctx.fillStyle = '#475569';
+    ctx.font = '10px sans-serif';
+    ctx.fillText('♩', credenzaX + 16, credenzaY - 14 - (frame % 8));
   }
 
   drawRoomDoors(ctx, doors, frame, hoveredDoorId);

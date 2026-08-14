@@ -11,7 +11,7 @@ import { audioSynth } from '../../utils/audioSynth';
 
 export const PetShop: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<
-    'all' | 'snack' | 'environment'
+    'all' | 'snack'
   >('all');
 
   const petStats = useLiveQuery(async () => {
@@ -23,15 +23,12 @@ export const PetShop: React.FC = () => {
   });
 
   const coins = petStats?.coins || 0;
-  const activeEnvironment = petStats?.activeEnvironment || 'room_bedroom';
 
   const filteredItems = SHOP_ITEMS.filter((item) =>
     selectedCategory === 'all' ? true : item.category === selectedCategory
   );
 
   const ownedItemIds = new Set(inventory?.map((inv) => inv.itemId));
-  // Default bedroom is always owned
-  ownedItemIds.add('room_bedroom');
 
   const handleBuy = async (item: ShopCatalogItem) => {
     if (!petStats || coins < item.price) return;
@@ -56,20 +53,6 @@ export const PetShop: React.FC = () => {
       purchasedAt: new Date().toISOString(),
     });
 
-    // If it's an environment, equip immediately!
-    if (item.environmentId) {
-      await db.petStats.update('primary', {
-        activeEnvironment: item.environmentId,
-      });
-    }
-  };
-
-  const handleEquipEnvironment = async (item: ShopCatalogItem) => {
-    if (!item.environmentId) return;
-    audioSynth.playChime();
-    await db.petStats.update('primary', {
-      activeEnvironment: item.environmentId,
-    });
   };
 
   return (
@@ -84,8 +67,8 @@ export const PetShop: React.FC = () => {
       </div>
 
       {/* Category Segmented Control (Sleek & Well-Divided) */}
-      <div className="grid grid-cols-3 gap-1.5">
-        {(['all', 'snack', 'environment'] as const).map((cat) => (
+      <div className="grid grid-cols-2 gap-1.5">
+        {(['all', 'snack'] as const).map((cat) => (
           <button
             key={cat}
             onClick={() => {
@@ -98,11 +81,7 @@ export const PetShop: React.FC = () => {
                 : 'bg-slate-900 text-slate-400 border-white/10 hover:border-white/20 hover:text-slate-200 hover:bg-slate-800'
             }`}
           >
-            {cat === 'all'
-              ? 'All'
-              : cat === 'snack'
-              ? 'Snacks'
-              : 'Rooms'}
+            {cat === 'all' ? 'All' : 'Snacks'}
           </button>
         ))}
       </div>
@@ -111,7 +90,6 @@ export const PetShop: React.FC = () => {
       <div className="space-y-1.5">
         {filteredItems.map((item) => {
           const isOwned = ownedItemIds.has(item.id) && item.category !== 'snack';
-          const isEquipped = item.environmentId && activeEnvironment === item.environmentId;
           const canAfford = coins >= item.price;
 
           return (
@@ -155,16 +133,11 @@ export const PetShop: React.FC = () => {
 
               {isOwned ? (
                 <button
-                  onClick={() => handleEquipEnvironment(item)}
-                  disabled={isEquipped}
-                  className={`w-full flex items-center justify-center space-x-1 py-1 rounded-lg text-[9px] font-semibold transition-all ${
-                    isEquipped
-                      ? 'bg-emerald-600/20 text-emerald-300 border border-emerald-500/30 cursor-default'
-                      : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm'
-                  }`}
+                  disabled
+                  className="w-full flex items-center justify-center space-x-1 py-1 rounded-lg text-[9px] font-semibold transition-all bg-emerald-600/20 text-emerald-300 border border-emerald-500/30 cursor-default"
                 >
                   <Check size={11} />
-                  <span>{isEquipped ? (item.category === 'environment' ? 'Active Room' : 'Active') : (item.category === 'environment' ? 'Equip Room' : 'Owned')}</span>
+                  <span>Owned</span>
                 </button>
               ) : (
                 <button
@@ -176,7 +149,7 @@ export const PetShop: React.FC = () => {
                       : 'bg-slate-900 text-slate-500 border border-white/5 cursor-not-allowed'
                   }`}
                 >
-                  <span>{canAfford ? (item.category === 'snack' ? 'Buy Snack' : 'Unlock Room') : 'Need Coins'}</span>
+                  <span>{canAfford ? 'Buy Snack' : 'Need Coins'}</span>
                 </button>
               )}
             </div>

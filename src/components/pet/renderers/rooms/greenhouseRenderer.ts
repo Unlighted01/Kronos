@@ -1,5 +1,9 @@
 import { RoomDoor, drawRoomDoors } from '../doorRenderer';
 
+export interface GreenhouseObjectStates {
+  plantBloomStage?: number;
+}
+
 export function renderGreenhouse(
   ctx: CanvasRenderingContext2D,
   width: number,
@@ -8,7 +12,8 @@ export function renderGreenhouse(
   _mode?: string,
   _status?: string,
   doors: RoomDoor[] = [],
-  hoveredDoorId?: string | null
+  hoveredDoorId?: string | null,
+  objectStates: GreenhouseObjectStates = {}
 ): { platformY: number; deskX: number; deskY: number } {
   const platformY = height - 28;
 
@@ -76,22 +81,30 @@ export function renderGreenhouse(
   ctx.fillStyle = '#e2e8f0';
   ctx.fillRect(plantX + 2, plantY + 14, 22, 3);
 
-  // Big Monstera Leaves with Vein Highlights
+  // Monstera & Ferns (organic breathing animation)
+  const breath = Math.sin(frame * 0.05) * 1;
   ctx.fillStyle = '#15803d';
   ctx.beginPath();
-  ctx.arc(plantX + 6, plantY + 6, 9, 0, Math.PI * 2);
-  ctx.arc(plantX + 19, plantY + 4, 11, 0, Math.PI * 2);
-  ctx.arc(plantX + 13, plantY - 3, 10, 0, Math.PI * 2);
+  ctx.arc(plantX + 6 - breath, plantY + 6, 9 + breath, 0, Math.PI * 2);
+  ctx.arc(plantX + 19 + breath, plantY + 4, 11 + breath, 0, Math.PI * 2);
+  ctx.arc(plantX + 13, plantY - 3 - breath, 10 + breath, 0, Math.PI * 2);
   ctx.fill();
 
   ctx.fillStyle = '#22c55e';
-  ctx.fillRect(plantX + 12, plantY - 2, 2, 8); // Leaf vein
-  ctx.fillRect(plantX + 6, plantY + 6, 2, 6);
+  ctx.fillRect(plantX + 12, plantY - 2 - breath, 2, 8); // Leaf vein
+  ctx.fillRect(plantX + 6 - breath, plantY + 6, 2, 6);
 
-  // Flowering Begonia
-  ctx.fillStyle = '#f472b6';
-  ctx.fillRect(plantX + 8, plantY + 4, 3, 3);
-  ctx.fillRect(plantX + 17, plantY + 2, 3, 3);
+  // Butterflies
+  if (frame % 80 < 40) {
+    const bx = plantX + 25 + Math.sin(frame * 0.1) * 15;
+    const by = plantY - 10 + Math.cos(frame * 0.05) * 10;
+    const flap = frame % 4 < 2 ? 3 : 1;
+    ctx.fillStyle = '#38bdf8'; // Blue wings
+    ctx.fillRect(bx, by, flap, 2);
+    ctx.fillRect(bx + flap + 1, by, flap, 2);
+    ctx.fillStyle = '#fef08a'; // Yellow accents
+    ctx.fillRect(bx, by+1, 1, 1);
+  }
 
   // 5. Rustic Stone Paver Flooring
   ctx.fillStyle = '#334155';
@@ -124,21 +137,53 @@ export function renderGreenhouse(
   ctx.fillStyle = '#b45309';
   ctx.fillRect(deskX + 22, deskY - 8, 6, 8);
   ctx.fillRect(deskX + 32, deskY - 8, 6, 8);
+  
+  // Flowering Pots reflecting plantBloomStage
+  const bloomStage = objectStates.plantBloomStage || 1;
   ctx.fillStyle = '#22c55e';
-  ctx.fillRect(deskX + 24, deskY - 12, 3, 4); // Green sprout
-  ctx.fillRect(deskX + 34, deskY - 12, 3, 4);
+  ctx.fillRect(deskX + 24, deskY - 12, 3, 4); // Sprout 1
+  ctx.fillRect(deskX + 34, deskY - 12, 3, 4); // Sprout 2
+
+  if (bloomStage >= 2) {
+    // Bud
+    ctx.fillStyle = '#f472b6';
+    ctx.fillRect(deskX + 24, deskY - 14, 3, 2);
+    ctx.fillRect(deskX + 34, deskY - 14, 3, 2);
+  }
+  if (bloomStage >= 3) {
+    // Blooming flower
+    ctx.fillStyle = '#ec4899';
+    ctx.fillRect(deskX + 23, deskY - 15, 5, 3);
+    ctx.fillStyle = '#fef08a';
+    ctx.fillRect(deskX + 25, deskY - 14, 1, 1);
+    
+    ctx.fillStyle = '#ec4899';
+    ctx.fillRect(deskX + 33, deskY - 15, 5, 3);
+    ctx.fillStyle = '#fef08a';
+    ctx.fillRect(deskX + 35, deskY - 14, 1, 1);
+  }
 
   // Stool
   ctx.fillStyle = '#78350f';
   ctx.fillRect(deskX - 14, deskY + 6, 10, 18);
 
-  // Warm Sunbeams Streaming
-  ctx.fillStyle = 'rgba(254, 240, 138, 0.12)';
+  // Glass Sunbeams Streaming (soft translucent)
+  const beamShift = Math.sin(frame * 0.01) * 5;
+  ctx.fillStyle = 'rgba(254, 240, 138, 0.15)';
   ctx.beginPath();
-  ctx.moveTo(width / 3, 0);
-  ctx.lineTo(width / 3 + 35, 0);
+  ctx.moveTo(width / 3 + beamShift, 0);
+  ctx.lineTo(width / 3 + 45 + beamShift, 0);
   ctx.lineTo(width, platformY);
-  ctx.lineTo(width - 45, platformY);
+  ctx.lineTo(width - 55, platformY);
+  ctx.closePath();
+  ctx.fill();
+  
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+  ctx.beginPath();
+  ctx.moveTo(width / 2 + beamShift, 0);
+  ctx.lineTo(width / 2 + 25 + beamShift, 0);
+  ctx.lineTo(width, platformY - 10);
+  ctx.lineTo(width - 35, platformY);
   ctx.closePath();
   ctx.fill();
 

@@ -1,6 +1,11 @@
 import { drawWindowSky, getTimeOfDay } from '../dayNightEngine';
 import { RoomDoor, drawRoomDoors } from '../doorRenderer';
 
+export interface BedroomObjectStates {
+  isDeskLampOn?: boolean;
+  clockChimeTimer?: number;
+}
+
 export function renderStudyBedroom(
   ctx: CanvasRenderingContext2D,
   width: number,
@@ -9,7 +14,8 @@ export function renderStudyBedroom(
   mode: string,
   status: string,
   doors: RoomDoor[] = [],
-  hoveredDoorId?: string | null
+  hoveredDoorId?: string | null,
+  objectStates: BedroomObjectStates = {}
 ): { platformY: number; deskX: number; deskY: number } {
   const timeOfDay = getTimeOfDay();
   const platformY = height - 28;
@@ -33,6 +39,38 @@ export function renderStudyBedroom(
   const winX = 14;
   const winY = 12;
   drawWindowSky(ctx, winX, winY, winW, winH, timeOfDay, frame);
+
+  // Hanging Ivy
+  const sway = Math.sin(frame * 0.1) * 2;
+  ctx.fillStyle = '#15803d';
+  ctx.fillRect(100 + sway, 0, 2, 25);
+  ctx.fillStyle = '#22c55e';
+  ctx.fillRect(98 + sway, 10, 3, 4);
+  ctx.fillRect(102 + sway, 16, 4, 3);
+  ctx.fillRect(99 + sway, 22, 3, 4);
+
+  // Wall Clock
+  const clockX = 35;
+  const clockY = 15;
+  ctx.fillStyle = '#78350f';
+  ctx.fillRect(clockX, clockY, 14, 14);
+  ctx.fillStyle = '#fef08a';
+  ctx.beginPath();
+  ctx.arc(clockX + 7, clockY + 7, 5, 0, Math.PI * 2);
+  ctx.fill();
+  
+  const swingSpeed = objectStates.clockChimeTimer && objectStates.clockChimeTimer > 0 ? 0.4 : 0.1;
+  const pendulumSway = Math.sin(frame * swingSpeed) * 4;
+  ctx.strokeStyle = '#b45309';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(clockX + 7, clockY + 14);
+  ctx.lineTo(clockX + 7 + pendulumSway, clockY + 24);
+  ctx.stroke();
+  ctx.fillStyle = '#fbbf24';
+  ctx.beginPath();
+  ctx.arc(clockX + 7 + pendulumSway, clockY + 24, 2, 0, Math.PI * 2);
+  ctx.fill();
 
   // 3. Cozy Pixel Wall Painting (Center)
   const artX = 64;
@@ -62,7 +100,9 @@ export function renderStudyBedroom(
   ctx.fillStyle = '#78350f';
   ctx.fillRect(bedX, bedY, 44, 20);
   ctx.fillStyle = '#92400e';
-  ctx.fillRect(bedX, bedY - 8, 6, 28); // Headboard
+  ctx.fillRect(bedX, bedY - 12, 6, 32); // Wooden Headboard with details
+  ctx.fillStyle = '#451a03';
+  ctx.fillRect(bedX + 2, bedY - 10, 2, 28);
 
   // Pillow
   ctx.fillStyle = '#f8fafc';
@@ -76,6 +116,9 @@ export function renderStudyBedroom(
   ctx.fillStyle = '#fb7185';
   ctx.fillRect(bedX + 24, bedY + 4, 8, 7);
   ctx.fillRect(bedX + 34, bedY + 11, 8, 7);
+  ctx.fillStyle = '#9f1239';
+  ctx.fillRect(bedX + 24, bedY + 11, 8, 7);
+  ctx.fillRect(bedX + 34, bedY + 4, 8, 7);
 
   // 5. Cozy Floor Rug (Walking Path)
   const rugX = 72;
@@ -130,10 +173,21 @@ export function renderStudyBedroom(
   ctx.fillRect(deskX + 14, deskY - 16, 18, 14);
 
   if (status === 'running' && mode === 'work') {
+    // Blue screen glow
+    ctx.fillStyle = 'rgba(56, 189, 248, 0.15)';
+    ctx.fillRect(deskX - 8, deskY - 20, 24, 24);
+
     ctx.fillStyle = '#ffffff';
     const lineOffset = (frame % 3) * 3;
     ctx.fillRect(deskX + 16, deskY - 14 + lineOffset, 8, 2);
     ctx.fillRect(deskX + 16, deskY - 10 + lineOffset, 12, 2);
+    
+    // Blinking cursor
+    if (frame % 30 < 15) {
+      ctx.font = '8px monospace';
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText('>_', deskX + 15, deskY - 2);
+    }
   }
 
   // Desk Chair
@@ -142,13 +196,27 @@ export function renderStudyBedroom(
   ctx.fillRect(deskX - 16, deskY - 6, 4, 20);
 
   // Desk Lamp Glow Cone
-  ctx.fillStyle = 'rgba(251, 191, 36, 0.18)';
-  ctx.beginPath();
-  ctx.moveTo(deskX + 40, deskY - 14);
-  ctx.lineTo(deskX + 10, platformY);
-  ctx.lineTo(deskX + 48, platformY);
-  ctx.closePath();
-  ctx.fill();
+  if (objectStates.isDeskLampOn ?? true) {
+    ctx.fillStyle = 'rgba(251, 191, 36, 0.25)';
+    ctx.beginPath();
+    ctx.moveTo(deskX + 40, deskY - 14);
+    ctx.lineTo(deskX + 10, platformY);
+    ctx.lineTo(deskX + 48, platformY);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = 'rgba(253, 230, 138, 0.8)';
+    ctx.beginPath();
+    ctx.arc(deskX + 39, deskY - 15, 4, 0, Math.PI * 2);
+    ctx.fill();
+  } else {
+    ctx.fillStyle = 'rgba(251, 191, 36, 0.05)'; // dim
+    ctx.beginPath();
+    ctx.moveTo(deskX + 40, deskY - 14);
+    ctx.lineTo(deskX + 10, platformY);
+    ctx.lineTo(deskX + 48, platformY);
+    ctx.closePath();
+    ctx.fill();
+  }
 
   // Lamp Body
   ctx.fillStyle = '#fbbf24';

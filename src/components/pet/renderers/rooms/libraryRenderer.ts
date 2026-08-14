@@ -1,5 +1,10 @@
 import { RoomDoor, drawRoomDoors } from '../doorRenderer';
 
+export interface LibraryObjectStates {
+  globeSpinBoost?: number;
+  isCandleLit?: boolean;
+}
+
 export function renderAtticLibrary(
   ctx: CanvasRenderingContext2D,
   width: number,
@@ -8,7 +13,8 @@ export function renderAtticLibrary(
   _mode?: string,
   _status?: string,
   doors: RoomDoor[] = [],
-  hoveredDoorId?: string | null
+  hoveredDoorId?: string | null,
+  objectStates: LibraryObjectStates = {}
 ): { platformY: number; deskX: number; deskY: number } {
   const platformY = height - 28;
 
@@ -98,6 +104,31 @@ export function renderAtticLibrary(
   ctx.strokeStyle = '#78350f';
   ctx.lineWidth = 2;
   ctx.strokeRect(arcX, arcY + arcW / 2, arcW, arcH - arcW / 2);
+  
+  // Stained Glass Light Shafts
+  ctx.fillStyle = 'rgba(99, 102, 241, 0.15)'; // sapphire beam
+  ctx.beginPath();
+  ctx.moveTo(arcX + 4, arcY + arcH);
+  ctx.lineTo(arcX - 40, platformY);
+  ctx.lineTo(arcX - 10, platformY);
+  ctx.lineTo(arcX + 12, arcY + arcH);
+  ctx.fill();
+  
+  ctx.fillStyle = 'rgba(236, 72, 153, 0.15)'; // ruby beam
+  ctx.beginPath();
+  ctx.moveTo(arcX + 16, arcY + arcH);
+  ctx.lineTo(arcX - 5, platformY);
+  ctx.lineTo(arcX + 25, platformY);
+  ctx.lineTo(arcX + 24, arcY + arcH);
+  ctx.fill();
+  
+  // Floating Dust Motes across beams
+  ctx.fillStyle = 'rgba(253, 230, 138, 0.6)';
+  for(let i=0; i<3; i++) {
+    const dx = arcX - 20 + Math.sin(frame * 0.02 + i) * 15;
+    const dy = platformY - 20 - ((frame * 0.2 + i * 15) % 40);
+    ctx.fillRect(dx, dy, 1.5, 1.5);
+  }
 
   // 5. Dark Oak Timber Flooring
   ctx.fillStyle = '#451a03';
@@ -138,20 +169,60 @@ export function renderAtticLibrary(
   ctx.fillStyle = '#3b82f6';
   ctx.fillRect(deskX + 15, deskY - 9, 2, 9); // Ribbon bookmark
 
-  // Warm Standing Reading Lamp
-  ctx.fillStyle = '#fbbf24';
-  ctx.fillRect(deskX + 30, deskY - 22, 10, 8);
-  ctx.fillStyle = '#451a03';
-  ctx.fillRect(deskX + 34, deskY - 14, 2, 38);
-
-  // Reading Lamp Radial Glow Cone
-  ctx.fillStyle = 'rgba(251, 191, 36, 0.16)';
+  // Antique Globe (Left of desk)
+  const globeX = deskX - 35;
+  const globeY = platformY - 14;
+  ctx.fillStyle = '#78350f'; // Base
+  ctx.fillRect(globeX + 4, globeY + 10, 8, 4);
+  ctx.fillRect(globeX + 7, globeY + 6, 2, 4);
+  ctx.strokeStyle = '#b45309'; // Stand arch
   ctx.beginPath();
-  ctx.moveTo(deskX + 35, deskY - 20);
-  ctx.lineTo(deskX + 5, platformY);
-  ctx.lineTo(deskX + 45, platformY);
-  ctx.closePath();
+  ctx.arc(globeX + 8, globeY, 8, -Math.PI/4, Math.PI);
+  ctx.stroke();
+  
+  ctx.fillStyle = '#0ea5e9'; // Ocean
+  ctx.beginPath();
+  ctx.arc(globeX + 8, globeY, 6, 0, Math.PI*2);
   ctx.fill();
+  
+  const gBoost = objectStates.globeSpinBoost || 0;
+  const globeFrame = frame * (0.05 + gBoost * 0.05);
+  ctx.fillStyle = '#84cc16'; // Land
+  ctx.beginPath();
+  ctx.ellipse(globeX + 8 + Math.sin(globeFrame)*3, globeY, 2, 4, 0, 0, Math.PI*2);
+  ctx.fill();
+
+  // Candlestick
+  ctx.fillStyle = '#e5e7eb'; // Wax
+  ctx.fillRect(deskX + 32, deskY - 16, 4, 16);
+  ctx.fillStyle = '#d1d5db';
+  ctx.fillRect(deskX + 30, deskY, 8, 2); // Base
+
+  if (objectStates.isCandleLit ?? true) {
+    const flicker = Math.sin(frame * 0.5) * 1;
+    ctx.fillStyle = '#f97316';
+    ctx.beginPath();
+    ctx.moveTo(deskX + 34, deskY - 16);
+    ctx.lineTo(deskX + 32 + flicker, deskY - 22);
+    ctx.lineTo(deskX + 36, deskY - 16);
+    ctx.fill();
+    ctx.fillStyle = '#fef08a';
+    ctx.fillRect(deskX + 33, deskY - 18, 2, 3);
+    
+    // Light Cone
+    ctx.fillStyle = 'rgba(251, 191, 36, 0.16)';
+    ctx.beginPath();
+    ctx.moveTo(deskX + 34, deskY - 18);
+    ctx.lineTo(deskX + 5, platformY);
+    ctx.lineTo(deskX + 45, platformY);
+    ctx.closePath();
+    ctx.fill();
+  } else {
+    // Thin smoke
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    const sx = Math.sin(frame * 0.1) * 2;
+    ctx.fillRect(deskX + 33 + sx, deskY - 20 - (frame%10)*0.5, 1, 1);
+  }
 
   // Floating Magic Reading Dust Sparkle
   const dustY = deskY - 14 - (frame % 16);

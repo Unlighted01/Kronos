@@ -1,12 +1,38 @@
 import React, { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db, DtrSession } from '../../db/kronosDb';
-import { Calendar, Download, Clock, Award } from 'lucide-react';
+import { Calendar, Download, Clock, Award, Plus, Edit2, Trash2 } from 'lucide-react';
+import { DtrEntryModal } from './DtrEntryModal';
+import { DtrDetailModal } from './DtrDetailModal';
+import { DtrConfirmModal } from './DtrConfirmModal';
 
 export const DtrLogSheet: React.FC = () => {
   const [filterDate, setFilterDate] = useState<string>(
     new Date().toISOString().split('T')[0]
   );
+  const [isAddEditModalOpen, setIsAddEditModalOpen] = useState(false);
+  const [editingSession, setEditingSession] = useState<DtrSession | null>(null);
+  const [selectedDetailSession, setSelectedDetailSession] = useState<DtrSession | null>(null);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [sessionToDelete, setSessionToDelete] = useState<number | null>(null);
+
+  const handleDeleteSession = (sessionId: number) => {
+    setSessionToDelete(sessionId);
+    setIsConfirmModalOpen(true);
+  };
+
+  const confirmDeleteSession = async () => {
+    if (sessionToDelete) {
+      await db.dtrSessions.delete(sessionToDelete);
+      setSelectedDetailSession(null);
+      setSessionToDelete(null);
+    }
+  };
+
+  const handleEditSession = (session: DtrSession) => {
+    setEditingSession(session);
+    setIsAddEditModalOpen(true);
+  };
 
   const sessions = useLiveQuery(async () => {
     if (filterDate === 'ALL') {
@@ -39,6 +65,7 @@ export const DtrLogSheet: React.FC = () => {
       'End Time',
       'Duration (Min)',
       'Coins Earned',
+      'Notes'
     ];
     const rows = sessions.map((s) => [
       s.id,
@@ -49,6 +76,7 @@ export const DtrLogSheet: React.FC = () => {
       new Date(s.endTime).toLocaleTimeString(),
       s.durationMinutes,
       s.coinsEarned,
+      `"${(s.notes || '').replace(/"/g, '""')}"`
     ]);
 
     const csvContent = [
@@ -112,6 +140,18 @@ export const DtrLogSheet: React.FC = () => {
         </button>
 
         <button
+          onClick={() => {
+            setEditingSession(null);
+            setIsAddEditModalOpen(true);
+          }}
+          title="Add Entry"
+          className="p-1 px-2 flex items-center space-x-1 bg-indigo-600/30 hover:bg-indigo-600/50 border border-indigo-500/40 text-indigo-300 rounded-lg shrink-0 transition-colors"
+        >
+          <Plus size={11} />
+          <span className="text-[8.5px] font-semibold">Add Entry</span>
+        </button>
+
+        <button
           onClick={handleExportCsv}
           disabled={!sessions || sessions.length === 0}
           title="Export CSV"
@@ -127,7 +167,8 @@ export const DtrLogSheet: React.FC = () => {
           sessions.map((session: DtrSession) => (
             <div
               key={session.id}
-              className="bg-slate-900/60 border border-white/5 rounded-xl p-2 flex items-center justify-between hover:border-white/20 hover:bg-slate-800/50 transition-all"
+              className="group bg-slate-900/60 border border-white/5 rounded-xl p-2 flex items-center justify-between hover:border-white/20 hover:bg-slate-800/50 transition-all cursor-pointer relative"
+              onClick={() => setSelectedDetailSession(session)}
             >
               <div className="truncate pr-1">
                 <div className="font-semibold text-[10px] text-slate-200 truncate">
@@ -138,9 +179,31 @@ export const DtrLogSheet: React.FC = () => {
                 </div>
               </div>
 
-              <span className="text-[8.5px] font-bold text-amber-400 font-mono shrink-0">
-                +{session.coinsEarned}c
-              </span>
+              <div className="flex items-center space-x-2">
+                <div className="hidden group-hover:flex items-center space-x-1 mr-2">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEditSession(session);
+                    }}
+                    className="p-1 text-slate-400 hover:text-indigo-300 hover:bg-indigo-500/20 rounded-md transition-colors"
+                  >
+                    <Edit2 size={12} />
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (session.id) handleDeleteSession(session.id);
+                    }}
+                    className="p-1 text-slate-400 hover:text-red-300 hover:bg-red-500/20 rounded-md transition-colors"
+                  >
+                    <Trash2 size={12} />
+                  </button>
+                </div>
+                <span className="text-[8.5px] font-bold text-amber-400 font-mono shrink-0">
+                  +{session.coinsEarned}c
+                </span>
+              </div>
             </div>
           ))
         ) : (
@@ -149,6 +212,25 @@ export const DtrLogSheet: React.FC = () => {
           </div>
         )}
       </div>
+
+      <DtrEntryModal
+        isOpen={isAddEditModalOpen}
+        onClose={() => setIsAddEditModalOpen(false)}
+        initialSession={editingSession}
+      />
+
+      <DtrDetailModal
+        session={selectedDetailSession}
+        onClose={() => setSelectedDetailSession(null)}
+        onEdit={handleEditSession}
+        onDelete={handleDeleteSession}
+      />
+
+      <DtrConfirmModal
+        isOpen={isConfirmModalOpen}
+        onClose={() => setIsConfirmModalOpen(false)}
+        onConfirm={confirmDeleteSession}
+      />
     </div>
   );
 };

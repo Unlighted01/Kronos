@@ -20,6 +20,8 @@ import { useHouseStore } from '../../stores/useHouseStore';
 import { HOUSE_TOPOLOGY } from './types/houseMapTypes';
 import { renderLivingRoom } from './renderers/rooms/livingRoomRenderer';
 import { drawRoomDoors } from './renderers/doorRenderer';
+import { useHouseObjectStore } from '../../stores/useHouseObjectStore';
+import { INTERACTIVE_OBJECTS } from './types/interactiveObjectTypes';
 
 interface PlatformerPetCanvasProps {
   mode: TimerMode;
@@ -41,10 +43,11 @@ export type FocusAction =
 export type IdleAction = 'walking' | 'looking_at_user' | 'napping' | 'sitting' | 'afk_hiding' | 'petted';
 export type PetAction = FocusAction | IdleAction | string;
 
-interface HeartParticle {
+interface EmojiParticle {
   id: number;
   x: number;
   y: number;
+  emoji: string;
   opacity: number;
   scale: number;
 }
@@ -65,10 +68,11 @@ export const PlatformerPetCanvas: React.FC<PlatformerPetCanvasProps> = ({
   const currentActionRef = useRef<PetAction>('typing_laptop');
   const actionTimerRef = useRef<number>(0);
 
-  const [hearts, setHearts] = useState<HeartParticle[]>([]);
+  const [floatingEmojis, setFloatingEmojis] = useState<EmojiParticle[]>([]);
   const [hoveredDoorId, setHoveredDoorId] = useState<string | null>(null);
 
   const { petCurrentRoom, activeViewRoom, petActivity, setViewRoom, jumpToPet, wanderRoutine } = useHouseStore();
+  const houseObjects = useHouseObjectStore();
 
   const currentRoomDef = HOUSE_TOPOLOGY[activeViewRoom];
   const doors = currentRoomDef?.doors || [];
@@ -180,7 +184,7 @@ export const PlatformerPetCanvas: React.FC<PlatformerPetCanvasProps> = ({
     return () => clearInterval(bubbleInterval);
   }, [mode, status, isAfk, activeViewRoom, petCurrentRoom]);
 
-  // Mouse move handler for door hover effects
+  // Mouse move handler for door and object hover effects
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -198,7 +202,25 @@ export const PlatformerPetCanvas: React.FC<PlatformerPetCanvasProps> = ({
         mouseY <= d.y + d.height
     );
 
-    setHoveredDoorId(hitDoor ? hitDoor.id : null);
+    const activeObjects = INTERACTIVE_OBJECTS[activeViewRoom] || [];
+    const hitObj = activeObjects.find(
+      (obj) =>
+        mouseX >= obj.x &&
+        mouseX <= obj.x + obj.width &&
+        mouseY >= obj.y &&
+        mouseY <= obj.y + obj.height
+    );
+
+    if (hitDoor) {
+      setHoveredDoorId(hitDoor.id);
+      canvas.style.cursor = 'pointer';
+    } else if (hitObj) {
+      setHoveredDoorId(null);
+      canvas.style.cursor = 'pointer';
+    } else {
+      setHoveredDoorId(null);
+      canvas.style.cursor = 'default';
+    }
   };
 
   // Click handler (Door Navigation vs Petting)
@@ -226,6 +248,99 @@ export const PlatformerPetCanvas: React.FC<PlatformerPetCanvasProps> = ({
       return;
     }
 
+    // Check if not a door, check INTERACTIVE_OBJECTS
+    const activeObjects = INTERACTIVE_OBJECTS[activeViewRoom] || [];
+    const clickedObj = activeObjects.find(
+      (obj) =>
+        clickX >= obj.x &&
+        clickX <= obj.x + obj.width &&
+        clickY >= obj.y &&
+        clickY <= obj.y + obj.height
+    );
+
+    if (clickedObj) {
+      const cx = clickedObj.x + clickedObj.width / 2;
+      const cy = clickedObj.y;
+      
+      if (clickedObj.id === 'lamp') {
+        houseObjects.toggleDeskLamp();
+        audioSynth.playClick();
+        spawnEmojis(cx, cy, '✨', 2);
+      } else if (clickedObj.id === 'clock') {
+        houseObjects.chimeClock();
+        audioSynth.playClockChime();
+        spawnEmojis(cx, cy, '♪', 3);
+      } else if (clickedObj.id === 'turntable') {
+        houseObjects.boostVinyl();
+        audioSynth.playVinylChords();
+        spawnEmojis(cx, cy, '♪', 4);
+      } else if (clickedObj.id === 'fireplace') {
+        houseObjects.pokeFire();
+        audioSynth.playClick();
+        spawnEmojis(cx, cy, '💨', 3);
+      } else if (clickedObj.id === 'arc_lamp') {
+        houseObjects.toggleArcLamp();
+        audioSynth.playClick();
+        spawnEmojis(cx, cy, '✨', 2);
+      } else if (clickedObj.id === 'painting') {
+        houseObjects.tiltPainting();
+        audioSynth.playClick();
+        spawnEmojis(cx, cy, '💨', 2);
+      } else if (clickedObj.id === 'globe') {
+        houseObjects.spinGlobe();
+        audioSynth.playClick();
+        spawnEmojis(cx, cy, '✨', 3);
+      } else if (clickedObj.id === 'candlestick') {
+        houseObjects.toggleCandle();
+        audioSynth.playClick();
+        spawnEmojis(cx, cy, '💨', 2);
+      } else if (clickedObj.id === 'coffee_mug') {
+        audioSynth.playCoffeeSip();
+        spawnEmojis(cx, cy, '☕', 3);
+        db.petStats.get('primary').then((stats) => {
+          if (stats) {
+            const newEnergy = Math.min(100, stats.energy + 5);
+            db.petStats.update('primary', { energy: newEnergy });
+          }
+        }).catch(() => {});
+        setCurrentThought('Mmm, coffee! ☕');
+      } else if (clickedObj.id === 'watering_can') {
+        houseObjects.waterPlant();
+        audioSynth.playWaterSplash();
+        spawnEmojis(cx, cy, '💧', 4);
+        db.petStats.get('primary').then((stats) => {
+          if (stats) {
+            const newHappiness = Math.min(100, stats.happiness + 1);
+            db.petStats.update('primary', { happiness: newHappiness });
+          }
+        }).catch(() => {});
+        setCurrentThought('Watering time! 🌱');
+      } else if (clickedObj.id === 'laptop') {
+        audioSynth.playClick();
+        spawnEmojis(cx, cy, '✨', 2);
+        setCurrentThought('> compiling... ✨');
+      } else if (clickedObj.id === 'bed') {
+        audioSynth.playBookRustle();
+        spawnEmojis(cx, cy, '🪶', 3);
+      } else if (clickedObj.id === 'ivy') {
+        audioSynth.playBookRustle();
+        spawnEmojis(cx, cy, '🍃', 3);
+      } else if (clickedObj.id === 'oven') {
+        audioSynth.playPanClink();
+        spawnEmojis(cx, cy, '🥐', 3);
+      } else if (clickedObj.id === 'copper_pans') {
+        audioSynth.playPanClink();
+        spawnEmojis(cx, cy, '✨', 2);
+      } else if (clickedObj.id === 'monstera') {
+        audioSynth.playBookRustle();
+        spawnEmojis(cx, cy, '🍃', 3);
+      } else if (clickedObj.id === 'bookshelf') {
+        audioSynth.playBookRustle();
+        spawnEmojis(cx, cy, '🪶', 3);
+      }
+      return;
+    }
+
     // Check if Pet was clicked (only if pet is in current room)
     if (activeViewRoom === petCurrentRoom) {
       const petX = petXRef.current;
@@ -238,14 +353,15 @@ export const PlatformerPetCanvas: React.FC<PlatformerPetCanvasProps> = ({
         actionTimerRef.current = 18;
         setCurrentThought('I love you! ❤️ ✨');
 
-        const newHearts: HeartParticle[] = Array.from({ length: 4 }).map((_, i) => ({
+        const newHearts: EmojiParticle[] = Array.from({ length: 4 }).map((_, i) => ({
           id: Date.now() + i,
           x: petX + Math.random() * 20 - 5,
           y: petY - Math.random() * 10,
+          emoji: '❤️',
           opacity: 1,
           scale: 0.8 + Math.random() * 0.4,
         }));
-        setHearts((prev) => [...prev, ...newHearts]);
+        setFloatingEmojis((prev) => [...prev, ...newHearts]);
 
         db.petStats.get('primary').then((stats) => {
           if (stats) {
@@ -257,18 +373,30 @@ export const PlatformerPetCanvas: React.FC<PlatformerPetCanvasProps> = ({
     }
   };
 
-  // Heart Particles Animation Loop
+  const spawnEmojis = (x: number, y: number, emoji: string, count: number = 3) => {
+    const newEmojis: EmojiParticle[] = Array.from({ length: count }).map((_, i) => ({
+      id: Date.now() + i + Math.random(),
+      x: x + (Math.random() * 20 - 10),
+      y: y + (Math.random() * 20 - 10),
+      emoji,
+      opacity: 1,
+      scale: 0.8 + Math.random() * 0.4,
+    }));
+    setFloatingEmojis((prev) => [...prev, ...newEmojis]);
+  };
+
+  // Floating Emojis Animation Loop
   useEffect(() => {
-    if (hearts.length === 0) return;
+    if (floatingEmojis.length === 0) return;
     const interval = setInterval(() => {
-      setHearts((prev) =>
+      setFloatingEmojis((prev) =>
         prev
           .map((h) => ({ ...h, y: h.y - 1.5, opacity: h.opacity - 0.05 }))
           .filter((h) => h.opacity > 0)
       );
     }, 50);
     return () => clearInterval(interval);
-  }, [hearts]);
+  }, [floatingEmojis]);
 
   // Main Canvas Render Loop
   useEffect(() => {
@@ -393,13 +521,13 @@ export const PlatformerPetCanvas: React.FC<PlatformerPetCanvasProps> = ({
       let envData = { platformY: LOGICAL_HEIGHT - 28, deskX: LOGICAL_WIDTH - 70, deskY: LOGICAL_HEIGHT - 52 };
 
       if (activeViewRoom === 'room_library') {
-        envData = renderAtticLibrary(ctx, LOGICAL_WIDTH, LOGICAL_HEIGHT, frame, mode, status, doors, hoveredDoorId);
+        envData = renderAtticLibrary(ctx, LOGICAL_WIDTH, LOGICAL_HEIGHT, frame, mode, status, doors, hoveredDoorId, { globeSpinBoost: houseObjects.globeSpinBoost, isCandleLit: houseObjects.isCandleLit });
       } else if (activeViewRoom === 'room_living') {
-        envData = renderLivingRoom(ctx, LOGICAL_WIDTH, LOGICAL_HEIGHT, frame, mode, status, doors, hoveredDoorId);
+        envData = renderLivingRoom(ctx, LOGICAL_WIDTH, LOGICAL_HEIGHT, frame, mode, status, doors, hoveredDoorId, { firePokedTimer: houseObjects.firePokedTimer, vinylSpinBoost: houseObjects.vinylSpinBoost, isArcLampOn: houseObjects.isArcLampOn, paintingTilt: houseObjects.paintingTilt });
       } else if (activeViewRoom === 'room_kitchen') {
         envData = renderWarmKitchen(ctx, LOGICAL_WIDTH, LOGICAL_HEIGHT, frame, mode, status, doors, hoveredDoorId);
       } else if (activeViewRoom === 'room_greenhouse') {
-        envData = renderGreenhouse(ctx, LOGICAL_WIDTH, LOGICAL_HEIGHT, frame, mode, status, doors, hoveredDoorId);
+        envData = renderGreenhouse(ctx, LOGICAL_WIDTH, LOGICAL_HEIGHT, frame, mode, status, doors, hoveredDoorId, { plantBloomStage: houseObjects.plantBloomStage });
       } else if (activeViewRoom === 'biome_sakura') {
         envData = renderSakuraGarden(ctx, LOGICAL_WIDTH, LOGICAL_HEIGHT, frame, petalsRef.current, mode, status);
       } else if (activeViewRoom === 'biome_campfire') {
@@ -408,7 +536,7 @@ export const PlatformerPetCanvas: React.FC<PlatformerPetCanvasProps> = ({
         envData = renderAutumnGrove(ctx, LOGICAL_WIDTH, LOGICAL_HEIGHT, frame, leavesRef.current, mode, status);
       } else {
         // Default: Study Bedroom
-        envData = renderStudyBedroom(ctx, LOGICAL_WIDTH, LOGICAL_HEIGHT, frame, mode, status, doors, hoveredDoorId);
+        envData = renderStudyBedroom(ctx, LOGICAL_WIDTH, LOGICAL_HEIGHT, frame, mode, status, doors, hoveredDoorId, { isDeskLampOn: houseObjects.isDeskLampOn, clockChimeTimer: houseObjects.clockChimeTimer });
       }
 
       if (activeViewRoom === 'biome_sakura' || activeViewRoom === 'biome_campfire' || activeViewRoom === 'biome_autumn') {
@@ -518,10 +646,13 @@ export const PlatformerPetCanvas: React.FC<PlatformerPetCanvasProps> = ({
 
       {/* 2D Platformer Canvas Wrapper */}
       <div
-        className="relative rounded-xl overflow-hidden border border-white/10 shadow-inner cursor-pointer"
+        className="relative rounded-xl overflow-hidden border border-white/10 shadow-inner"
         onClick={handleCanvasClick}
         onMouseMove={handleMouseMove}
-        onMouseLeave={() => setHoveredDoorId(null)}
+        onMouseLeave={() => {
+          setHoveredDoorId(null);
+          if (canvasRef.current) canvasRef.current.style.cursor = 'default';
+        }}
         style={{ width: `${width}px`, height: `${height}px` }}
       >
         <canvas
@@ -534,19 +665,20 @@ export const PlatformerPetCanvas: React.FC<PlatformerPetCanvasProps> = ({
             height: '100%',
           }}
         />
-        {/* Floating Heart Particles */}
-        {hearts.map((h) => (
+        {/* Floating Emoji Particles */}
+        {floatingEmojis.map((h) => (
           <span
             key={h.id}
-            className="absolute text-rose-400 font-bold pointer-events-none select-none transition-all duration-75 text-xs"
+            className="absolute font-bold pointer-events-none select-none transition-all duration-75 text-xs"
             style={{
               left: `${h.x * (width / LOGICAL_WIDTH)}px`,
               top: `${h.y * (height / LOGICAL_HEIGHT)}px`,
               opacity: h.opacity,
               transform: `scale(${h.scale * (width / LOGICAL_WIDTH)})`,
+              textShadow: h.emoji === '❤️' ? '0 0 2px rgba(251, 113, 133, 0.8)' : undefined
             }}
           >
-            ❤️
+            {h.emoji}
           </span>
         ))}
       </div>

@@ -37,19 +37,12 @@ export const RightPanel: React.FC<RightPanelProps> = ({
   const exp = petStats?.exp || 0;
   const energy = petStats?.energy || 80;
   const happiness = petStats?.happiness || 80;
-  const activeEnvironment = petStats?.activeEnvironment || 'room_bedroom';
   const maxExp = level * 100;
   const expPercent = Math.min(100, Math.round((exp / maxExp) * 100));
 
   const handleUseItem = async (item: InventoryItem) => {
     if (!item.id) return;
     audioSynth.playChime();
-
-    // If environment, equip it!
-    if (item.environmentId) {
-      await db.petStats.update('primary', { activeEnvironment: item.environmentId });
-      return;
-    }
 
     // Snack / Consumable
     await db.inventory.delete(item.id);
@@ -186,39 +179,30 @@ export const RightPanel: React.FC<RightPanelProps> = ({
           <div className="space-y-1.5">
             {inventoryItems.length === 0 ? (
               <div className="text-center py-4 text-[9px] text-slate-400 bg-slate-900/40 rounded-lg border border-white/5 p-2">
-                Bag empty! Unlock snacks & rooms from Pet Shop.
+                Bag empty! Buy snacks from the Pet Shop.
               </div>
             ) : (
               <div className="space-y-1">
-                {inventoryItems.map((item) => {
-                  const isEquippedEnv = item.environmentId && activeEnvironment === item.environmentId;
-
-                  return (
-                    <div
-                      key={item.id}
-                      className="flex items-center justify-between p-1.5 bg-slate-900/60 border border-white/10 rounded-lg hover:bg-slate-800/40 transition-colors"
-                    >
-                      <div className="flex items-center space-x-1.5 truncate">
-                        <span className="text-sm">{item.icon || '📦'}</span>
-                        <div className="truncate">
-                          <div className="font-semibold text-[9.5px] text-slate-200 truncate">{item.name}</div>
-                          <div className="text-[7px] text-indigo-400 capitalize">{item.category}</div>
-                        </div>
+                {inventoryItems.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between p-1.5 bg-slate-900/60 border border-white/10 rounded-lg hover:bg-slate-800/40 transition-colors"
+                  >
+                    <div className="flex items-center space-x-1.5 truncate">
+                      <span className="text-sm">{item.icon || '📦'}</span>
+                      <div className="truncate">
+                        <div className="font-semibold text-[9.5px] text-slate-200 truncate">{item.name}</div>
+                        <div className="text-[7px] text-indigo-400 capitalize">{item.category}</div>
                       </div>
-                      <button
-                        onClick={() => handleUseItem(item)}
-                        disabled={isEquippedEnv}
-                        className={`px-1.5 py-0.5 rounded text-[8px] font-semibold shrink-0 transition-colors ${
-                          isEquippedEnv
-                            ? 'bg-emerald-600/20 text-emerald-300 border border-emerald-500/30'
-                            : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm'
-                        }`}
-                      >
-                        {item.environmentId ? (isEquippedEnv ? 'Active' : 'Equip') : 'Feed'}
-                      </button>
                     </div>
-                  );
-                })}
+                    <button
+                      onClick={() => handleUseItem(item)}
+                      className="px-1.5 py-0.5 rounded text-[8px] font-semibold shrink-0 transition-colors bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm"
+                    >
+                      Feed
+                    </button>
+                  </div>
+                ))}
               </div>
             )}
           </div>
