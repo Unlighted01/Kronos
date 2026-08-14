@@ -3,9 +3,8 @@ import { contextBridge, ipcRenderer } from 'electron';
 export interface KronosElectronAPI {
   minimizeWidget: () => void;
   closeWidget: () => void;
-  openWidget: () => void;
-  openDashboard: () => void;
-  closeDashboard: () => void;
+  setPresetSize: (preset: '1x' | '1.25x' | '1.5x') => void;
+  updatePanelLayout: (layout: { leftOpen: boolean; rightOpen: boolean; scale: '1x' | '1.25x' | '1.5x' }) => void;
   toggleAlwaysOnTop: (flag?: boolean) => Promise<boolean>;
   pinWidget: (flag?: boolean) => Promise<boolean>;
   togglePin: (flag?: boolean) => Promise<boolean>;
@@ -16,9 +15,9 @@ export interface KronosElectronAPI {
 const kronosAPI: KronosElectronAPI = {
   minimizeWidget: () => ipcRenderer.send('widget-minimize'),
   closeWidget: () => ipcRenderer.send('widget-close'),
-  openWidget: () => ipcRenderer.send('widget-open'),
-  openDashboard: () => ipcRenderer.send('dashboard-open'),
-  closeDashboard: () => ipcRenderer.send('widget-open'),
+  setPresetSize: (preset: '1x' | '1.25x' | '1.5x') => ipcRenderer.send('widget-set-preset-size', preset),
+  updatePanelLayout: (layout: { leftOpen: boolean; rightOpen: boolean; scale: '1x' | '1.25x' | '1.5x' }) =>
+    ipcRenderer.send('widget-update-panel-layout', layout),
   toggleAlwaysOnTop: (flag?: boolean) => ipcRenderer.invoke('widget-toggle-always-on-top', flag),
   pinWidget: (flag?: boolean) => ipcRenderer.invoke('widget-toggle-always-on-top', flag),
   togglePin: (flag?: boolean) => ipcRenderer.invoke('widget-toggle-always-on-top', flag),

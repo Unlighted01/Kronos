@@ -1,165 +1,238 @@
-import Dexie, { Table } from "dexie";
+import Dexie, { Table } from 'dexie';
+import { EnvironmentId } from '../components/pet/types/biomeTypes';
 
 export interface DtrSession {
-    id?: number;
-    taskName: string;
-    category: string;
-    startTime: string; // ISO string
-    endTime: string; // ISO string
-    durationMinutes: number;
-    status: "completed" | "skipped";
-    coinsEarned: number;
-    expEarned: number;
-    dateKey: string; // YYYY-MM-DD
+  id?: number;
+  taskName: string;
+  category: string;
+  startTime: string; // ISO string
+  endTime: string; // ISO string
+  durationMinutes: number;
+  status: 'completed' | 'skipped';
+  coinsEarned: number;
+  expEarned: number;
+  dateKey: string; // YYYY-MM-DD
 }
 
 export interface PetStats {
-    id: string; // 'primary'
-    level: number;
-    exp: number;
-    coins: number;
-    happiness: number;
-    energy: number;
-    activeWallpaper: string;
-    lastUpdated: string;
+  id: string; // 'primary'
+  level: number;
+  exp: number;
+  coins: number;
+  happiness: number;
+  energy: number;
+  activeEnvironment: EnvironmentId;
+  activeWallpaper?: string;
+  lastUpdated: string;
 }
 
 export interface InventoryItem {
-    id?: number;
-    itemId: string;
-    name: string;
-    category: "snack" | "furniture" | "wallpaper";
-    icon: string;
-    statBoost?: { energy?: number; happiness?: number };
-    purchasedAt: string;
+  id?: number;
+  itemId: string;
+  name: string;
+  category: 'snack' | 'furniture' | 'environment';
+  icon: string;
+  environmentId?: EnvironmentId;
+  statBoost?: { energy?: number; happiness?: number };
+  purchasedAt: string;
 }
 
 export interface ShopCatalogItem {
-    id: string;
-    name: string;
-    category: "snack" | "furniture" | "wallpaper";
-    price: number;
-    icon: string;
-    description: string;
-    statBoost?: { energy?: number; happiness?: number };
+  id: string;
+  name: string;
+  category: 'snack' | 'furniture' | 'environment';
+  price: number;
+  icon: string;
+  description: string;
+  environmentId?: EnvironmentId;
+  statBoost?: { energy?: number; happiness?: number };
 }
 
 export const SHOP_ITEMS: ShopCatalogItem[] = [
-    // Snacks & Treats
-    {
-        id: "snack_coffee",
-        name: "Pixel Espresso",
-        category: "snack",
-        price: 40,
-        icon: "☕",
-        description: "Restores +25 Energy for focus sessions.",
-        statBoost: { energy: 25 },
-    },
-    {
-        id: "snack_pizza",
-        name: "8-Bit Pizza",
-        category: "snack",
-        price: 75,
-        icon: "🍕",
-        description: "Restores +45 Energy & +15 Happiness.",
-        statBoost: { energy: 45, happiness: 15 },
-    },
-    {
-        id: "snack_donut",
-        name: "Star Donut",
-        category: "snack",
-        price: 100,
-        icon: "🍩",
-        description: "Restores +60 Happiness & +20 Energy.",
-        statBoost: { happiness: 60, energy: 20 },
-    },
+  // --- Snacks & Treats ---
+  {
+    id: 'snack_coffee',
+    name: 'Pixel Espresso',
+    category: 'snack',
+    price: 40,
+    icon: '☕',
+    description: 'Restores +25 Energy for focus sessions.',
+    statBoost: { energy: 25 },
+  },
+  {
+    id: 'snack_croissant',
+    name: 'Butter Croissant',
+    category: 'snack',
+    price: 60,
+    icon: '🥐',
+    description: 'Restores +35 Energy & +15 Joy.',
+    statBoost: { energy: 35, happiness: 15 },
+  },
+  {
+    id: 'snack_matcha',
+    name: 'Ceremonial Matcha',
+    category: 'snack',
+    price: 80,
+    icon: '🍵',
+    description: 'Restores +45 Energy & +25 Joy.',
+    statBoost: { energy: 45, happiness: 25 },
+  },
+  {
+    id: 'snack_donut',
+    name: 'Star Donut',
+    category: 'snack',
+    price: 100,
+    icon: '🍩',
+    description: 'Restores +60 Joy & +20 Energy.',
+    statBoost: { happiness: 60, energy: 20 },
+  },
 
-    // Furniture
-    {
-        id: "furn_arcade",
-        name: "Arcade Cabinet",
-        category: "furniture",
-        price: 200,
-        icon: "🕹️",
-        description: "Retro arcade machine for pet platform room.",
-    },
-    {
-        id: "furn_trampoline",
-        name: "Mini Trampoline",
-        category: "furniture",
-        price: 180,
-        icon: "🛏️",
-        description: "Fun bounce trampoline for break time.",
-    },
-    {
-        id: "furn_plant",
-        name: "Pixel Bonsai",
-        category: "furniture",
-        price: 120,
-        icon: "🪴",
-        description: "Peaceful green bonsai plant.",
-    },
+  // --- Cozy House Rooms ---
+  {
+    id: 'room_bedroom',
+    name: 'Study Bedroom',
+    category: 'environment',
+    price: 0,
+    icon: '🛋️',
+    description: 'Default cozy study room with day/night sky window & oak desk.',
+    environmentId: 'room_bedroom',
+  },
+  {
+    id: 'room_library',
+    name: 'Attic Library',
+    category: 'environment',
+    price: 180,
+    icon: '📚',
+    description: 'Wooden timber rafters, bookshelves & stained glass window.',
+    environmentId: 'room_library',
+  },
+  {
+    id: 'room_kitchen',
+    name: 'Warm Bakery Kitchen',
+    category: 'environment',
+    price: 220,
+    icon: '🥐',
+    description: 'Terracotta tiled floor, brick baking oven & coffee machine.',
+    environmentId: 'room_kitchen',
+  },
+  {
+    id: 'room_greenhouse',
+    name: 'Plant Conservatory',
+    category: 'environment',
+    price: 260,
+    icon: '🌿',
+    description: 'Sunlit glass atrium, lush potted monsteras & hanging ivy.',
+    environmentId: 'room_greenhouse',
+  },
 
-    // Wallpapers
-    {
-        id: "wall_cyberpunk",
-        name: "Cyberpunk Rooftop",
-        category: "wallpaper",
-        price: 300,
-        icon: "🏙️",
-        description: "Neon city sky retro wallpaper.",
-    },
-    {
-        id: "wall_dungeon",
-        name: "Dungeon Lab",
-        category: "wallpaper",
-        price: 250,
-        icon: "🏰",
-        description: "Mystic stone dungeon workshop.",
-    },
-    {
-        id: "wall_cottage",
-        name: "Cozy Cottage",
-        category: "wallpaper",
-        price: 200,
-        icon: "🏡",
-        description: "Warm wooden cottage interior.",
-    },
+  // --- Cozy Exterior Biomes ---
+  {
+    id: 'biome_sakura',
+    name: 'Sakura Garden',
+    category: 'environment',
+    price: 240,
+    icon: '🌸',
+    description: 'Pink cherry blossom tree, grassy lawn & drifting petals.',
+    environmentId: 'biome_sakura',
+  },
+  {
+    id: 'biome_campfire',
+    name: 'Starry Campfire',
+    category: 'environment',
+    price: 250,
+    icon: '🔥',
+    description: 'Galaxy nebula sky, pine trees, crackling campfire & embers.',
+    environmentId: 'biome_campfire',
+  },
+  {
+    id: 'biome_autumn',
+    name: 'Autumn Maple Grove',
+    category: 'environment',
+    price: 220,
+    icon: '🍂',
+    description: 'Golden-orange autumn maple trees & falling leaves.',
+    environmentId: 'biome_autumn',
+  },
 ];
 
 export class KronosDatabase extends Dexie {
-    dtrSessions!: Table<DtrSession>;
-    petStats!: Table<PetStats>;
-    inventory!: Table<InventoryItem>;
+  dtrSessions!: Table<DtrSession>;
+  petStats!: Table<PetStats>;
+  inventory!: Table<InventoryItem>;
 
-    constructor() {
-        super("KronosDatabase");
-        this.version(2).stores({
-            dtrSessions: "++id, dateKey, category, status",
-            petStats: "id",
-            inventory: "++id, itemId, category",
-        });
-    }
+  constructor() {
+    super('KronosDatabase');
+    this.version(3).stores({
+      dtrSessions: '++id, dateKey, category, status',
+      petStats: 'id',
+      inventory: '++id, itemId, category',
+    });
+  }
 }
 
 export const db = new KronosDatabase();
 
-// Seed initial pet stats if empty
-export async function initPetStats(): Promise<PetStats> {
-    const existing = await db.petStats.get("primary");
-    if (existing) return existing;
-
-    const defaultStats: PetStats = {
-        id: "primary",
-        level: 1,
-        exp: 0,
-        coins: 150,
-        happiness: 80,
-        energy: 90,
-        activeWallpaper: "default",
-        lastUpdated: new Date().toISOString(),
+// Sync, unlock all shop items, and ensure max coins & stats
+export async function syncAndUnlockAllItems(): Promise<void> {
+  try {
+    const existingStats = await db.petStats.get('primary');
+    const statsToSave: PetStats = {
+      id: 'primary',
+      level: Math.max(5, existingStats?.level ?? 5),
+      exp: existingStats?.exp ?? 0,
+      coins: 9999,
+      happiness: 100,
+      energy: 100,
+      activeEnvironment: existingStats?.activeEnvironment ?? 'room_bedroom',
+      activeWallpaper: existingStats?.activeWallpaper ?? 'room_bedroom',
+      lastUpdated: new Date().toISOString(),
     };
+    await db.petStats.put(statsToSave);
 
-    await db.petStats.put(defaultStats);
-    return defaultStats;
+    const existingInventory = await db.inventory.toArray();
+    const existingItemIds = new Set(existingInventory.map((item) => item.itemId));
+
+    const itemsToAdd: InventoryItem[] = [];
+    for (const item of SHOP_ITEMS) {
+      if (!existingItemIds.has(item.id)) {
+        itemsToAdd.push({
+          itemId: item.id,
+          name: item.name,
+          category: item.category,
+          icon: item.icon,
+          environmentId: item.environmentId,
+          statBoost: item.statBoost,
+          purchasedAt: new Date().toISOString(),
+        });
+      }
+    }
+
+    if (itemsToAdd.length > 0) {
+      await db.inventory.bulkAdd(itemsToAdd);
+    }
+  } catch {
+    // Graceful error recovery
+  }
+}
+
+// Seed initial pet stats and unlock items
+export async function initPetStats(): Promise<PetStats> {
+  await syncAndUnlockAllItems();
+  const existing = await db.petStats.get('primary');
+  if (existing) return existing;
+
+  const defaultStats: PetStats = {
+    id: 'primary',
+    level: 5,
+    exp: 0,
+    coins: 9999,
+    happiness: 100,
+    energy: 100,
+    activeEnvironment: 'room_bedroom',
+    activeWallpaper: 'room_bedroom',
+    lastUpdated: new Date().toISOString(),
+  };
+
+  await db.petStats.put(defaultStats);
+  return defaultStats;
 }

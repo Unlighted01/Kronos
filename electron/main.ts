@@ -11,10 +11,29 @@ app.commandLine.appendSwitch("disable-background-timer-throttling");
 
 let widgetWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
-let isWidgetPinned = false; // Default unpinned on boot as requested
+let isWidgetPinned = false; // Default unpinned on boot
 
 const VITE_DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL;
-const isDev = !!VITE_DEV_SERVER_URL || !app.isPackaged;
+
+const ALLOWED_PRESETS = new Set<string>(["1x", "1.25x", "1.5x"]);
+type PresetSize = "1x" | "1.25x" | "1.5x";
+
+function isValidPreset(preset: unknown): preset is PresetSize {
+    return typeof preset === "string" && ALLOWED_PRESETS.has(preset);
+}
+
+function validateNavigationUrl(navigationUrl: string): boolean {
+    if (VITE_DEV_SERVER_URL) {
+        try {
+            const allowedOrigin = new URL(VITE_DEV_SERVER_URL).origin;
+            const targetOrigin = new URL(navigationUrl).origin;
+            return targetOrigin === allowedOrigin;
+        } catch {
+            return false;
+        }
+    }
+    return navigationUrl.startsWith("file://");
+}
 
 function applyPinAndLockState(win: BrowserWindow, pinned: boolean): void {
     if (pinned) {
@@ -28,6 +47,7 @@ function applyPinAndLockState(win: BrowserWindow, pinned: boolean): void {
 
 function createWidgetWindow(): void {
     if (widgetWindow) {
+        widgetWindow.show();
         widgetWindow.focus();
         return;
     }
@@ -35,20 +55,25 @@ function createWidgetWindow(): void {
     widgetWindow = new BrowserWindow({
         width: 260,
         height: 320,
-        resizable: false,
+        minWidth: 220,
+        minHeight: 220,
+        resizable: true,
         frame: false,
-        transparent: true,
-        alwaysOnTop: false, // Default unpinned on boot
-        hasShadow: false,
+        backgroundColor: "#0b0f19",
+        alwaysOnTop: false,
+        hasShadow: true,
         skipTaskbar: false,
         webPreferences: {
             preload: path.join(__dirname, "preload.cjs"),
-            nodeIntegration: false,
             contextIsolation: true,
+            nodeIntegration: false,
+            sandbox: true,
+            webSecurity: true,
+            allowRunningInsecureContent: false,
+            navigateOnDragDrop: false,
         },
     });
 
-    // Apply initial unpinned & movable state
     applyPinAndLockState(widgetWindow, isWidgetPinned);
 
     // --- Windows OS Z-Order Resilience Handlers ---
@@ -60,64 +85,16 @@ function createWidgetWindow(): void {
 
     widgetWindow.on("restore", reassertTopmost);
     widgetWindow.on("show", reassertTopmost);
-    widgetWindow.on("focus", reassertTopmost);
 
     if (VITE_DEV_SERVER_URL) {
-        widgetWindow.loadURL(`${VITE_DEV_SERVER_URL}#widget`);
-        if (isDev) {
-            widgetWindow.webContents.openDevTools({ mode: "detach" });
-        }
+        widgetWindow.loadURL(VITE_DEV_SERVER_URL);
     } else {
-        widgetWindow.loadFile(path.join(__dirname, "../dist/index.html"), {
-            hash: "widget",
-        });
+        widgetWindow.loadFile(path.join(__dirname, "../dist/index.html"));
     }
 
     widgetWindow.on("closed", () => {
         widgetWindow = null;
     });
-}
-
-function openDashboardInSingleWindow(): void {
-    if (!widgetWindow) {
-        createWidgetWindow();
-        return;
-    }
-
-    // Expand existing widget window into full dashboard view
-    widgetWindow.setResizable(true);
-    widgetWindow.setMovable(true);
-    widgetWindow.setAlwaysOnTop(false, "normal");
-    widgetWindow.setSize(1040, 720);
-    widgetWindow.center();
-
-    if (VITE_DEV_SERVER_URL) {
-        widgetWindow.loadURL(`${VITE_DEV_SERVER_URL}#dashboard`);
-    } else {
-        widgetWindow.loadFile(path.join(__dirname, "../dist/index.html"), {
-            hash: "dashboard",
-        });
-    }
-}
-
-function openWidgetInSingleWindow(): void {
-    if (!widgetWindow) {
-        createWidgetWindow();
-        return;
-    }
-
-    // Shrink window back to compact widget overlay
-    widgetWindow.setSize(260, 320);
-    widgetWindow.setResizable(false);
-    applyPinAndLockState(widgetWindow, isWidgetPinned);
-
-    if (VITE_DEV_SERVER_URL) {
-        widgetWindow.loadURL(`${VITE_DEV_SERVER_URL}#widget`);
-    } else {
-        widgetWindow.loadFile(path.join(__dirname, "../dist/index.html"), {
-            hash: "widget",
-        });
-    }
 }
 
 function createSystemTray(): void {
@@ -135,14 +112,15 @@ function createSystemTray(): void {
 
     const contextMenu = Menu.buildFromTemplate([
         {
-            label: "Kronos Widget",
+            label: "Show Kronos Workspace",
             click: () => {
-                openWidgetInSingleWindow();
+                if (widgetWindow) {
+                    widgetWindow.show();
+                    widgetWindow.focus();
+                } else {
+                    createWidgetWindow();
+                }
             },
-        },
-        {
-            label: "Open Full Dashboard (DTR & Shop)",
-            click: () => openDashboardInSingleWindow(),
         },
         { type: "separator" },
         {
@@ -168,9 +146,31 @@ function createSystemTray(): void {
 
     tray.setContextMenu(contextMenu);
     tray.on("double-click", () => {
-        openWidgetInSingleWindow();
+        if (widgetWindow) {
+            widgetWindow.show();
+            widgetWindow.focus();
+        } else {
+            createWidgetWindow();
+        }
     });
 }
+
+// Global WebContents Security Handlers
+app.on("web-contents-created", (_event, contents) => {
+    contents.on("will-navigate", (navEvent, navigationUrl) => {
+        if (!validateNavigationUrl(navigationUrl)) {
+            navEvent.preventDefault();
+        }
+    });
+
+    contents.setWindowOpenHandler(() => {
+        return { action: "deny" };
+    });
+
+    contents.on("will-attach-webview", (attachEvent) => {
+        attachEvent.preventDefault();
+    });
+});
 
 // IPC Handlers
 ipcMain.on("widget-minimize", () => {
@@ -181,24 +181,51 @@ ipcMain.on("widget-close", () => {
     app.quit();
 });
 
-ipcMain.on("dashboard-open", () => {
-    openDashboardInSingleWindow();
+// Single Window Dynamic Panel Layout Resizer (Switched: Left Shop/DTR 240px, Right Vitals/Settings 220px)
+ipcMain.on("widget-update-panel-layout", (_event, layout: { leftOpen: boolean; rightOpen: boolean; scale: '1x' | '1.25x' | '1.5x' }) => {
+    if (!widgetWindow) return;
+
+    const baseMiddleWidth = layout.scale === "1.5x" ? 390 : layout.scale === "1.25x" ? 325 : 260;
+    const baseHeight = layout.scale === "1.5x" ? 480 : layout.scale === "1.25x" ? 400 : 320;
+
+    const leftWidth = layout.leftOpen ? 240 : 0;
+    const rightWidth = layout.rightOpen ? 220 : 0;
+    const totalWidth = leftWidth + baseMiddleWidth + rightWidth;
+
+    const currentBounds = widgetWindow.getBounds();
+    widgetWindow.setBounds(
+        {
+            x: currentBounds.x,
+            y: currentBounds.y,
+            width: totalWidth,
+            height: baseHeight,
+        },
+        false
+    );
 });
 
-ipcMain.on("widget-open", () => {
-    openWidgetInSingleWindow();
+ipcMain.on("widget-set-preset-size", (_event, preset: unknown) => {
+    if (!widgetWindow || !isValidPreset(preset)) return;
+
+    if (preset === "1x") {
+        widgetWindow.setSize(260, 320);
+    } else if (preset === "1.25x") {
+        widgetWindow.setSize(325, 400);
+    } else if (preset === "1.5x") {
+        widgetWindow.setSize(390, 480);
+    }
 });
 
-ipcMain.on("dashboard-close", () => {
-    openWidgetInSingleWindow();
-});
-
-ipcMain.handle("widget-toggle-always-on-top", (_event, flag?: boolean) => {
+ipcMain.handle("widget-toggle-always-on-top", (_event, flag?: unknown) => {
     if (!widgetWindow) return false;
-    isWidgetPinned = flag !== undefined ? flag : !isWidgetPinned;
-    applyPinAndLockState(widgetWindow, isWidgetPinned);
 
-    console.log(`[IPC] Widget Pin & Lock state set to: ${isWidgetPinned}`);
+    if (typeof flag === "boolean") {
+        isWidgetPinned = flag;
+    } else {
+        isWidgetPinned = !isWidgetPinned;
+    }
+
+    applyPinAndLockState(widgetWindow, isWidgetPinned);
     return isWidgetPinned;
 });
 

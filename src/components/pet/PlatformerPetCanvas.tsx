@@ -1,6 +1,23 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useLiveQuery } from 'dexie-react-hooks';
 import { TimerMode, TimerStatus } from '../../stores/useTimerStore';
 import { getRandomThought } from '../../utils/petDialogues';
+import { db, initPetStats } from '../../db/kronosDb';
+import { audioSynth } from '../../utils/audioSynth';
+import {
+  EnvironmentId,
+  PetalParticle,
+  EmberParticle,
+  LeafParticle,
+} from './types/biomeTypes';
+import { renderStudyBedroom } from './renderers/rooms/bedroomRenderer';
+import { renderAtticLibrary } from './renderers/rooms/libraryRenderer';
+import { renderWarmKitchen } from './renderers/rooms/kitchenRenderer';
+import { renderGreenhouse } from './renderers/rooms/greenhouseRenderer';
+import { renderSakuraGarden } from './renderers/biomes/sakuraBiomeRenderer';
+import { renderStarryCampfire } from './renderers/biomes/campfireBiomeRenderer';
+import { renderAutumnGrove } from './renderers/biomes/autumnBiomeRenderer';
+import { drawEnhancedPet } from './renderers/petSpriteRenderer';
 
 interface PlatformerPetCanvasProps {
   mode: TimerMode;
@@ -10,8 +27,16 @@ interface PlatformerPetCanvasProps {
 }
 
 type FocusAction = 'typing_laptop' | 'drinking_coffee' | 'stretching' | 'reading_book' | 'micro_dance';
-type IdleAction = 'walking' | 'looking_at_user' | 'napping' | 'sitting' | 'afk_hiding';
+type IdleAction = 'walking' | 'looking_at_user' | 'napping' | 'sitting' | 'afk_hiding' | 'petted';
 type PetAction = FocusAction | IdleAction;
+
+interface HeartParticle {
+  id: number;
+  x: number;
+  y: number;
+  opacity: number;
+  scale: number;
+}
 
 export const PlatformerPetCanvas: React.FC<PlatformerPetCanvasProps> = ({
   mode,
@@ -19,12 +44,72 @@ export const PlatformerPetCanvas: React.FC<PlatformerPetCanvasProps> = ({
   width = 240,
   height = 140,
 }) => {
+  const LOGICAL_WIDTH = 240;
+  const LOGICAL_HEIGHT = 140;
+
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const frameRef = useRef<number>(0);
   const petXRef = useRef<number>(60);
   const petDirectionRef = useRef<number>(1);
   const currentActionRef = useRef<PetAction>('typing_laptop');
   const actionTimerRef = useRef<number>(0);
+
+  const [hearts, setHearts] = useState<HeartParticle[]>([]);
+
+  // Query live environment from Dexie DB
+  const petStats = useLiveQuery(async () => {
+    return (await db.petStats.get('primary')) || (await initPetStats());
+  });
+
+  const activeEnvironment: EnvironmentId = petStats?.activeEnvironment || 'room_bedroom';
+
+  // Dynamic particle pools
+  const petalsRef = useRef<PetalParticle[]>([]);
+  const embersRef = useRef<EmberParticle[]>([]);
+  const leavesRef = useRef<LeafParticle[]>([]);
+
+  // Initialize Particle Pools
+  useEffect(() => {
+    // Sakura Petals
+    petalsRef.current = Array.from({ length: 22 }).map(() => ({
+      x: Math.random() * LOGICAL_WIDTH,
+      y: Math.random() * LOGICAL_HEIGHT,
+      speedX: 0.4 + Math.random() * 0.6,
+      speedY: 0.6 + Math.random() * 0.8,
+      rotation: Math.random() * Math.PI * 2,
+      rotationSpeed: (Math.random() - 0.5) * 0.05,
+      swayOffset: Math.random() * 10,
+      opacity: 0.7 + Math.random() * 0.3,
+      size: 3 + Math.random() * 2,
+    }));
+
+    // Campfire Embers
+    embersRef.current = Array.from({ length: 18 }).map(() => ({
+      x: 45 + (Math.random() - 0.5) * 14,
+      y: LOGICAL_HEIGHT - 32 - Math.random() * 20,
+      speedX: (Math.random() - 0.5) * 0.6,
+      speedY: -(0.5 + Math.random() * 1.0),
+      opacity: 1,
+      size: 1.5 + Math.random() * 1.5,
+      life: Math.random() * 30,
+      maxLife: 30 + Math.random() * 20,
+      color: Math.random() > 0.4 ? '#fbbf24' : '#f97316',
+    }));
+
+    // Autumn Leaves
+    const leafColors = ['#ea580c', '#f59e0b', '#dc2626', '#b45309'];
+    leavesRef.current = Array.from({ length: 18 }).map(() => ({
+      x: Math.random() * LOGICAL_WIDTH,
+      y: Math.random() * LOGICAL_HEIGHT,
+      speedX: 0.3 + Math.random() * 0.5,
+      speedY: 0.5 + Math.random() * 0.7,
+      rotation: Math.random() * Math.PI * 2,
+      rotationSpeed: (Math.random() - 0.5) * 0.04,
+      opacity: 0.8 + Math.random() * 0.2,
+      size: 3.5 + Math.random() * 2.5,
+      color: leafColors[Math.floor(Math.random() * leafColors.length)],
+    }));
+  }, []); // Remove width and height from dependencies, use constants
 
   // Behavior Anti-Repetition & Cooldown Memory Engine
   const actionMemoryRef = useRef<{
@@ -49,16 +134,15 @@ export const PlatformerPetCanvas: React.FC<PlatformerPetCanvasProps> = ({
       lastActivityRef.current = Date.now();
       if (isAfk) {
         setIsAfk(false);
-        petXRef.current = 20; // Walk back onto screen
+        petXRef.current = 60;
       }
     };
 
     window.addEventListener('mousemove', handleActivity);
     window.addEventListener('keydown', handleActivity);
 
-    // AFK Check Interval (20 seconds inactivity while timer is idle)
     const afkInterval = setInterval(() => {
-      if (status === 'idle' && Date.now() - lastActivityRef.current > 20000) {
+      if (status === 'idle' && Date.now() - lastActivityRef.current > 25000) {
         if (!isAfk && Math.random() > 0.3) {
           setIsAfk(true);
           currentActionRef.current = 'afk_hiding';
@@ -77,7 +161,7 @@ export const PlatformerPetCanvas: React.FC<PlatformerPetCanvasProps> = ({
   // Periodic Random Speech Bubble Generator
   useEffect(() => {
     const bubbleInterval = setInterval(() => {
-      if (Math.random() > 0.4) {
+      if (Math.random() > 0.4 && currentActionRef.current !== 'petted') {
         setCurrentThought(getRandomThought(mode, status, isAfk));
         setTimeout(() => setCurrentThought(''), 4000);
       }
@@ -86,6 +170,58 @@ export const PlatformerPetCanvas: React.FC<PlatformerPetCanvasProps> = ({
     return () => clearInterval(bubbleInterval);
   }, [mode, status, isAfk]);
 
+  // Click-to-Pet Interaction Handler
+  const handleCanvasClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = LOGICAL_WIDTH / rect.width;
+    const scaleY = LOGICAL_HEIGHT / rect.height;
+    const clickX = (e.clientX - rect.left) * scaleX;
+    const clickY = (e.clientY - rect.top) * scaleY;
+
+    const petX = petXRef.current;
+    const platformY = LOGICAL_HEIGHT - 28;
+    const petY = platformY - 20;
+
+    if (clickX >= petX - 25 && clickX <= petX + 45 && clickY >= petY - 20 && clickY <= petY + 40) {
+      audioSynth.playChime();
+      currentActionRef.current = 'petted';
+      actionTimerRef.current = 18;
+      setCurrentThought('I love you! ❤️ ✨');
+
+      const newHearts: HeartParticle[] = Array.from({ length: 4 }).map((_, i) => ({
+        id: Date.now() + i,
+        x: petX + Math.random() * 20 - 5,
+        y: petY - Math.random() * 10,
+        opacity: 1,
+        scale: 0.8 + Math.random() * 0.4,
+      }));
+      setHearts((prev) => [...prev, ...newHearts]);
+
+      db.petStats.get('primary').then((stats) => {
+        if (stats) {
+          const newHappiness = Math.min(100, stats.happiness + 5);
+          db.petStats.update('primary', { happiness: newHappiness });
+        }
+      }).catch(() => {});
+    }
+  };
+
+  // Heart Particles Animation Loop
+  useEffect(() => {
+    if (hearts.length === 0) return;
+    const interval = setInterval(() => {
+      setHearts((prev) =>
+        prev
+          .map((h) => ({ ...h, y: h.y - 1.5, opacity: h.opacity - 0.05 }))
+          .filter((h) => h.opacity > 0)
+      );
+    }, 50);
+    return () => clearInterval(interval);
+  }, [hearts]);
+
+  // Main Canvas Render Loop
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -95,15 +231,13 @@ export const PlatformerPetCanvas: React.FC<PlatformerPetCanvasProps> = ({
     ctx.imageSmoothingEnabled = false;
 
     let lastTime = performance.now();
-    const frameInterval = 1000 / 12; // 12 FPS throttled for retro look & <0.1% CPU
+    const frameInterval = 1000 / 12;
 
     let animationId: number;
 
-    // Smart Non-Repeating Behavior Engine Selection
     const selectNextAction = () => {
       const memory = actionMemoryRef.current;
 
-      // 1. Decrement active cooldown counters
       memory.cooldowns.forEach((ticks, act) => {
         if (ticks > 1) {
           memory.cooldowns.set(act, ticks - 1);
@@ -112,19 +246,16 @@ export const PlatformerPetCanvas: React.FC<PlatformerPetCanvasProps> = ({
         }
       });
 
-      // 2. Base action pool for current mode
       const rawPool: PetAction[] = (status === 'running' && mode === 'work')
         ? ['typing_laptop', 'drinking_coffee', 'stretching', 'reading_book', 'micro_dance']
         : ['walking', 'looking_at_user', 'napping', 'sitting'];
 
-      // 3. Filter candidates (no consecutive duplicates, no actions on cooldown)
       let candidates = rawPool.filter((act) => {
-        if (act === memory.currentState) return false; // Prevent consecutive duplicates!
-        if (memory.cooldowns.has(act)) return false;   // In active cooldown!
+        if (act === memory.currentState) return false;
+        if (memory.cooldowns.has(act)) return false;
         return true;
       });
 
-      // 4. Fallback if candidate pool is empty
       if (candidates.length === 0) {
         candidates = rawPool.filter((act) => act !== memory.currentState);
       }
@@ -132,23 +263,60 @@ export const PlatformerPetCanvas: React.FC<PlatformerPetCanvasProps> = ({
         candidates = rawPool;
       }
 
-      // 5. Select next action
       const nextAction = candidates[Math.floor(Math.random() * candidates.length)];
 
-      // 6. Apply state cooldown rules (e.g. napping cannot repeat for 4 cycles)
       if (nextAction === 'napping') memory.cooldowns.set('napping', 4);
       if (nextAction === 'drinking_coffee') memory.cooldowns.set('drinking_coffee', 3);
       if (nextAction === 'stretching') memory.cooldowns.set('stretching', 2);
       if (nextAction === 'afk_hiding') memory.cooldowns.set('afk_hiding', 5);
 
-      // 7. Update behavior memory
       memory.lastState = memory.currentState;
       memory.currentState = nextAction;
       memory.historyQueue.push(nextAction);
       if (memory.historyQueue.length > 4) memory.historyQueue.shift();
 
       currentActionRef.current = nextAction;
-      actionTimerRef.current = Math.floor(Math.random() * 40) + 30; // 3-7 seconds
+      actionTimerRef.current = Math.floor(Math.random() * 40) + 30;
+    };
+
+    const updateParticles = () => {
+      // Update Sakura Petals
+      petalsRef.current.forEach((p) => {
+        p.x += p.speedX + Math.sin(frameRef.current * 0.05 + p.swayOffset) * 0.5;
+        p.y += p.speedY;
+        p.rotation += p.rotationSpeed;
+        if (p.y > LOGICAL_HEIGHT) {
+          p.y = -5;
+          p.x = Math.random() * LOGICAL_WIDTH;
+        }
+        if (p.x > LOGICAL_WIDTH) p.x = -5;
+      });
+
+      // Update Campfire Embers
+      embersRef.current.forEach((e) => {
+        e.y += e.speedY;
+        e.x += e.speedX + Math.sin(frameRef.current * 0.2 + e.life) * 0.3;
+        e.life++;
+        e.opacity = Math.max(0, 1 - e.life / e.maxLife);
+        if (e.life >= e.maxLife) {
+          e.x = 45 + (Math.random() - 0.5) * 14;
+          e.y = LOGICAL_HEIGHT - 32;
+          e.life = 0;
+          e.opacity = 1;
+        }
+      });
+
+      // Update Autumn Leaves
+      leavesRef.current.forEach((l) => {
+        l.x += l.speedX + Math.cos(frameRef.current * 0.04) * 0.6;
+        l.y += l.speedY;
+        l.rotation += l.rotationSpeed;
+        if (l.y > LOGICAL_HEIGHT) {
+          l.y = -5;
+          l.x = Math.random() * LOGICAL_WIDTH;
+        }
+        if (l.x > LOGICAL_WIDTH) l.x = -5;
+      });
     };
 
     const render = (now: number) => {
@@ -161,167 +329,70 @@ export const PlatformerPetCanvas: React.FC<PlatformerPetCanvasProps> = ({
       frameRef.current = (frameRef.current + 1) % 60;
       const frame = frameRef.current;
 
-      // Update Action Timer
       actionTimerRef.current -= 1;
       if (actionTimerRef.current <= 0 && !isAfk) {
         selectNextAction();
       }
 
+      updateParticles();
+
       const action = isAfk ? 'afk_hiding' : currentActionRef.current;
 
-      // --- CLEAR CANVAS ---
-      ctx.clearRect(0, 0, width, height);
+      ctx.clearRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
 
-      // --- 1. ROOM WALLPAPER & STARS ---
-      ctx.fillStyle = '#0f172a';
-      ctx.fillRect(0, 0, width, height);
+      // --- 1. DYNAMIC ENVIRONMENT RENDERER (House Rooms vs Biomes) ---
+      let envData = { platformY: LOGICAL_HEIGHT - 28, deskX: LOGICAL_WIDTH - 70, deskY: LOGICAL_HEIGHT - 52 };
 
-      ctx.fillStyle = '#1e293b';
-      for (let i = 10; i < width; i += 30) {
-        for (let j = 10; j < height - 30; j += 30) {
-          ctx.fillRect(i, j, 2, 2);
-        }
+      if (activeEnvironment === 'room_library') {
+        envData = renderAtticLibrary(ctx, LOGICAL_WIDTH, LOGICAL_HEIGHT, frame, mode, status);
+      } else if (activeEnvironment === 'room_kitchen') {
+        envData = renderWarmKitchen(ctx, LOGICAL_WIDTH, LOGICAL_HEIGHT, frame, mode, status);
+      } else if (activeEnvironment === 'room_greenhouse') {
+        envData = renderGreenhouse(ctx, LOGICAL_WIDTH, LOGICAL_HEIGHT, frame, mode, status);
+      } else if (activeEnvironment === 'biome_sakura') {
+        envData = renderSakuraGarden(ctx, LOGICAL_WIDTH, LOGICAL_HEIGHT, frame, petalsRef.current, mode, status);
+      } else if (activeEnvironment === 'biome_campfire') {
+        envData = renderStarryCampfire(ctx, LOGICAL_WIDTH, LOGICAL_HEIGHT, frame, embersRef.current, mode, status);
+      } else if (activeEnvironment === 'biome_autumn') {
+        envData = renderAutumnGrove(ctx, LOGICAL_WIDTH, LOGICAL_HEIGHT, frame, leavesRef.current, mode, status);
+      } else {
+        // Default: Study Bedroom
+        envData = renderStudyBedroom(ctx, LOGICAL_WIDTH, LOGICAL_HEIGHT, frame, mode, status);
       }
 
-      // --- 2. 2D PIXEL PLATFORM FLOOR ---
-      const platformY = height - 28;
-      ctx.fillStyle = '#1e1b4b';
-      ctx.fillRect(0, platformY, width, 28);
-      ctx.fillStyle = '#4f46e5';
-      ctx.fillRect(0, platformY, width, 4);
-      ctx.fillStyle = '#818cf8';
-      for (let x = 0; x < width; x += 8) {
-        ctx.fillRect(x, platformY, 4, 2);
-      }
+      const { platformY, deskX } = envData;
 
-      // --- 3. WORKSTATION FURNITURE ---
-      const deskX = width - 70;
-      const deskY = platformY - 24;
-
-      ctx.fillStyle = '#312e81';
-      ctx.fillRect(deskX, deskY, 45, 24);
-      ctx.fillStyle = '#4338ca';
-      ctx.fillRect(deskX, deskY, 45, 4);
-
-      ctx.fillStyle = '#64748b';
-      ctx.fillRect(deskX + 12, deskY - 18, 22, 18);
-      ctx.fillStyle = status === 'running' && mode === 'work' ? '#38bdf8' : '#0284c7';
-      ctx.fillRect(deskX + 14, deskY - 16, 18, 14);
-
-      if (status === 'running' && mode === 'work') {
-        ctx.fillStyle = '#ffffff';
-        const lineOffset = (frame % 3) * 3;
-        ctx.fillRect(deskX + 16, deskY - 14 + lineOffset, 8, 2);
-        ctx.fillRect(deskX + 16, deskY - 10 + lineOffset, 12, 2);
-      }
-
-      ctx.fillStyle = '#475569';
-      ctx.fillRect(deskX - 14, deskY + 6, 12, 18);
-      ctx.fillRect(deskX - 16, deskY - 6, 4, 20);
-
-      // --- 4. ORGANIC UNPREDICTABLE PET RENDERER ---
+      // --- 2. PET ANIMATION RENDERER ---
       let drawX = petXRef.current;
-      let drawY = platformY - 16;
+      const drawY = platformY - 16;
 
-      if (action === 'afk_hiding') {
-        if (petXRef.current > -20) {
-          petXRef.current -= 1.5;
-        }
-        drawX = petXRef.current;
-        drawY = platformY - 16 - Math.abs(Math.sin(frame * 0.4) * 3);
-
-        ctx.fillStyle = '#64748b';
-        ctx.fillRect(drawX, drawY, 16, 14);
-      } else if (action === 'typing_laptop') {
+      if (action === 'typing_laptop' || action === 'drinking_coffee') {
         drawX = deskX - 10;
-        drawY = deskY + 2 + (frame % 2 === 0 ? 0 : -1);
-
-        ctx.fillStyle = '#a855f7';
-        ctx.fillRect(drawX, drawY, 16, 14);
-        ctx.fillStyle = '#c084fc';
-        ctx.fillRect(drawX + 2, drawY + 2, 12, 4);
-
-        ctx.fillStyle = '#fbbf24';
-        ctx.fillRect(drawX + 8, drawY + 3, 6, 5);
-        ctx.fillStyle = '#38bdf8';
-        ctx.fillRect(drawX + 9, drawY + 4, 4, 3);
-
-        ctx.fillStyle = '#c084fc';
-        ctx.fillRect(drawX + 14, drawY + (frame % 2 === 0 ? 10 : 9), 4, 3);
-      } else if (action === 'drinking_coffee') {
-        drawX = deskX - 10;
-        drawY = deskY + 2;
-
-        ctx.fillStyle = '#a855f7';
-        ctx.fillRect(drawX, drawY, 16, 14);
-
-        ctx.fillStyle = '#f59e0b';
-        ctx.fillRect(drawX + 12, drawY + 4, 5, 7);
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(drawX + 13, drawY + 2, 3, 2);
-      } else if (action === 'micro_dance') {
-        drawX = 50 + (frame % 4 === 0 ? 2 : -2);
-        drawY = platformY - 18 - Math.abs(Math.sin(frame * 0.5) * 4);
-
-        ctx.fillStyle = '#ec4899';
-        ctx.fillRect(drawX, drawY, 16, 14);
-        ctx.fillStyle = '#f472b6';
-        ctx.fillRect(drawX + 2, drawY + 2, 12, 4);
-
-        ctx.fillStyle = '#fbbf24';
-        ctx.font = '9px monospace';
-        ctx.fillText('♪', drawX + 16, drawY - 4);
-      } else if (action === 'reading_book') {
-        drawX = 60;
-        drawY = platformY - 16;
-
-        ctx.fillStyle = '#8b5cf6';
-        ctx.fillRect(drawX, drawY, 16, 14);
-
-        ctx.fillStyle = '#38bdf8';
-        ctx.fillRect(drawX + 10, drawY + 4, 8, 8);
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(drawX + 12, drawY + 5, 4, 6);
       } else if (action === 'walking') {
         petXRef.current += petDirectionRef.current * 0.8;
         if (petXRef.current > deskX - 30) petDirectionRef.current = -1;
-        if (petXRef.current < 20) petDirectionRef.current = 1;
-
+        if (petXRef.current < 55) petDirectionRef.current = 1;
         drawX = petXRef.current;
-        drawY = platformY - 16 - Math.abs(Math.sin(frame * 0.3) * 3);
-
-        ctx.fillStyle = '#ec4899';
-        ctx.fillRect(drawX, drawY, 16, 14);
-      } else if (action === 'napping') {
-        drawX = 50;
-        drawY = platformY - 12;
-
-        ctx.fillStyle = '#8b5cf6';
-        ctx.fillRect(drawX, drawY, 18, 10);
-
-        ctx.fillStyle = '#94a3b8';
-        ctx.font = '8px monospace';
-        ctx.fillText('z', drawX + 18, drawY - (frame % 8));
-      } else {
-        drawX = 60;
-        drawY = platformY - 16 + (Math.floor(frame / 6) % 2 === 0 ? 0 : 1);
-
-        ctx.fillStyle = '#8b5cf6';
-        ctx.fillRect(drawX, drawY, 16, 14);
-        ctx.fillStyle = '#a78bfa';
-        ctx.fillRect(drawX + 2, drawY + 2, 12, 4);
-
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(drawX + 3, drawY + 4, 4, 4);
-        ctx.fillRect(drawX + 9, drawY + 4, 4, 4);
-        ctx.fillStyle = '#0f172a';
-        ctx.fillRect(drawX + 4, drawY + 5, 2, 2);
-        ctx.fillRect(drawX + 10, drawY + 5, 2, 2);
+      } else if (action === 'afk_hiding') {
+        if (petXRef.current > -20) petXRef.current -= 1.5;
+        drawX = petXRef.current;
       }
 
-      // --- 5. RENDER PIXEL SPEECH THOUGHT BUBBLE ---
+      // Render High-Detail Enhanced Pixel Pet Sprite
+      drawEnhancedPet({
+        ctx,
+        drawX,
+        drawY,
+        action,
+        frame,
+        direction: petDirectionRef.current,
+        status,
+        mode,
+      });
+
+      // --- 3. SPEECH THOUGHT BUBBLE ---
       if (currentThought && action !== 'afk_hiding') {
-        const bubbleX = Math.max(10, Math.min(width - 110, drawX - 30));
+        const bubbleX = Math.max(10, Math.min(LOGICAL_WIDTH - 110, drawX - 30));
         const bubbleY = Math.max(10, drawY - 26);
 
         ctx.fillStyle = 'rgba(15, 23, 42, 0.95)';
@@ -344,20 +415,40 @@ export const PlatformerPetCanvas: React.FC<PlatformerPetCanvasProps> = ({
     return () => {
       cancelAnimationFrame(animationId);
     };
-  }, [mode, status, isAfk, width, height, currentThought]);
+  }, [mode, status, isAfk, currentThought, activeEnvironment]);
 
   return (
-    <div className="relative rounded-xl overflow-hidden border border-indigo-500/20 shadow-inner">
+    <div
+      className="relative rounded-xl overflow-hidden border border-white/10 shadow-inner cursor-pointer"
+      onClick={handleCanvasClick}
+      style={{ width: `${width}px`, height: `${height}px` }}
+    >
       <canvas
         ref={canvasRef}
-        width={width}
-        height={height}
+        width={LOGICAL_WIDTH}
+        height={LOGICAL_HEIGHT}
         style={{
           imageRendering: 'pixelated',
-          width: `${width}px`,
-          height: `${height}px`,
+          width: '100%',
+          height: '100%',
         }}
       />
+      {/* Floating Heart Particles */}
+      {hearts.map((h) => (
+        <span
+          key={h.id}
+          className="absolute text-rose-400 font-bold pointer-events-none select-none transition-all duration-75 text-xs"
+          style={{
+            left: `${h.x * (width / LOGICAL_WIDTH)}px`,
+            top: `${h.y * (height / LOGICAL_HEIGHT)}px`,
+            opacity: h.opacity,
+            transform: `scale(${h.scale * (width / LOGICAL_WIDTH)})`,
+          }}
+        >
+          ❤️
+        </span>
+      ))}
     </div>
   );
 };
+

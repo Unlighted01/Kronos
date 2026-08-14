@@ -1,5 +1,6 @@
 import { defineConfig, Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
 import electron from 'vite-plugin-electron';
 import renderer from 'vite-plugin-electron-renderer';
 import path from 'path';
@@ -19,9 +20,8 @@ function buildPreloadCjsPlugin(): Plugin {
 const kronosAPI = {
   minimizeWidget: () => ipcRenderer.send('widget-minimize'),
   closeWidget: () => ipcRenderer.send('widget-close'),
-  openWidget: () => ipcRenderer.send('widget-open'),
-  openDashboard: () => ipcRenderer.send('dashboard-open'),
-  closeDashboard: () => ipcRenderer.send('widget-open'),
+  setPresetSize: (preset) => ipcRenderer.send('widget-set-preset-size', preset),
+  updatePanelLayout: (layout) => ipcRenderer.send('widget-update-panel-layout', layout),
   toggleAlwaysOnTop: (flag) => ipcRenderer.invoke('widget-toggle-always-on-top', flag),
   pinWidget: (flag) => ipcRenderer.invoke('widget-toggle-always-on-top', flag),
   togglePin: (flag) => ipcRenderer.invoke('widget-toggle-always-on-top', flag),
@@ -41,6 +41,7 @@ contextBridge.exposeInMainWorld('kronosElectron', kronosAPI);
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
+    tailwindcss(),
     react(),
     electron([
       {
