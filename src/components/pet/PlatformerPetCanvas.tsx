@@ -1,11 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useLiveQuery } from 'dexie-react-hooks';
 import { TimerMode, TimerStatus } from '../../stores/useTimerStore';
 import { getRandomThought } from '../../utils/petDialogues';
-import { db, initPetStats } from '../../db/kronosDb';
+import { db } from '../../db/kronosDb';
 import { audioSynth } from '../../utils/audioSynth';
 import {
-  EnvironmentId,
   PetalParticle,
   EmberParticle,
   LeafParticle,
@@ -18,6 +16,10 @@ import { renderSakuraGarden } from './renderers/biomes/sakuraBiomeRenderer';
 import { renderStarryCampfire } from './renderers/biomes/campfireBiomeRenderer';
 import { renderAutumnGrove } from './renderers/biomes/autumnBiomeRenderer';
 import { drawEnhancedPet } from './renderers/petSpriteRenderer';
+import { useHouseStore } from '../../stores/useHouseStore';
+import { HOUSE_TOPOLOGY } from './types/houseMapTypes';
+import { renderLivingRoom } from './renderers/rooms/livingRoomRenderer';
+import { drawRoomDoors } from './renderers/doorRenderer';
 
 interface PlatformerPetCanvasProps {
   mode: TimerMode;
@@ -26,9 +28,18 @@ interface PlatformerPetCanvasProps {
   height?: number;
 }
 
-type FocusAction = 'typing_laptop' | 'drinking_coffee' | 'stretching' | 'reading_book' | 'micro_dance';
-type IdleAction = 'walking' | 'looking_at_user' | 'napping' | 'sitting' | 'afk_hiding' | 'petted';
-type PetAction = FocusAction | IdleAction;
+export type FocusAction =
+  | 'typing_laptop'
+  | 'drinking_coffee'
+  | 'stretching'
+  | 'reading_book'
+  | 'micro_dance'
+  | 'baking_croissant'
+  | 'watering_plants'
+  | 'relaxing_sofa';
+
+export type IdleAction = 'walking' | 'looking_at_user' | 'napping' | 'sitting' | 'afk_hiding' | 'petted';
+export type PetAction = FocusAction | IdleAction | string;
 
 interface HeartParticle {
   id: number;
@@ -55,13 +66,12 @@ export const PlatformerPetCanvas: React.FC<PlatformerPetCanvasProps> = ({
   const actionTimerRef = useRef<number>(0);
 
   const [hearts, setHearts] = useState<HeartParticle[]>([]);
+  const [hoveredDoorId, setHoveredDoorId] = useState<string | null>(null);
 
-  // Query live environment from Dexie DB
-  const petStats = useLiveQuery(async () => {
-    return (await db.petStats.get('primary')) || (await initPetStats());
-  });
+  const { petCurrentRoom, activeViewRoom, petActivity, setViewRoom, jumpToPet, wanderRoutine } = useHouseStore();
 
-  const activeEnvironment: EnvironmentId = petStats?.activeEnvironment || 'room_bedroom';
+  const currentRoomDef = HOUSE_TOPOLOGY[activeViewRoom];
+  const doors = currentRoomDef?.doors || [];
 
   // Dynamic particle pools
   const petalsRef = useRef<PetalParticle[]>([]);
@@ -109,7 +119,7 @@ export const PlatformerPetCanvas: React.FC<PlatformerPetCanvasProps> = ({
       size: 3.5 + Math.random() * 2.5,
       color: leafColors[Math.floor(Math.random() * leafColors.length)],
     }));
-  }, []); // Remove width and height from dependencies, use constants
+  }, [LOGICAL_HEIGHT, LOGICAL_WIDTH]);
 
   // Behavior Anti-Repetition & Cooldown Memory Engine
   const actionMemoryRef = useRef<{
@@ -161,16 +171,37 @@ export const PlatformerPetCanvas: React.FC<PlatformerPetCanvasProps> = ({
   // Periodic Random Speech Bubble Generator
   useEffect(() => {
     const bubbleInterval = setInterval(() => {
-      if (Math.random() > 0.4 && currentActionRef.current !== 'petted') {
+      if (Math.random() > 0.4 && currentActionRef.current !== 'petted' && activeViewRoom === petCurrentRoom) {
         setCurrentThought(getRandomThought(mode, status, isAfk));
         setTimeout(() => setCurrentThought(''), 4000);
       }
     }, 7000);
 
     return () => clearInterval(bubbleInterval);
-  }, [mode, status, isAfk]);
+  }, [mode, status, isAfk, activeViewRoom, petCurrentRoom]);
 
-  // Click-to-Pet Interaction Handler
+  // Mouse move handler for door hover effects
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = LOGICAL_WIDTH / rect.width;
+    const scaleY = LOGICAL_HEIGHT / rect.height;
+    const mouseX = (e.clientX - rect.left) * scaleX;
+    const mouseY = (e.clientY - rect.top) * scaleY;
+
+    const hitDoor = doors.find(
+      (d) =>
+        mouseX >= d.x &&
+        mouseX <= d.x + d.width &&
+        mouseY >= d.y &&
+        mouseY <= d.y + d.height
+    );
+
+    setHoveredDoorId(hitDoor ? hitDoor.id : null);
+  };
+
+  // Click handler (Door Navigation vs Petting)
   const handleCanvasClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -180,31 +211,49 @@ export const PlatformerPetCanvas: React.FC<PlatformerPetCanvasProps> = ({
     const clickX = (e.clientX - rect.left) * scaleX;
     const clickY = (e.clientY - rect.top) * scaleY;
 
-    const petX = petXRef.current;
-    const platformY = LOGICAL_HEIGHT - 28;
-    const petY = platformY - 20;
+    // Check if a door was clicked
+    const clickedDoor = doors.find(
+      (d) =>
+        clickX >= d.x &&
+        clickX <= d.x + d.width &&
+        clickY >= d.y &&
+        clickY <= d.y + d.height
+    );
 
-    if (clickX >= petX - 25 && clickX <= petX + 45 && clickY >= petY - 20 && clickY <= petY + 40) {
-      audioSynth.playChime();
-      currentActionRef.current = 'petted';
-      actionTimerRef.current = 18;
-      setCurrentThought('I love you! ❤️ ✨');
+    if (clickedDoor) {
+      audioSynth.playClick();
+      setViewRoom(clickedDoor.targetRoom);
+      return;
+    }
 
-      const newHearts: HeartParticle[] = Array.from({ length: 4 }).map((_, i) => ({
-        id: Date.now() + i,
-        x: petX + Math.random() * 20 - 5,
-        y: petY - Math.random() * 10,
-        opacity: 1,
-        scale: 0.8 + Math.random() * 0.4,
-      }));
-      setHearts((prev) => [...prev, ...newHearts]);
+    // Check if Pet was clicked (only if pet is in current room)
+    if (activeViewRoom === petCurrentRoom) {
+      const petX = petXRef.current;
+      const platformY = LOGICAL_HEIGHT - 28;
+      const petY = platformY - 20;
 
-      db.petStats.get('primary').then((stats) => {
-        if (stats) {
-          const newHappiness = Math.min(100, stats.happiness + 5);
-          db.petStats.update('primary', { happiness: newHappiness });
-        }
-      }).catch(() => {});
+      if (clickX >= petX - 25 && clickX <= petX + 45 && clickY >= petY - 20 && clickY <= petY + 40) {
+        audioSynth.playChime();
+        currentActionRef.current = 'petted';
+        actionTimerRef.current = 18;
+        setCurrentThought('I love you! ❤️ ✨');
+
+        const newHearts: HeartParticle[] = Array.from({ length: 4 }).map((_, i) => ({
+          id: Date.now() + i,
+          x: petX + Math.random() * 20 - 5,
+          y: petY - Math.random() * 10,
+          opacity: 1,
+          scale: 0.8 + Math.random() * 0.4,
+        }));
+        setHearts((prev) => [...prev, ...newHearts]);
+
+        db.petStats.get('primary').then((stats) => {
+          if (stats) {
+            const newHappiness = Math.min(100, stats.happiness + 5);
+            db.petStats.update('primary', { happiness: newHappiness });
+          }
+        }).catch(() => {});
+      }
     }
   };
 
@@ -336,77 +385,85 @@ export const PlatformerPetCanvas: React.FC<PlatformerPetCanvasProps> = ({
 
       updateParticles();
 
-      const action = isAfk ? 'afk_hiding' : currentActionRef.current;
+      const action = isAfk ? 'afk_hiding' : (activeViewRoom === petCurrentRoom ? (petActivity || currentActionRef.current) : currentActionRef.current);
 
       ctx.clearRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
 
-      // --- 1. DYNAMIC ENVIRONMENT RENDERER (House Rooms vs Biomes) ---
+      // --- 1. DYNAMIC ENVIRONMENT RENDERER ---
       let envData = { platformY: LOGICAL_HEIGHT - 28, deskX: LOGICAL_WIDTH - 70, deskY: LOGICAL_HEIGHT - 52 };
 
-      if (activeEnvironment === 'room_library') {
-        envData = renderAtticLibrary(ctx, LOGICAL_WIDTH, LOGICAL_HEIGHT, frame, mode, status);
-      } else if (activeEnvironment === 'room_kitchen') {
-        envData = renderWarmKitchen(ctx, LOGICAL_WIDTH, LOGICAL_HEIGHT, frame, mode, status);
-      } else if (activeEnvironment === 'room_greenhouse') {
-        envData = renderGreenhouse(ctx, LOGICAL_WIDTH, LOGICAL_HEIGHT, frame, mode, status);
-      } else if (activeEnvironment === 'biome_sakura') {
+      if (activeViewRoom === 'room_library') {
+        envData = renderAtticLibrary(ctx, LOGICAL_WIDTH, LOGICAL_HEIGHT, frame, mode, status, doors, hoveredDoorId);
+      } else if (activeViewRoom === 'room_living') {
+        envData = renderLivingRoom(ctx, LOGICAL_WIDTH, LOGICAL_HEIGHT, frame, mode, status, doors, hoveredDoorId);
+      } else if (activeViewRoom === 'room_kitchen') {
+        envData = renderWarmKitchen(ctx, LOGICAL_WIDTH, LOGICAL_HEIGHT, frame, mode, status, doors, hoveredDoorId);
+      } else if (activeViewRoom === 'room_greenhouse') {
+        envData = renderGreenhouse(ctx, LOGICAL_WIDTH, LOGICAL_HEIGHT, frame, mode, status, doors, hoveredDoorId);
+      } else if (activeViewRoom === 'biome_sakura') {
         envData = renderSakuraGarden(ctx, LOGICAL_WIDTH, LOGICAL_HEIGHT, frame, petalsRef.current, mode, status);
-      } else if (activeEnvironment === 'biome_campfire') {
+      } else if (activeViewRoom === 'biome_campfire') {
         envData = renderStarryCampfire(ctx, LOGICAL_WIDTH, LOGICAL_HEIGHT, frame, embersRef.current, mode, status);
-      } else if (activeEnvironment === 'biome_autumn') {
+      } else if (activeViewRoom === 'biome_autumn') {
         envData = renderAutumnGrove(ctx, LOGICAL_WIDTH, LOGICAL_HEIGHT, frame, leavesRef.current, mode, status);
       } else {
         // Default: Study Bedroom
-        envData = renderStudyBedroom(ctx, LOGICAL_WIDTH, LOGICAL_HEIGHT, frame, mode, status);
+        envData = renderStudyBedroom(ctx, LOGICAL_WIDTH, LOGICAL_HEIGHT, frame, mode, status, doors, hoveredDoorId);
+      }
+
+      if (activeViewRoom === 'biome_sakura' || activeViewRoom === 'biome_campfire' || activeViewRoom === 'biome_autumn') {
+        drawRoomDoors(ctx, doors, frame, hoveredDoorId);
       }
 
       const { platformY, deskX } = envData;
 
       // --- 2. PET ANIMATION RENDERER ---
-      let drawX = petXRef.current;
-      const drawY = platformY - 16;
+      if (activeViewRoom === petCurrentRoom) {
+        let drawX = petXRef.current;
+        const drawY = platformY - 16;
 
-      if (action === 'typing_laptop' || action === 'drinking_coffee') {
-        drawX = deskX - 10;
-      } else if (action === 'walking') {
-        petXRef.current += petDirectionRef.current * 0.8;
-        if (petXRef.current > deskX - 30) petDirectionRef.current = -1;
-        if (petXRef.current < 55) petDirectionRef.current = 1;
-        drawX = petXRef.current;
-      } else if (action === 'afk_hiding') {
-        if (petXRef.current > -20) petXRef.current -= 1.5;
-        drawX = petXRef.current;
-      }
+        if (action === 'typing_laptop' || action === 'drinking_coffee' || action === 'reading_book' || action === 'baking_croissant') {
+          drawX = deskX - 10;
+        } else if (action === 'walking') {
+          petXRef.current += petDirectionRef.current * 0.8;
+          if (petXRef.current > deskX - 30) petDirectionRef.current = -1;
+          if (petXRef.current < 55) petDirectionRef.current = 1;
+          drawX = petXRef.current;
+        } else if (action === 'afk_hiding') {
+          if (petXRef.current > -20) petXRef.current -= 1.5;
+          drawX = petXRef.current;
+        }
 
-      // Render High-Detail Enhanced Pixel Pet Sprite
-      drawEnhancedPet({
-        ctx,
-        drawX,
-        drawY,
-        action,
-        frame,
-        direction: petDirectionRef.current,
-        status,
-        mode,
-      });
+        // Render High-Detail Enhanced Pixel Pet Sprite
+        drawEnhancedPet({
+          ctx,
+          drawX,
+          drawY,
+          action,
+          frame,
+          direction: petDirectionRef.current,
+          status,
+          mode,
+        });
 
-      // --- 3. SPEECH THOUGHT BUBBLE ---
-      if (currentThought && action !== 'afk_hiding') {
-        const bubbleX = Math.max(10, Math.min(LOGICAL_WIDTH - 110, drawX - 30));
-        const bubbleY = Math.max(10, drawY - 26);
+        // --- 3. SPEECH THOUGHT BUBBLE ---
+        if (currentThought && action !== 'afk_hiding') {
+          const bubbleX = Math.max(10, Math.min(LOGICAL_WIDTH - 110, drawX - 30));
+          const bubbleY = Math.max(10, drawY - 26);
 
-        ctx.fillStyle = 'rgba(15, 23, 42, 0.95)';
-        ctx.fillRect(bubbleX, bubbleY, 105, 20);
-        ctx.strokeStyle = '#818cf8';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(bubbleX, bubbleY, 105, 20);
+          ctx.fillStyle = 'rgba(15, 23, 42, 0.95)';
+          ctx.fillRect(bubbleX, bubbleY, 105, 20);
+          ctx.strokeStyle = '#818cf8';
+          ctx.lineWidth = 1;
+          ctx.strokeRect(bubbleX, bubbleY, 105, 20);
 
-        ctx.fillStyle = '#818cf8';
-        ctx.fillRect(drawX + 6, bubbleY + 20, 3, 3);
+          ctx.fillStyle = '#818cf8';
+          ctx.fillRect(drawX + 6, bubbleY + 20, 3, 3);
 
-        ctx.fillStyle = '#f8fafc';
-        ctx.font = '9px "Plus Jakarta Sans", sans-serif';
-        ctx.fillText(currentThought, bubbleX + 6, bubbleY + 13);
+          ctx.fillStyle = '#f8fafc';
+          ctx.font = '9px "Plus Jakarta Sans", sans-serif';
+          ctx.fillText(currentThought, bubbleX + 6, bubbleY + 13);
+        }
       }
     };
 
@@ -415,40 +472,84 @@ export const PlatformerPetCanvas: React.FC<PlatformerPetCanvasProps> = ({
     return () => {
       cancelAnimationFrame(animationId);
     };
-  }, [mode, status, isAfk, currentThought, activeEnvironment]);
+  }, [mode, status, isAfk, currentThought, activeViewRoom, petCurrentRoom, petActivity, doors, hoveredDoorId]);
+
+  // Wandering Routine
+  useEffect(() => {
+    const wanderInterval = setInterval(() => {
+      wanderRoutine(mode, status);
+    }, 45000);
+
+    return () => clearInterval(wanderInterval);
+  }, [mode, status, wanderRoutine]);
+
+  const isPetHere = activeViewRoom === petCurrentRoom;
+  const petLocationDef = HOUSE_TOPOLOGY[petCurrentRoom];
 
   return (
-    <div
-      className="relative rounded-xl overflow-hidden border border-white/10 shadow-inner cursor-pointer"
-      onClick={handleCanvasClick}
-      style={{ width: `${width}px`, height: `${height}px` }}
-    >
-      <canvas
-        ref={canvasRef}
-        width={LOGICAL_WIDTH}
-        height={LOGICAL_HEIGHT}
-        style={{
-          imageRendering: 'pixelated',
-          width: '100%',
-          height: '100%',
-        }}
-      />
-      {/* Floating Heart Particles */}
-      {hearts.map((h) => (
-        <span
-          key={h.id}
-          className="absolute text-rose-400 font-bold pointer-events-none select-none transition-all duration-75 text-xs"
+    <div className="flex flex-col items-center">
+      {/* "Where is My Pet?" Locator HUD Banner */}
+      <div className="w-full flex items-center justify-between px-1 mb-1 text-[8px] font-semibold select-none">
+        <div className="flex items-center space-x-1 text-slate-300">
+          <span>{currentRoomDef?.icon || '🏠'}</span>
+          <span className="font-bold text-slate-200">{currentRoomDef?.name}</span>
+          <span className="text-[7px] text-slate-500 font-mono">({currentRoomDef?.floor})</span>
+        </div>
+
+        {isPetHere ? (
+          <span className="text-[7.5px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded-full flex items-center gap-1">
+            <span className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse" />
+            Here ({petActivity.replace('_', ' ')})
+          </span>
+        ) : (
+          <button
+            onClick={() => {
+              audioSynth.playChime();
+              jumpToPet();
+            }}
+            className="text-[7.5px] text-indigo-300 bg-indigo-600/30 hover:bg-indigo-600/50 border border-indigo-500/40 px-1.5 py-0.5 rounded-full flex items-center gap-1 transition-all active:scale-95 shadow-sm animate-bounce"
+            title="Click to find pet!"
+          >
+            <span>🐾 In {petLocationDef?.name}</span>
+            <span>🔍</span>
+          </button>
+        )}
+      </div>
+
+      {/* 2D Platformer Canvas Wrapper */}
+      <div
+        className="relative rounded-xl overflow-hidden border border-white/10 shadow-inner cursor-pointer"
+        onClick={handleCanvasClick}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={() => setHoveredDoorId(null)}
+        style={{ width: `${width}px`, height: `${height}px` }}
+      >
+        <canvas
+          ref={canvasRef}
+          width={LOGICAL_WIDTH}
+          height={LOGICAL_HEIGHT}
           style={{
-            left: `${h.x * (width / LOGICAL_WIDTH)}px`,
-            top: `${h.y * (height / LOGICAL_HEIGHT)}px`,
-            opacity: h.opacity,
-            transform: `scale(${h.scale * (width / LOGICAL_WIDTH)})`,
+            imageRendering: 'pixelated',
+            width: '100%',
+            height: '100%',
           }}
-        >
-          ❤️
-        </span>
-      ))}
+        />
+        {/* Floating Heart Particles */}
+        {hearts.map((h) => (
+          <span
+            key={h.id}
+            className="absolute text-rose-400 font-bold pointer-events-none select-none transition-all duration-75 text-xs"
+            style={{
+              left: `${h.x * (width / LOGICAL_WIDTH)}px`,
+              top: `${h.y * (height / LOGICAL_HEIGHT)}px`,
+              opacity: h.opacity,
+              transform: `scale(${h.scale * (width / LOGICAL_WIDTH)})`,
+            }}
+          >
+            ❤️
+          </span>
+        ))}
+      </div>
     </div>
   );
 };
-

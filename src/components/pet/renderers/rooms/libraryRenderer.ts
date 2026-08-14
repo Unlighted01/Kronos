@@ -1,10 +1,14 @@
+import { RoomDoor, drawRoomDoors } from '../doorRenderer';
+
 export function renderAtticLibrary(
   ctx: CanvasRenderingContext2D,
   width: number,
   height: number,
   frame: number,
   _mode?: string,
-  _status?: string
+  _status?: string,
+  doors: RoomDoor[] = [],
+  hoveredDoorId?: string | null
 ): { platformY: number; deskX: number; deskY: number } {
   const platformY = height - 28;
 
@@ -153,6 +157,8 @@ export function renderAtticLibrary(
   const dustY = deskY - 14 - (frame % 16);
   ctx.fillStyle = 'rgba(254, 240, 138, 0.8)';
   ctx.fillRect(deskX + 12 + Math.sin(frame * 0.2) * 4, dustY, 2, 2);
+
+  drawRoomDoors(ctx, doors, frame, hoveredDoorId);
 
   return { platformY, deskX, deskY };
 }

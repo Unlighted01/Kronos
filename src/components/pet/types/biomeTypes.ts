@@ -1,5 +1,6 @@
 export type EnvironmentId =
   | 'room_bedroom'
+  | 'room_living'
   | 'room_library'
   | 'room_kitchen'
   | 'room_greenhouse'

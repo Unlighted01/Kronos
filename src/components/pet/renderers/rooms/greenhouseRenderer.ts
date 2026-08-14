@@ -1,10 +1,14 @@
+import { RoomDoor, drawRoomDoors } from '../doorRenderer';
+
 export function renderGreenhouse(
   ctx: CanvasRenderingContext2D,
   width: number,
   height: number,
   frame: number,
   _mode?: string,
-  _status?: string
+  _status?: string,
+  doors: RoomDoor[] = [],
+  hoveredDoorId?: string | null
 ): { platformY: number; deskX: number; deskY: number } {
   const platformY = height - 28;
 
@@ -137,6 +141,8 @@ export function renderGreenhouse(
   ctx.lineTo(width - 45, platformY);
   ctx.closePath();
   ctx.fill();
+
+  drawRoomDoors(ctx, doors, frame, hoveredDoorId);
 
   return { platformY, deskX, deskY };
 }

@@ -98,6 +98,15 @@ export const SHOP_ITEMS: ShopCatalogItem[] = [
     environmentId: 'room_bedroom',
   },
   {
+    id: 'room_living',
+    name: 'Living Room Lounge',
+    category: 'environment',
+    price: 150,
+    icon: '🛋️',
+    description: 'A cozy living room for relaxing with a soft sofa.',
+    environmentId: 'room_living',
+  },
+  {
     id: 'room_library',
     name: 'Attic Library',
     category: 'environment',

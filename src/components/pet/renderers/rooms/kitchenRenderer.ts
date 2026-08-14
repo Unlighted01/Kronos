@@ -1,10 +1,14 @@
+import { RoomDoor, drawRoomDoors } from '../doorRenderer';
+
 export function renderWarmKitchen(
   ctx: CanvasRenderingContext2D,
   width: number,
   height: number,
   frame: number,
   _mode?: string,
-  _status?: string
+  _status?: string,
+  doors: RoomDoor[] = [],
+  hoveredDoorId?: string | null
 ): { platformY: number; deskX: number; deskY: number } {
   const platformY = height - 28;
 
@@ -127,6 +131,8 @@ export function renderWarmKitchen(
   ctx.fillRect(deskX - 14, deskY + 6, 10, 18);
   ctx.fillStyle = '#b45309';
   ctx.fillRect(deskX - 16, deskY + 4, 14, 3);
+
+  drawRoomDoors(ctx, doors, frame, hoveredDoorId);
 
   return { platformY, deskX, deskY };
 }

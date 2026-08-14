@@ -1,4 +1,5 @@
 import { drawWindowSky, getTimeOfDay } from '../dayNightEngine';
+import { RoomDoor, drawRoomDoors } from '../doorRenderer';
 
 export function renderStudyBedroom(
   ctx: CanvasRenderingContext2D,
@@ -6,7 +7,9 @@ export function renderStudyBedroom(
   height: number,
   frame: number,
   mode: string,
-  status: string
+  status: string,
+  doors: RoomDoor[] = [],
+  hoveredDoorId?: string | null
 ): { platformY: number; deskX: number; deskY: number } {
   const timeOfDay = getTimeOfDay();
   const platformY = height - 28;
@@ -152,6 +155,8 @@ export function renderStudyBedroom(
   ctx.fillRect(deskX + 38, deskY - 16, 6, 6);
   ctx.fillStyle = '#92400e';
   ctx.fillRect(deskX + 40, deskY - 10, 2, 10);
+
+  drawRoomDoors(ctx, doors, frame, hoveredDoorId);
 
   return { platformY, deskX, deskY };
 }
