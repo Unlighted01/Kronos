@@ -12,9 +12,20 @@ app.commandLine.appendSwitch("disable-background-timer-throttling");
 let widgetWindow: BrowserWindow | null = null;
 let dashboardWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
+let isWidgetPinned = true; // Default pinned state
 
 const VITE_DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL;
 const isDev = !!VITE_DEV_SERVER_URL || !app.isPackaged;
+
+function applyPinAndLockState(win: BrowserWindow, pinned: boolean): void {
+    if (pinned) {
+        win.setAlwaysOnTop(true, "screen-saver");
+        win.setMovable(false); // Lock spatial movement on OS level when pinned
+    } else {
+        win.setAlwaysOnTop(false, "normal");
+        win.setMovable(true); // Allow dragging when unpinned
+    }
+}
 
 function createWidgetWindow(): void {
     if (widgetWindow) {
@@ -29,21 +40,34 @@ function createWidgetWindow(): void {
         frame: false,
         transparent: true,
         alwaysOnTop: true,
+        hasShadow: false, // Prevents DWM border shadow artifacts on transparent windows
         skipTaskbar: false,
-        hasShadow: true,
         webPreferences: {
             preload: path.join(__dirname, "preload.cjs"),
             nodeIntegration: false,
             contextIsolation: true,
         },
     });
-    widgetWindow.setAlwaysOnTop(true, "screen-saver");
+
+    // Apply initial pin & position lock
+    applyPinAndLockState(widgetWindow, isWidgetPinned);
+
+    // --- Windows OS Z-Order Resilience Handlers ---
+    // Re-assert alwaysOnTop on focus/show/restore to prevent DWM from dropping HWND_TOPMOST
+    const reassertTopmost = () => {
+        if (widgetWindow && isWidgetPinned) {
+            widgetWindow.setAlwaysOnTop(true, "screen-saver");
+        }
+    };
+
+    widgetWindow.on("restore", reassertTopmost);
+    widgetWindow.on("show", reassertTopmost);
+    widgetWindow.on("focus", reassertTopmost);
 
     if (VITE_DEV_SERVER_URL) {
         widgetWindow.loadURL(`${VITE_DEV_SERVER_URL}#widget`);
-        // Auto-open DevTools in detached window when in dev mode
         if (isDev) {
-            widgetWindow.webContents.openDevTools({ mode: 'detach' });
+            widgetWindow.webContents.openDevTools({ mode: "detach" });
         }
     } else {
         widgetWindow.loadFile(path.join(__dirname, "../dist/index.html"), {
@@ -79,9 +103,8 @@ function createDashboardWindow(): void {
 
     if (VITE_DEV_SERVER_URL) {
         dashboardWindow.loadURL(`${VITE_DEV_SERVER_URL}#dashboard`);
-        // Auto-open DevTools in dev mode
         if (isDev) {
-            dashboardWindow.webContents.openDevTools({ mode: 'detach' });
+            dashboardWindow.webContents.openDevTools({ mode: "detach" });
         }
     } else {
         dashboardWindow.loadFile(path.join(__dirname, "../dist/index.html"), {
@@ -89,14 +112,12 @@ function createDashboardWindow(): void {
         });
     }
 
-    // Destroy dashboard on close to free memory!
     dashboardWindow.on("closed", () => {
         dashboardWindow = null;
     });
 }
 
 function createSystemTray(): void {
-    // Simple 16x16 canvas icon fallback or native image
     const svgIcon = `
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="#6366f1">
       <circle cx="12" cy="12" r="10" />
@@ -156,13 +177,12 @@ function createSystemTray(): void {
     });
 }
 
-// Setup IPC listeners
+// IPC Handlers
 ipcMain.on("widget-minimize", () => {
     widgetWindow?.minimize();
 });
 
 ipcMain.on("widget-close", () => {
-    // Quits application on widget X click as expected
     app.quit();
 });
 
@@ -176,10 +196,15 @@ ipcMain.on("dashboard-close", () => {
 
 ipcMain.handle("widget-toggle-always-on-top", (_event, flag?: boolean) => {
     if (!widgetWindow) return false;
-    const current = widgetWindow.isAlwaysOnTop();
-    const nextState = flag !== undefined ? flag : !current;
-    widgetWindow.setAlwaysOnTop(nextState, "screen-saver");
-    return nextState;
+    isWidgetPinned = flag !== undefined ? flag : !isWidgetPinned;
+    applyPinAndLockState(widgetWindow, isWidgetPinned);
+
+    console.log(`[IPC] Widget Pin & Lock state set to: ${isWidgetPinned}`);
+    return isWidgetPinned;
+});
+
+ipcMain.handle("widget-get-pin-state", () => {
+    return isWidgetPinned;
 });
 
 app.whenReady().then(() => {

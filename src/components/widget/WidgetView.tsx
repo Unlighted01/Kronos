@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Play, Pause, RotateCcw, SkipForward, LayoutDashboard, X, Pin } from 'lucide-react';
+import { Play, Pause, RotateCcw, SkipForward, LayoutDashboard, X, Pin, Lock } from 'lucide-react';
 import { useAppStore } from '../../stores/useAppStore';
 import { useTimerStore } from '../../stores/useTimerStore';
 import { PlatformerPetCanvas } from '../pet/PlatformerPetCanvas';
@@ -18,6 +18,15 @@ export const WidgetView: React.FC = () => {
     skipPhase,
     tick,
   } = useTimerStore();
+
+  // Sync initial Pin / Position Lock state from Main process on mount
+  useEffect(() => {
+    if (window.kronosElectron?.getPinState) {
+      window.kronosElectron.getPinState().then((pinned) => {
+        setAlwaysOnTop(pinned);
+      }).catch(() => {});
+    }
+  }, [setAlwaysOnTop]);
 
   // Timer Tick Interval Effect
   useEffect(() => {
@@ -77,11 +86,12 @@ export const WidgetView: React.FC = () => {
   const handleToggleAlwaysOnTop = async (e: React.MouseEvent) => {
     e.stopPropagation();
     audioSynth.playClick();
+    const targetState = !alwaysOnTop;
     if (window.kronosElectron) {
-      const nextState = await window.kronosElectron.toggleAlwaysOnTop();
+      const nextState = await window.kronosElectron.toggleAlwaysOnTop(targetState);
       setAlwaysOnTop(nextState);
     } else {
-      setAlwaysOnTop(!alwaysOnTop);
+      setAlwaysOnTop(targetState);
     }
   };
 
@@ -115,28 +125,44 @@ export const WidgetView: React.FC = () => {
 
   return (
     <div className="widget-card">
-      {/* Top Header / Drag Region */}
-      <div className="drag-region flex items-center justify-between px-3 py-2 border-b border-white/10 select-none">
+      {/* Top Header: Dynamic Drag Region (Movable when unpinned, Locked when pinned) */}
+      <div
+        className={`flex items-center justify-between px-3 py-2 border-b border-white/10 select-none ${
+          alwaysOnTop ? 'no-drag cursor-default' : 'drag-region cursor-move'
+        }`}
+        style={{ WebkitAppRegion: alwaysOnTop ? 'no-drag' : 'drag' } as React.CSSProperties}
+      >
         <div className="flex items-center space-x-2">
           <span className="font-pixel text-[10px] text-indigo-400">KRONOS</span>
-          <span className="bg-amber-500/20 text-amber-300 font-pixel text-[8px] px-1.5 py-0.5 rounded border border-amber-500/30">
-            Lv.1
-          </span>
+          {alwaysOnTop ? (
+            <span className="text-[8px] text-amber-300 font-pixel flex items-center gap-1 bg-amber-500/20 px-1.5 py-0.5 rounded border border-amber-500/30">
+              <Lock size={9} /> PINNED
+            </span>
+          ) : (
+            <span className="bg-amber-500/20 text-amber-300 font-pixel text-[8px] px-1.5 py-0.5 rounded border border-amber-500/30">
+              Lv.1
+            </span>
+          )}
           <span className="text-[9px] text-slate-400 font-mono">
             #{completedSessions}
           </span>
         </div>
 
-        {/* Buttons container with strict no-drag region */}
-        <div className="no-drag flex items-center space-x-1">
+        {/* Buttons container with explicit no-drag region */}
+        <div
+          className="no-drag flex items-center space-x-1"
+          style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
+        >
           <button
             onClick={handleToggleAlwaysOnTop}
-            title={alwaysOnTop ? 'Pinned Always on Top' : 'Unpinned'}
+            title={alwaysOnTop ? 'Pinned & Position Locked (Click to Unpin)' : 'Unpinned (Click to Pin & Lock)'}
             className={`no-drag p-1 rounded transition-colors ${
-              alwaysOnTop ? 'text-indigo-400 bg-indigo-500/20' : 'text-slate-400 hover:text-white'
+              alwaysOnTop
+                ? 'text-indigo-400 bg-indigo-500/20 border border-indigo-500/30'
+                : 'text-slate-400 hover:text-white'
             }`}
           >
-            <Pin size={12} />
+            <Pin size={12} className={alwaysOnTop ? 'rotate-45 text-indigo-300' : ''} />
           </button>
           <button
             onClick={handleOpenDashboard}
@@ -174,7 +200,10 @@ export const WidgetView: React.FC = () => {
         </div>
 
         {/* Action Buttons */}
-        <div className="no-drag flex items-center space-x-2">
+        <div
+          className="no-drag flex items-center space-x-2"
+          style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
+        >
           <button
             onClick={handleTogglePlay}
             className="no-drag flex items-center space-x-1.5 px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-semibold text-xs shadow-lg shadow-indigo-600/30 transition-all active:scale-95"

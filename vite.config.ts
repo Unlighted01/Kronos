@@ -22,6 +22,9 @@ const kronosAPI = {
   openDashboard: () => ipcRenderer.send('dashboard-open'),
   closeDashboard: () => ipcRenderer.send('dashboard-close'),
   toggleAlwaysOnTop: (flag) => ipcRenderer.invoke('widget-toggle-always-on-top', flag),
+  pinWidget: (flag) => ipcRenderer.invoke('widget-toggle-always-on-top', flag),
+  togglePin: (flag) => ipcRenderer.invoke('widget-toggle-always-on-top', flag),
+  getPinState: () => ipcRenderer.invoke('widget-get-pin-state'),
   onTimerAction: (callback) => {
     ipcRenderer.on('timer-action', (_event, action) => callback(action));
   },
