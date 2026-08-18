@@ -1,4 +1,13 @@
 import { RoomDoor, drawRoomDoors } from '../doorRenderer';
+import {
+  PALETTES,
+  drawPixelRect,
+  drawWoodGrain,
+  drawBrickWall,
+  drawPseudo3DBox,
+  drawFabric,
+  dither,
+} from '../pixelArtEngine';
 
 export interface LivingRoomObjectStates {
   firePokedTimer?: number;
@@ -18,212 +27,157 @@ export function renderLivingRoom(
   hoveredDoorId?: string | null,
   objectStates: LivingRoomObjectStates = {}
 ): { platformY: number; deskX: number; deskY: number } {
-  const platformY = 112;
+  const platformY = height - 28;
+  const deskX = 170;
+  const deskY = 88;
 
-  // 1. Warm sage/taupe patterned wallpaper with wooden wainscoting
-  ctx.fillStyle = '#78716c'; // Taupe base
-  ctx.fillRect(0, 0, width, platformY);
-  
-  // Sage pattern
-  ctx.fillStyle = '#65a30d';
-  for (let x = 0; x < width; x += 16) {
-    for (let y = 0; y < platformY - 40; y += 16) {
-      ctx.fillRect(x + 4, y + 4, 4, 4);
-    }
+  // Wall upper
+  drawBrickWall(ctx, 0, 0, width, platformY - 40, PALETTES.plaster, 8, 16);
+  // Wall lower wainscoting
+  drawWoodGrain(ctx, 0, platformY - 40, width, 40, PALETTES.darkWalnut, 10);
+  // Vertical panel joints
+  ctx.fillStyle = PALETTES.darkWalnut.shadow;
+  for (let px = 0; px < width; px += 20) {
+    ctx.fillRect(px, platformY - 40, 1, 40);
   }
 
-  // Wooden wainscoting
-  ctx.fillStyle = '#78350f';
-  ctx.fillRect(0, platformY - 40, width, 40);
-  ctx.fillStyle = '#451a03';
-  ctx.fillRect(0, platformY - 40, width, 2);
-  for (let x = 0; x < width; x += 32) {
-    ctx.fillRect(x, platformY - 38, 2, 38);
-    ctx.fillRect(x + 4, platformY - 34, 24, 30);
-  }
-
-  // 2. Cozy brick fireplace with crackling animated fire and mantlepiece with framed photos
-  const fireX = width / 2 - 24;
-  const fireY = platformY - 50;
-  
-  // Brick fireplace
-  ctx.fillStyle = '#991b1b'; // Red brick
-  ctx.fillRect(fireX, fireY, 48, 50);
-  // Brick lines
-  ctx.fillStyle = '#450a0a';
-  for (let y = fireY; y < platformY; y += 8) {
-    ctx.fillRect(fireX, y, 48, 1);
-    const offsetX = (y % 16 === 0) ? 0 : 8;
-    for (let x = fireX + offsetX; x < fireX + 48; x += 16) {
-      ctx.fillRect(x, y, 1, 8);
-    }
-  }
-  
-  // Mantlepiece
-  ctx.fillStyle = '#451a03';
-  ctx.fillRect(fireX - 4, fireY - 4, 56, 4);
-  // Framed photos
-  ctx.fillStyle = '#b45309'; // Gold frame
-  ctx.fillRect(fireX + 8, fireY - 14, 12, 10);
-  ctx.fillStyle = '#f0f9ff';
-  ctx.fillRect(fireX + 9, fireY - 13, 10, 8);
-  
-  // Wall Painting with tilt
-  ctx.save();
-  const tilt = objectStates.paintingTilt || 0;
-  ctx.translate(fireX + 35, fireY - 11);
-  ctx.rotate((tilt * Math.PI) / 180);
-  ctx.fillStyle = '#cbd5e1'; // Silver frame
-  ctx.fillRect(-7, -7, 14, 14);
-  ctx.fillStyle = '#0f172a';
-  ctx.fillRect(-6, -6, 12, 12);
-  ctx.restore();
-
-  // Firebox
-  ctx.fillStyle = '#000000';
-  ctx.fillRect(fireX + 8, fireY + 16, 32, 34);
-  
-  // Animated Fire
-  const isFlared = objectStates.firePokedTimer && objectStates.firePokedTimer > 0;
-  const flareHeight = isFlared ? 12 : 0;
-  ctx.fillStyle = '#ea580c';
-  ctx.beginPath();
-  const f1 = (frame % 10) > 4 ? 4 : 0;
-  const f2 = (frame % 14) > 7 ? 6 : 0;
-  ctx.moveTo(fireX + 12, platformY);
-  ctx.lineTo(fireX + 18, fireY + 28 - f1 - flareHeight);
-  ctx.lineTo(fireX + 24, platformY - 10 - (flareHeight/2));
-  ctx.lineTo(fireX + 30, fireY + 20 - f2 - flareHeight);
-  ctx.lineTo(fireX + 36, platformY);
-  ctx.fill();
-  
-  ctx.fillStyle = '#fde047'; // Inner flame
-  ctx.beginPath();
-  ctx.moveTo(fireX + 16, platformY);
-  ctx.lineTo(fireX + 24, fireY + 32 - (flareHeight * 0.8));
-  ctx.lineTo(fireX + 32, platformY);
-  ctx.fill();
-  
-  if (isFlared && frame % 4 === 0) {
-    // Crackling ember sparks
-    ctx.fillStyle = '#fef08a';
-    ctx.fillRect(fireX + 14 + (frame % 12), fireY + 20 - (frame % 8), 2, 2);
-    ctx.fillRect(fireX + 22 - (frame % 6), fireY + 16 - (frame % 10), 2, 2);
-  }
-
-  // 3. Corduroy tufted lounge sofa with throw pillows
-  const sofaX = 16;
-  const sofaY = platformY - 24;
-  ctx.fillStyle = '#451a03'; // Sofa legs
-  ctx.fillRect(sofaX + 4, sofaY + 20, 4, 4);
-  ctx.fillRect(sofaX + 40, sofaY + 20, 4, 4);
-  
-  ctx.fillStyle = '#475569'; // Slate base
-  ctx.fillRect(sofaX, sofaY, 48, 20);
-  // Tufting lines
-  ctx.fillStyle = '#334155';
-  for (let x = sofaX + 4; x < sofaX + 48; x += 8) {
-    ctx.fillRect(x, sofaY, 1, 20);
-  }
-  
-  // Throw pillows
-  ctx.fillStyle = '#ca8a04'; // Gold pillow
-  ctx.fillRect(sofaX + 4, sofaY + 4, 12, 10);
-  ctx.fillStyle = '#f87171'; // Red accent pillow
-  ctx.fillRect(sofaX + 34, sofaY + 6, 10, 8);
-
-  // 4. Polished dark walnut hardwood floorboards with a circular woven rug
   // Floor
-  ctx.fillStyle = '#271404';
-  ctx.fillRect(0, platformY, width, height - platformY);
-  ctx.fillStyle = '#451a03'; // Planks
-  for (let y = platformY + 4; y < height; y += 6) {
-    ctx.fillRect(0, y, width, 1);
-  }
-  
-  // Circular woven rug
-  const rugX = width / 2;
-  const rugY = platformY + 12;
-  ctx.fillStyle = '#d4d4d8';
+  drawWoodGrain(ctx, 0, platformY, width, height - platformY, PALETTES.darkWalnut, 8);
+
+  // Rug
+  const rugX = 90;
+  const rugY = platformY + 10;
+  ctx.fillStyle = '#cbd5e1';
   ctx.beginPath();
   ctx.ellipse(rugX, rugY, 40, 10, 0, 0, Math.PI * 2);
   ctx.fill();
-  ctx.fillStyle = '#a1a1aa';
+  ctx.fillStyle = '#94a3b8';
   ctx.beginPath();
-  ctx.ellipse(rugX, rugY, 32, 8, 0, 0, Math.PI * 2);
+  ctx.ellipse(rugX, rugY, 30, 7, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  // 5. Warm brass arc floor lamp with soft glowing light pool
-  const lampX = 6;
-  const lampY = platformY - 60;
-  ctx.strokeStyle = '#fbbf24'; // Brass
+  // Fireplace
+  const fpX = 120;
+  const fpY = platformY - 46;
+  const fpW = 44;
+  const fpH = 46;
+  drawBrickWall(ctx, fpX, fpY, fpW, fpH, PALETTES.brick, 6, 12);
+  // Mantlepiece
+  drawPixelRect(ctx, fpX - 4, fpY - 6, fpW + 8, 6, PALETTES.stone);
+  // Firebox
+  const boxX = fpX + 10;
+  const boxY = fpY + 20;
+  drawPixelRect(ctx, boxX - 2, boxY - 2, 28, 28, PALETTES.iron); // frame
+  ctx.fillStyle = '#000';
+  ctx.fillRect(boxX, boxY, 24, 26); // inner
+  // Fire animation
+  const poke = objectStates.firePokedTimer && objectStates.firePokedTimer > 0 ? 1 : 0;
+  const fireH = 12 + poke * 6 + Math.sin(frame * 0.3) * 4;
+  ctx.fillStyle = '#ea580c';
+  ctx.fillRect(boxX + 4, boxY + 26 - fireH, 16, fireH);
+  ctx.fillStyle = '#fbbf24';
+  ctx.fillRect(boxX + 6, boxY + 26 - fireH + 4, 12, fireH - 4);
+
+  // Sofa (left)
+  const sofaX = 20;
+  const sofaY = platformY - 18;
+  drawFabric(ctx, sofaX, sofaY, 48, 18, { highlight: '#94a3b8', mid: '#64748b', shadow: '#475569', outline: '#1e293b' }, 8);
+  drawPseudo3DBox(ctx, sofaX - 4, sofaY + 4, 8, 14, 2, PALETTES.slate); // left arm
+  drawPseudo3DBox(ctx, sofaX + 44, sofaY + 4, 8, 14, 2, PALETTES.slate); // right arm
+  // Legs
+  drawPixelRect(ctx, sofaX + 2, sofaY + 18, 2, 4, PALETTES.darkWalnut);
+  drawPixelRect(ctx, sofaX + 44, sofaY + 18, 2, 4, PALETTES.darkWalnut);
+  // Pillows
+  drawPixelRect(ctx, sofaX + 4, sofaY + 6, 8, 8, { highlight: '#fef08a', mid: '#eab308', shadow: '#a16207', outline: '#422006' });
+  drawPixelRect(ctx, sofaX + 36, sofaY + 6, 8, 8, PALETTES.brick);
+
+  // Arc lamp
+  ctx.strokeStyle = '#9ca3af';
   ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.moveTo(lampX, platformY);
-  ctx.lineTo(lampX, lampY);
-  ctx.quadraticCurveTo(lampX + 16, lampY - 10, lampX + 32, lampY + 10);
+  ctx.moveTo(10, platformY);
+  ctx.quadraticCurveTo(10, sofaY - 40, 40, sofaY - 20);
   ctx.stroke();
-  
-  // Lamp head
-  ctx.fillStyle = '#f59e0b';
-  ctx.beginPath();
-  ctx.arc(lampX + 32, lampY + 10, 6, Math.PI, 0);
-  ctx.fill();
-
-  // Light pool
-  if (objectStates.isArcLampOn ?? true) {
-    ctx.fillStyle = 'rgba(253, 230, 138, 0.25)';
-    ctx.beginPath();
-    ctx.moveTo(lampX + 32, lampY + 10);
-    ctx.lineTo(lampX + 80, platformY);
-    ctx.lineTo(lampX + 4, platformY);
-    ctx.fill();
+  drawPixelRect(ctx, 34, sofaY - 22, 12, 6, PALETTES.iron);
+  if (objectStates.isArcLampOn) {
+    dither(ctx, 20, sofaY - 16, 40, 20, 'rgba(253, 224, 71, 0.3)', 0.5);
   }
 
-  // 6. Turntable vinyl record player on wooden credenza
-  const credenzaX = width - 64;
-  const credenzaY = platformY - 24;
-  ctx.fillStyle = '#78350f'; // Credenza
-  ctx.fillRect(credenzaX, credenzaY, 48, 24);
+  // Credenza (right)
+  const credX = deskX;
+  const credY = deskY;
+  drawPseudo3DBox(ctx, credX, credY, 40, 24, 4, PALETTES.darkWalnut);
+  drawWoodGrain(ctx, credX, credY, 40, 4, PALETTES.oakWood, 4); // top surface
   // Drawers
-  ctx.fillStyle = '#92400e';
-  ctx.fillRect(credenzaX + 4, credenzaY + 4, 18, 16);
-  ctx.fillRect(credenzaX + 26, credenzaY + 4, 18, 16);
-  
-  // Turntable
-  ctx.fillStyle = '#1e293b';
-  ctx.fillRect(credenzaX + 8, credenzaY - 6, 20, 6);
-  
-  // Vinyl disc
-  ctx.fillStyle = '#000000';
+  drawPixelRect(ctx, credX + 2, credY + 6, 17, 8, PALETTES.darkWalnut);
+  drawPixelRect(ctx, credX + 21, credY + 6, 17, 8, PALETTES.darkWalnut);
+  drawPixelRect(ctx, credX + 2, credY + 15, 17, 8, PALETTES.darkWalnut);
+  drawPixelRect(ctx, credX + 21, credY + 15, 17, 8, PALETTES.darkWalnut);
+  // Handles
+  ctx.fillStyle = '#d1d5db';
+  ctx.fillRect(credX + 9, credY + 9, 3, 2);
+  ctx.fillRect(credX + 28, credY + 9, 3, 2);
+  ctx.fillRect(credX + 9, credY + 18, 3, 2);
+  ctx.fillRect(credX + 28, credY + 18, 3, 2);
+
+  // Vinyl turntable
+  const ttX = credX + 8;
+  const ttY = credY - 4;
+  drawPixelRect(ctx, ttX, ttY, 24, 4, PALETTES.slate); // base
+  // Platter
+  ctx.fillStyle = '#000';
   ctx.beginPath();
-  ctx.ellipse(credenzaX + 16, credenzaY - 6, 8, 2, 0, 0, Math.PI * 2);
+  ctx.ellipse(ttX + 12, ttY, 10, 3, 0, 0, Math.PI * 2);
   ctx.fill();
-  // Center label (spinning)
-  const speed = 20 - Math.min(16, (objectStates.vinylSpinBoost || 0) * 2);
-  const spinFrame = Math.floor(frame / Math.max(1, (speed/4)));
-  const spinColor = (spinFrame % 2 === 0) ? '#ef4444' : '#3b82f6';
-  ctx.fillStyle = spinColor;
+  // Grooves
+  ctx.strokeStyle = '#333';
+  ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.ellipse(credenzaX + 16, credenzaY - 6, 3, 1, 0, 0, Math.PI * 2);
+  ctx.ellipse(ttX + 12, ttY, 8, 2, 0, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.ellipse(ttX + 12, ttY, 5, 1.5, 0, 0, Math.PI * 2);
+  ctx.stroke();
+  // Label
+  const spin = ((frame + (objectStates.vinylSpinBoost || 0)) * 0.1) % (Math.PI * 2);
+  ctx.fillStyle = '#ef4444';
+  ctx.beginPath();
+  ctx.ellipse(ttX + 12, ttY, 3, 1, 0, 0, Math.PI * 2);
   ctx.fill();
-  
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(ttX + 12 + Math.cos(spin)*1, ttY + Math.sin(spin)*0.5, 1, 1);
+
   // Floating music notes
-  if (frame % 60 < 20) {
-    ctx.fillStyle = '#475569';
-    ctx.font = '10px sans-serif';
-    ctx.fillText('♪', credenzaX + 10, credenzaY - 12 - (frame % 10));
-  } else if (frame % 60 < 40) {
-    ctx.fillStyle = '#64748b';
-    ctx.font = '12px sans-serif';
-    ctx.fillText('♫', credenzaX + 22, credenzaY - 16 - (frame % 12));
-  } else {
-    ctx.fillStyle = '#475569';
-    ctx.font = '10px sans-serif';
-    ctx.fillText('♩', credenzaX + 16, credenzaY - 14 - (frame % 8));
+  if ((frame % 100) < 50) {
+    ctx.fillStyle = '#3b82f6';
+    ctx.fillText('♫', ttX + 12, ttY - 10 - (frame % 20) * 0.5);
+  }
+
+  // Fairy lights
+  ctx.strokeStyle = '#1e293b';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(0, 5);
+  ctx.quadraticCurveTo(width / 4, 15, width / 2, 5);
+  ctx.quadraticCurveTo((width * 3) / 4, 15, width, 5);
+  ctx.stroke();
+
+  const pulse = Math.sin(frame * 0.05) * 0.5 + 0.5;
+  for (let i = 0; i <= 12; i++) {
+    const lx = (width / 12) * i;
+    const progress = (i % 6) / 6;
+    const ly = 5 + Math.sin(progress * Math.PI) * 10;
+    
+    drawPixelRect(ctx, lx - 1, ly - 2, 3, 2, PALETTES.iron);
+    ctx.fillStyle = `rgba(251, 191, 36, ${0.15 + pulse * 0.15})`;
+    ctx.beginPath();
+    ctx.arc(lx, ly + 1, 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#fbbf24';
+    ctx.fillRect(lx, ly, 1, 1);
   }
 
   drawRoomDoors(ctx, doors, frame, hoveredDoorId);
 
-  return { platformY, deskX: 170, deskY: 88 };
+  return { platformY, deskX, deskY };
 }

@@ -614,46 +614,114 @@ export const PlatformerPetCanvas: React.FC<PlatformerPetCanvasProps> = ({
   const isPetHere = activeViewRoom === petCurrentRoom;
   const petLocationDef = HOUSE_TOPOLOGY[petCurrentRoom];
 
+  const ROOM_DISPLAY_NAMES: Record<string, string> = {
+    room_bedroom: 'BEDROOM',
+    room_living: 'LIVING ROOM',
+    room_library: 'LIBRARY',
+    room_kitchen: 'KITCHEN',
+    room_greenhouse: 'GREENHOUSE',
+    biome_sakura: 'SAKURA',
+    biome_campfire: 'CAMPFIRE',
+    biome_autumn: 'AUTUMN',
+  };
+
+  const ACTIVITY_DISPLAY_NAMES: Record<string, string> = {
+    typing_laptop: 'TYPING',
+    drinking_coffee: 'COFFEE',
+    stretching: 'STRETCH',
+    reading_book: 'READING',
+    micro_dance: 'DANCE',
+    baking_croissant: 'BAKING',
+    watering_plants: 'WATER',
+    relaxing_sofa: 'RELAX',
+    sleeping: 'SLEEP',
+    sleeping_sofa: 'NAP',
+    looking_around: 'CHILL',
+    afk_hiding: 'AFK',
+    petted: 'PETTED',
+    walking: 'WALKING',
+  };
+
+  const roomTitle = ROOM_DISPLAY_NAMES[activeViewRoom] || currentRoomDef?.name.toUpperCase() || 'ROOM';
+  const activityLabel = ACTIVITY_DISPLAY_NAMES[petActivity] || petActivity.replace('_', ' ').toUpperCase();
+  const petRoomTitle = ROOM_DISPLAY_NAMES[petCurrentRoom] || petLocationDef?.name.toUpperCase() || 'AWAY';
+
   return (
-    <div className="flex flex-col items-center">
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', userSelect: 'none' }}>
       {/* "Where is My Pet?" Locator HUD Banner */}
-      <div className="w-full flex items-center justify-between px-1 mb-1 text-[8px] font-semibold select-none">
-        <div className="flex items-center space-x-1 text-slate-300">
-          <span>{currentRoomDef?.icon || '🏠'}</span>
-          <span className="font-bold text-slate-200">{currentRoomDef?.name}</span>
-          <span className="text-[7px] text-slate-500 font-mono">({currentRoomDef?.floor})</span>
+      <div
+        style={{
+          width: `${width}px`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '0 2px',
+          marginBottom: '4px',
+          gap: '6px',
+        }}
+      >
+        {/* Room Name */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', minWidth: 0, overflow: 'hidden' }}>
+          <span style={{ fontSize: '11px', lineHeight: 1 }}>{currentRoomDef?.icon || '🏠'}</span>
+          <span className="px-label" style={{ color: 'var(--px-white)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {roomTitle}
+          </span>
         </div>
 
-        {isPetHere ? (
-          <span className="text-[7.5px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded-full flex items-center gap-1">
-            <span className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse" />
-            Here ({petActivity.replace('_', ' ')})
-          </span>
-        ) : (
-          <button
-            onClick={() => {
-              audioSynth.playChime();
-              jumpToPet();
-            }}
-            className="text-[7.5px] text-indigo-300 bg-indigo-600/30 hover:bg-indigo-600/50 border border-indigo-500/40 px-1.5 py-0.5 rounded-full flex items-center gap-1 transition-all active:scale-95 shadow-sm animate-bounce"
-            title="Click to find pet!"
-          >
-            <span>🐾 In {petLocationDef?.name}</span>
-            <span>🔍</span>
-          </button>
-        )}
+        {/* Pet Activity Status / Jump Button */}
+        <div style={{ flexShrink: 0 }}>
+          {isPetHere ? (
+            <span
+              className="px-badge--cyan"
+              style={{
+                fontSize: '6px',
+                padding: '2px 5px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '3px',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              <span style={{ color: 'var(--px-green)' }}>●</span> {activityLabel}
+            </span>
+          ) : (
+            <button
+              onClick={() => {
+                audioSynth.playChime();
+                jumpToPet();
+              }}
+              className="px-btn no-drag"
+              style={{
+                fontSize: '6px',
+                padding: '2px 5px',
+                whiteSpace: 'nowrap',
+                WebkitAppRegion: 'no-drag',
+              } as React.CSSProperties}
+              title="Click to find pet!"
+            >
+              🐾 {petRoomTitle}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* 2D Platformer Canvas Wrapper */}
       <div
-        className="relative rounded-xl overflow-hidden border border-white/10 shadow-inner"
+        style={{
+          position: 'relative',
+          border: '2px solid var(--px-border)',
+          backgroundColor: 'var(--px-bg-void)',
+          overflow: 'hidden',
+          width: `${width}px`,
+          height: `${height}px`,
+          boxSizing: 'content-box',
+        }}
         onClick={handleCanvasClick}
         onMouseMove={handleMouseMove}
         onMouseLeave={() => {
           setHoveredDoorId(null);
           if (canvasRef.current) canvasRef.current.style.cursor = 'default';
         }}
-        style={{ width: `${width}px`, height: `${height}px` }}
       >
         <canvas
           ref={canvasRef}

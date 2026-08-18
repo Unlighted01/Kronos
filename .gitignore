@@ -146,3 +146,5 @@ dist/
 dist-electron/
 release/
 
+# Documentation (local only)
+docs/

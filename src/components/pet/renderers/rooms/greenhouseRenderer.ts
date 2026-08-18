@@ -1,4 +1,12 @@
 import { RoomDoor, drawRoomDoors } from '../doorRenderer';
+import {
+  PALETTES,
+  drawPixelRect,
+  drawWoodGrain,
+  drawTileFloor,
+  drawPseudo3DBox,
+  drawLeaf
+} from '../pixelArtEngine';
 
 export interface GreenhouseObjectStates {
   plantBloomStage?: number;
@@ -16,176 +24,113 @@ export function renderGreenhouse(
   objectStates: GreenhouseObjectStates = {}
 ): { platformY: number; deskX: number; deskY: number } {
   const platformY = height - 28;
-
-  // 1. Sky through Glass Atrium Ceiling
-  const skyGrad = ctx.createLinearGradient(0, 0, 0, platformY);
-  skyGrad.addColorStop(0, '#7dd3fc');
-  skyGrad.addColorStop(1, '#bae6fd');
-  ctx.fillStyle = skyGrad;
-  ctx.fillRect(0, 0, width, platformY);
-
-  // Distant Garden Trees through glass
-  ctx.fillStyle = '#86efac';
-  ctx.beginPath();
-  ctx.arc(40, platformY - 20, 30, 0, Math.PI * 2);
-  ctx.arc(90, platformY - 25, 25, 0, Math.PI * 2);
-  ctx.fill();
-
-  // 2. Greenhouse Glass Metal Panes & Iron Ribs
-  ctx.strokeStyle = '#047857';
-  ctx.lineWidth = 2;
-
-  // Roof glass diagonals
-  ctx.beginPath();
-  ctx.moveTo(0, 0);
-  ctx.lineTo(width / 2, 22);
-  ctx.lineTo(width, 0);
-  ctx.stroke();
-
-  // Glass specular glint line
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-  ctx.fillRect(width * 0.3, 4, 30, 2);
-  ctx.fillRect(width * 0.65, 8, 25, 2);
-
-  for (let x = 30; x < width; x += 40) {
-    ctx.beginPath();
-    ctx.moveTo(x, 0);
-    ctx.lineTo(x, platformY);
-    ctx.stroke();
-  }
-
-  // 3. Hanging Ivy Vines & Flowering Baskets
-  for (let x = 20; x < width - 40; x += 50) {
-    // Hanging pot
-    ctx.fillStyle = '#b45309';
-    ctx.fillRect(x + 6, 18, 12, 8);
-    // Ivy leaves
-    ctx.fillStyle = '#16a34a';
-    ctx.fillRect(x + 2, 24, 6, 8 + Math.sin(x + frame * 0.05) * 3);
-    ctx.fillRect(x + 12, 24, 7, 12 + Math.cos(x + frame * 0.05) * 4);
-    // Pink Orchid flower
-    ctx.fillStyle = '#f472b6';
-    ctx.fillRect(x + 5, 22, 3, 3);
-    ctx.fillRect(x + 11, 28, 3, 3);
-  }
-
-  // 4. Large Potted Monstera (Left Corner)
-  const plantX = 12;
-  const plantY = platformY - 34;
-
-  // Ceramic Planter Pot with Shading
-  ctx.fillStyle = '#f8fafc';
-  ctx.fillRect(plantX + 4, plantY + 16, 18, 18);
-  ctx.fillStyle = '#cbd5e1';
-  ctx.fillRect(plantX + 16, plantY + 16, 6, 18); // Shadow side
-  ctx.fillStyle = '#e2e8f0';
-  ctx.fillRect(plantX + 2, plantY + 14, 22, 3);
-
-  // Monstera & Ferns (organic breathing animation)
-  const breath = Math.sin(frame * 0.05) * 1;
-  ctx.fillStyle = '#15803d';
-  ctx.beginPath();
-  ctx.arc(plantX + 6 - breath, plantY + 6, 9 + breath, 0, Math.PI * 2);
-  ctx.arc(plantX + 19 + breath, plantY + 4, 11 + breath, 0, Math.PI * 2);
-  ctx.arc(plantX + 13, plantY - 3 - breath, 10 + breath, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.fillStyle = '#22c55e';
-  ctx.fillRect(plantX + 12, plantY - 2 - breath, 2, 8); // Leaf vein
-  ctx.fillRect(plantX + 6 - breath, plantY + 6, 2, 6);
-
-  // Butterflies
-  if (frame % 80 < 40) {
-    const bx = plantX + 25 + Math.sin(frame * 0.1) * 15;
-    const by = plantY - 10 + Math.cos(frame * 0.05) * 10;
-    const flap = frame % 4 < 2 ? 3 : 1;
-    ctx.fillStyle = '#38bdf8'; // Blue wings
-    ctx.fillRect(bx, by, flap, 2);
-    ctx.fillRect(bx + flap + 1, by, flap, 2);
-    ctx.fillStyle = '#fef08a'; // Yellow accents
-    ctx.fillRect(bx, by+1, 1, 1);
-  }
-
-  // 5. Rustic Stone Paver Flooring
-  ctx.fillStyle = '#334155';
-  ctx.fillRect(0, platformY, width, 28);
-  ctx.fillStyle = '#64748b';
-  ctx.fillRect(0, platformY, width, 2.5);
-
-  // Stone cobblestones pattern
-  for (let x = 0; x < width; x += 18) {
-    ctx.fillStyle = '#1e293b';
-    ctx.fillRect(x, platformY + 8, 16, 1);
-    ctx.fillRect(x + 9, platformY + 18, 16, 1);
-  }
-
-  // 6. Wooden Garden Potting Bench / Workstation
   const deskX = width - 68;
   const deskY = platformY - 24;
 
-  ctx.fillStyle = '#78350f';
-  ctx.fillRect(deskX, deskY, 45, 24);
-  ctx.fillStyle = '#92400e';
-  ctx.fillRect(deskX, deskY, 45, 3);
-
-  // Watering Can & Seedling Pots
-  ctx.fillStyle = '#10b981';
-  ctx.fillRect(deskX + 6, deskY - 10, 10, 10);
-  ctx.fillStyle = '#059669';
-  ctx.fillRect(deskX + 14, deskY - 14, 4, 6); // Spout
-
-  ctx.fillStyle = '#b45309';
-  ctx.fillRect(deskX + 22, deskY - 8, 6, 8);
-  ctx.fillRect(deskX + 32, deskY - 8, 6, 8);
-  
-  // Flowering Pots reflecting plantBloomStage
-  const bloomStage = objectStates.plantBloomStage || 1;
-  ctx.fillStyle = '#22c55e';
-  ctx.fillRect(deskX + 24, deskY - 12, 3, 4); // Sprout 1
-  ctx.fillRect(deskX + 34, deskY - 12, 3, 4); // Sprout 2
-
-  if (bloomStage >= 2) {
-    // Bud
-    ctx.fillStyle = '#f472b6';
-    ctx.fillRect(deskX + 24, deskY - 14, 3, 2);
-    ctx.fillRect(deskX + 34, deskY - 14, 3, 2);
+  // Ceiling/walls
+  ctx.fillStyle = 'rgba(186, 230, 253, 0.15)';
+  ctx.fillRect(0, 0, width, platformY);
+  for (let px = 0; px < width; px += 30) {
+    drawPixelRect(ctx, px, 0, 4, platformY, PALETTES.glass);
   }
-  if (bloomStage >= 3) {
-    // Blooming flower
-    ctx.fillStyle = '#ec4899';
-    ctx.fillRect(deskX + 23, deskY - 15, 5, 3);
-    ctx.fillStyle = '#fef08a';
-    ctx.fillRect(deskX + 25, deskY - 14, 1, 1);
+  for (let py = 0; py < platformY; py += 30) {
+    drawPixelRect(ctx, 0, py, width, 4, PALETTES.glass);
+  }
+
+  // Sunbeam shafts
+  ctx.fillStyle = 'rgba(253, 224, 71, 0.1)';
+  ctx.beginPath();
+  ctx.moveTo(20, 0); ctx.lineTo(width / 2 + 20, platformY);
+  ctx.lineTo(width / 2 - 20, platformY); ctx.lineTo(0, 0);
+  ctx.fill();
+
+  // Floor
+  drawTileFloor(ctx, 0, platformY, width, 28, '#6b7280', '#9ca3af', '#374151', 8);
+
+  // Large Monstera
+  const mx = 30;
+  const my = platformY;
+  ctx.fillStyle = '#14532d'; // stems
+  ctx.fillRect(mx, my - 60, 2, 60);
+  ctx.fillRect(mx - 10, my - 40, 10, 2);
+  ctx.fillRect(mx + 2, my - 30, 12, 2);
+  drawLeaf(ctx, mx - 16, my - 46, '#15803d', '#14532d', 10);
+  drawLeaf(ctx, mx - 8, my - 66, '#16a34a', '#14532d', 12);
+  drawLeaf(ctx, mx + 8, my - 38, '#4ade80', '#14532d', 14);
+
+  // Potting bench
+  drawPseudo3DBox(ctx, deskX, deskY, 50, 24, 4, PALETTES.oakWood);
+  drawWoodGrain(ctx, deskX, deskY, 50, 4, PALETTES.oakWood, 4);
+
+  // Small flowering pots
+  const potX = deskX + 4;
+  const potY = deskY - 8;
+  for(let i=0; i<3; i++) {
+    const px = potX + i * 14;
+    drawPixelRect(ctx, px, potY + 2, 8, 6, PALETTES.terracotta);
+    drawPixelRect(ctx, px - 1, potY, 10, 2, PALETTES.terracotta); // rim
     
-    ctx.fillStyle = '#ec4899';
-    ctx.fillRect(deskX + 33, deskY - 15, 5, 3);
-    ctx.fillStyle = '#fef08a';
-    ctx.fillRect(deskX + 35, deskY - 14, 1, 1);
+    // Plant stages
+    const stage = objectStates.plantBloomStage || 0;
+    if (stage >= 1) {
+      ctx.fillStyle = '#16a34a'; ctx.fillRect(px + 3, potY - 4, 2, 4); // sprout
+    }
+    if (stage >= 2) {
+      ctx.beginPath(); ctx.arc(px + 4, potY - 6, 2, 0, Math.PI*2); ctx.fill(); // bud
+    }
+    if (stage >= 3 && i === 1) { // bloom one specifically
+      ctx.fillStyle = '#f472b6'; // pink petal
+      ctx.fillRect(px + 2, potY - 8, 4, 4);
+      ctx.fillStyle = '#fef08a'; // yellow center
+      ctx.fillRect(px + 3, potY - 7, 2, 2);
+    }
   }
 
-  // Stool
-  ctx.fillStyle = '#78350f';
-  ctx.fillRect(deskX - 14, deskY + 6, 10, 18);
+  // Watering can
+  const wcX = deskX + 40;
+  const wcY = deskY - 10;
+  drawPixelRect(ctx, wcX, wcY, 8, 10, { highlight: '#4ade80', mid: '#16a34a', shadow: '#14532d', outline: '#064e3b' }); // body
+  ctx.fillStyle = '#16a34a'; ctx.fillRect(wcX - 6, wcY + 2, 6, 2); // spout
+  ctx.strokeStyle = '#16a34a'; ctx.beginPath(); ctx.arc(wcX + 8, wcY + 4, 3, -Math.PI/2, Math.PI/2); ctx.stroke(); // handle
 
-  // Glass Sunbeams Streaming (soft translucent)
-  const beamShift = Math.sin(frame * 0.01) * 5;
-  ctx.fillStyle = 'rgba(254, 240, 138, 0.15)';
+  // Butterflies
+  for (let i = 0; i < 2; i++) {
+    const bx = 60 + i * 40 + Math.sin(frame * 0.05 + i) * 20;
+    const by = 40 + Math.cos(frame * 0.03 + i) * 15;
+    const wingFlap = Math.sin(frame * 0.5 + i) > 0;
+    
+    ctx.fillStyle = i === 0 ? '#38bdf8' : '#fbbf24'; // blue or yellow
+    if (wingFlap) {
+      ctx.fillRect(bx, by, 4, 3); // upper
+      ctx.fillRect(bx + 1, by + 3, 3, 2); // lower
+    } else {
+      ctx.fillRect(bx, by + 1, 2, 4); // closed wing
+    }
+  }
+
+  // Fairy lights
+  ctx.strokeStyle = '#1e293b';
+  ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.moveTo(width / 3 + beamShift, 0);
-  ctx.lineTo(width / 3 + 45 + beamShift, 0);
-  ctx.lineTo(width, platformY);
-  ctx.lineTo(width - 55, platformY);
-  ctx.closePath();
-  ctx.fill();
-  
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
-  ctx.beginPath();
-  ctx.moveTo(width / 2 + beamShift, 0);
-  ctx.lineTo(width / 2 + 25 + beamShift, 0);
-  ctx.lineTo(width, platformY - 10);
-  ctx.lineTo(width - 35, platformY);
-  ctx.closePath();
-  ctx.fill();
+  ctx.moveTo(0, 5);
+  ctx.quadraticCurveTo(width / 4, 15, width / 2, 5);
+  ctx.quadraticCurveTo((width * 3) / 4, 15, width, 5);
+  ctx.stroke();
+
+  const pulse = Math.sin(frame * 0.05) * 0.5 + 0.5;
+  for (let i = 0; i <= 12; i++) {
+    const lx = (width / 12) * i;
+    const progress = (i % 6) / 6;
+    const ly = 5 + Math.sin(progress * Math.PI) * 10;
+    
+    drawPixelRect(ctx, lx - 1, ly - 2, 3, 2, PALETTES.iron);
+    ctx.fillStyle = `rgba(251, 191, 36, ${0.15 + pulse * 0.15})`;
+    ctx.beginPath();
+    ctx.arc(lx, ly + 1, 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#fbbf24';
+    ctx.fillRect(lx, ly, 1, 1);
+  }
 
   drawRoomDoors(ctx, doors, frame, hoveredDoorId);
 

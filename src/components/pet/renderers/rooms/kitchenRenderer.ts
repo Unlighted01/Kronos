@@ -1,4 +1,12 @@
 import { RoomDoor, drawRoomDoors } from '../doorRenderer';
+import {
+  PALETTES,
+  drawPixelRect,
+  drawWoodGrain,
+  drawTileFloor,
+  drawPseudo3DBox,
+  drawPixelSphere
+} from '../pixelArtEngine';
 
 export function renderWarmKitchen(
   ctx: CanvasRenderingContext2D,
@@ -11,148 +19,98 @@ export function renderWarmKitchen(
   hoveredDoorId?: string | null
 ): { platformY: number; deskX: number; deskY: number } {
   const platformY = height - 28;
-
-  // 1. Rustic Exposed Red Brick Wall
-  ctx.fillStyle = '#451a03';
-  ctx.fillRect(0, 0, width, platformY);
-
-  ctx.fillStyle = '#7c2d12';
-  for (let y = 4; y < platformY; y += 10) {
-    const isOdd = Math.floor(y / 10) % 2 === 1;
-    const offset = isOdd ? 10 : 0;
-    for (let x = -10 + offset; x < width; x += 20) {
-      ctx.fillRect(x, y, 18, 8);
-      ctx.fillStyle = '#9a3412';
-      ctx.fillRect(x, y, 18, 2); // Brick highlight
-      ctx.fillStyle = '#7c2d12';
-    }
-  }
-
-  // 2. Hanging Copper Pots & Utensil Rack
-  ctx.fillStyle = '#292524';
-  ctx.fillRect(16, 12, 60, 2);
-
-  // Copper Pans with Highlights
-  ctx.fillStyle = '#ea580c';
-  ctx.beginPath();
-  ctx.arc(28, 22, 5, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = '#f97316';
-  ctx.fillRect(26, 19, 2, 2); // Shimmer
-  ctx.fillStyle = '#ea580c';
-  ctx.fillRect(27, 14, 2, 8);
-
-  ctx.beginPath();
-  ctx.arc(46, 24, 7, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = '#f97316';
-  ctx.fillRect(43, 20, 3, 2);
-  ctx.fillStyle = '#ea580c';
-  ctx.fillRect(45, 14, 2, 10);
-
-  ctx.beginPath();
-  ctx.arc(64, 20, 4, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillRect(63, 14, 2, 6);
-
-  // 3. Brick Baking Oven / Hearth with Fire Glow & Steam
-  const ovenX = 12;
-  const ovenY = platformY - 36;
-  ctx.fillStyle = '#292524';
-  ctx.fillRect(ovenX, ovenY, 44, 36);
-  ctx.fillStyle = '#7c2d12';
-  ctx.strokeRect(ovenX, ovenY, 44, 36);
-
-  // Fire Chamber Arched Opening
-  ctx.fillStyle = '#0f172a';
-  ctx.fillRect(ovenX + 8, ovenY + 12, 28, 24);
-
-  // Glowing Iron Grate
-  ctx.fillStyle = '#1c1917';
-  for(let i=0; i<4; i++) {
-    ctx.fillRect(ovenX + 10 + i*6, ovenY + 24, 2, 12);
-  }
-
-  // Animated Hearth Fire (Pulsing warm glow)
-  const fireFlicker = (frame % 4) * 2;
-  ctx.globalCompositeOperation = 'lighten';
-  ctx.fillStyle = '#ef4444';
-  ctx.fillRect(ovenX + 12, ovenY + 20 - fireFlicker, 20, 14);
-  ctx.fillStyle = '#f97316';
-  ctx.fillRect(ovenX + 14, ovenY + 22 - fireFlicker, 16, 12);
-  ctx.fillStyle = '#fbbf24';
-  ctx.fillRect(ovenX + 16, ovenY + 25 - fireFlicker, 12, 9);
-  ctx.globalCompositeOperation = 'source-over';
-
-  // Animated Steam Motes rising from chimney
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-  const steamY = ovenY - 6 - (frame % 15);
-  ctx.fillRect(ovenX + 20 + Math.sin(frame * 0.2) * 3, steamY, 3, 3);
-  ctx.fillRect(ovenX + 24 + Math.cos(frame * 0.2) * 3, steamY - 6, 2, 2);
-
-  // 4. Terracotta Checkered Floor
-  ctx.fillStyle = '#9a3412';
-  ctx.fillRect(0, platformY, width, 28);
-
-  const tileSize = 14;
-  for (let x = 0; x < width; x += tileSize) {
-    for (let y = platformY; y < height; y += tileSize) {
-      if ((Math.floor(x / tileSize) + Math.floor(y / tileSize)) % 2 === 0) {
-        ctx.fillStyle = '#c2410c';
-        ctx.fillRect(x, y, tileSize, tileSize);
-        ctx.fillStyle = '#ea580c';
-        ctx.fillRect(x, y, tileSize, 1.5);
-      }
-    }
-  }
-
-  // 5. Kitchen Counter & Pastry Bar (Right)
   const deskX = width - 70;
   const deskY = platformY - 24;
 
-  ctx.fillStyle = '#78350f';
-  ctx.fillRect(deskX, deskY, 45, 24);
-  ctx.fillStyle = '#f8fafc';
-  ctx.fillRect(deskX, deskY, 45, 3); // White Marble countertop
+  // Wall
+  drawTileFloor(ctx, 0, 0, width, platformY, '#fef9c3', '#fef08a', '#d97706', 8);
 
-  // Espresso Coffee Machine
-  ctx.fillStyle = '#475569';
-  ctx.fillRect(deskX + 22, deskY - 16, 16, 16);
-  ctx.fillStyle = '#38bdf8';
-  ctx.fillRect(deskX + 26, deskY - 12, 8, 6); // Pressure gauge
-  ctx.fillStyle = '#e2e8f0';
-  ctx.fillRect(deskX + 20, deskY - 6, 4, 3); // Chrome Portafilter
+  // Floor
+  drawTileFloor(ctx, 0, platformY, width, 28, '#ea580c', '#fef9c3', '#451a03', 8);
 
-  // Coffee Mug with animated steam curls
-  ctx.fillStyle = '#f8fafc';
-  ctx.fillRect(deskX + 22, deskY - 4, 4, 4);
-  ctx.fillStyle = 'rgba(255,255,255,0.7)';
-  const sOffset = Math.sin(frame * 0.1) * 2;
-  const sHeight = (frame % 15) * 0.5;
-  ctx.font = '8px sans-serif';
-  ctx.fillText('~', deskX + 22 + sOffset, deskY - 6 - sHeight);
-
-  // Detailed Pastry Display (Glass dome)
-  ctx.fillStyle = 'rgba(255,255,255,0.2)';
-  ctx.beginPath(); ctx.arc(deskX + 10, deskY, 9, Math.PI, 0); ctx.fill();
-
-  // Fresh Golden Croissants & Baguettes
-  ctx.fillStyle = '#d97706';
-  ctx.fillRect(deskX + 4, deskY - 5, 6, 3); // Croissant
+  // Oven (left)
+  const ovenX = 20;
+  const ovenY = platformY - 30;
+  const ovenW = 36;
+  const ovenH = 30;
+  drawPixelRect(ctx, ovenX, ovenY, ovenW, ovenH, PALETTES.iron);
+  // Oven door
+  drawPixelRect(ctx, ovenX + 4, ovenY + 6, ovenW - 8, 16, PALETTES.slate);
+  ctx.fillStyle = '#0f172a'; // inner glow rect
+  ctx.fillRect(ovenX + 6, ovenY + 8, ovenW - 12, 12);
+  // Hearth fire
+  const fH = 6 + Math.sin(frame * 0.3) * 2;
+  ctx.fillStyle = '#ea580c';
+  ctx.fillRect(ovenX + 10, ovenY + 20 - fH, 12, fH);
   ctx.fillStyle = '#fbbf24';
-  ctx.fillRect(deskX + 5, deskY - 5, 4, 1); // Glaze
+  ctx.fillRect(ovenX + 12, ovenY + 20 - fH + 2, 8, fH - 2);
+  // Burner grates
+  drawPixelRect(ctx, ovenX + 6, ovenY - 2, 8, 2, PALETTES.iron);
+  drawPixelRect(ctx, ovenX + 22, ovenY - 2, 8, 2, PALETTES.iron);
 
-  ctx.fillStyle = '#b45309';
-  ctx.fillRect(deskX + 11, deskY - 6, 2, 5); // Baguette
-  ctx.fillStyle = '#f59e0b';
-  ctx.fillRect(deskX + 11, deskY - 5, 1, 1);
-  ctx.fillRect(deskX + 11, deskY - 3, 1, 1);
+  // Hanging pans
+  const rackY = 10;
+  drawPixelRect(ctx, 10, rackY, 60, 2, PALETTES.darkWalnut); // beam
+  const copper = { highlight: '#fcd34d', mid: '#d97706', shadow: '#92400e', outline: '#451a03' };
+  for (let i = 0; i < 3; i++) {
+    const px = 20 + i * 16;
+    ctx.fillStyle = PALETTES.iron.mid;
+    ctx.fillRect(px, rackY + 2, 1, 6); // chain
+    drawPixelSphere(ctx, px, rackY + 12, 5, copper);
+    ctx.fillStyle = '#451a03'; ctx.fillRect(px + 5, rackY + 10, 4, 1); // handle
+  }
 
-  // Stool
-  ctx.fillStyle = '#92400e';
-  ctx.fillRect(deskX - 14, deskY + 6, 10, 18);
+  // Counter
+  drawPseudo3DBox(ctx, deskX, deskY, 50, 24, 3, PALETTES.stone);
+  drawWoodGrain(ctx, deskX, deskY + 3, 50, 21, PALETTES.oakWood, 7);
+
+  // Coffee mug
+  const mugX = deskX + 10;
+  const mugY = deskY - 6;
+  drawPixelRect(ctx, mugX, mugY, 6, 6, { highlight: '#bfdbfe', mid: '#3b82f6', shadow: '#1d4ed8', outline: '#1e3a8a' });
+  ctx.strokeStyle = '#3b82f6';
+  ctx.beginPath(); ctx.arc(mugX + 6, mugY + 3, 2, -Math.PI/2, Math.PI/2); ctx.stroke(); // handle
+  // Steam
+  ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+  ctx.beginPath();
+  ctx.moveTo(mugX + 3, mugY);
+  ctx.quadraticCurveTo(mugX + 1 + Math.sin(frame*0.1)*2, mugY - 4, mugX + 3, mugY - 8);
+  ctx.stroke();
+
+  // Pastry display
+  const pdX = deskX + 24;
+  const pdY = deskY - 8;
+  drawPixelRect(ctx, pdX, pdY, 20, 8, PALETTES.glass);
+  // Croissant
+  ctx.fillStyle = '#d97706';
+  ctx.beginPath(); ctx.arc(pdX + 6, pdY + 4, 3, Math.PI, 0); ctx.fill();
+  // Baguette
   ctx.fillStyle = '#b45309';
-  ctx.fillRect(deskX - 16, deskY + 4, 14, 3);
+  ctx.fillRect(pdX + 12, pdY + 4, 6, 2);
+
+  // Fairy lights
+  ctx.strokeStyle = '#1e293b';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(0, 5);
+  ctx.quadraticCurveTo(width / 4, 15, width / 2, 5);
+  ctx.quadraticCurveTo((width * 3) / 4, 15, width, 5);
+  ctx.stroke();
+
+  const pulse = Math.sin(frame * 0.05) * 0.5 + 0.5;
+  for (let i = 0; i <= 12; i++) {
+    const lx = (width / 12) * i;
+    const progress = (i % 6) / 6;
+    const ly = 5 + Math.sin(progress * Math.PI) * 10;
+    
+    drawPixelRect(ctx, lx - 1, ly - 2, 3, 2, PALETTES.iron);
+    ctx.fillStyle = `rgba(251, 191, 36, ${0.15 + pulse * 0.15})`;
+    ctx.beginPath();
+    ctx.arc(lx, ly + 1, 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#fbbf24';
+    ctx.fillRect(lx, ly, 1, 1);
+  }
 
   drawRoomDoors(ctx, doors, frame, hoveredDoorId);
 

@@ -2,25 +2,18 @@ import React, { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db, initPetStats, InventoryItem } from '../../db/kronosDb';
 import { DtrLogSheet } from '../dtr/DtrLogSheet';
-import {
-  Heart,
-  Zap,
-  Award,
-  ShoppingBag,
-  Calendar,
-  ChevronRight,
-  Sparkles,
-} from 'lucide-react';
 import { audioSynth } from '../../utils/audioSynth';
 
 interface RightPanelProps {
   onClose: () => void;
   initialTab?: 'vitals' | 'inventory' | 'dtr';
+  width?: number;
 }
 
 export const RightPanel: React.FC<RightPanelProps> = ({
   onClose,
   initialTab = 'vitals',
+  width,
 }) => {
   const [activeTab, setActiveTab] = useState<'vitals' | 'inventory' | 'dtr'>(initialTab);
 
@@ -58,117 +51,85 @@ export const RightPanel: React.FC<RightPanelProps> = ({
   };
 
   return (
-    <aside className="panel-right-container">
+    <aside
+      className="panel-right-container"
+      style={{
+        width: width ? `${width}px` : undefined,
+        minWidth: width ? `${width}px` : undefined,
+        maxWidth: width ? `${width}px` : undefined,
+      }}
+    >
       {/* Aligned Titlebar (36px) */}
-      <header className="unified-header">
-        <div className="flex items-center space-x-1.5 truncate">
-          <Sparkles size={12} className="text-indigo-400 shrink-0" />
-          <span className="font-bold text-[10px] text-indigo-300 tracking-wider truncate">
-            VITALS & DTR
-          </span>
-        </div>
+      <header className="px-header">
+        <span className="px-title">◈ VITALS</span>
         <button
           onClick={onClose}
           title="Collapse Right Panel"
-          className="p-1 text-slate-400 hover:text-white rounded bg-slate-900/80 hover:bg-slate-800 border border-white/5 transition-colors no-drag shrink-0"
+          className="px-btn px-btn--danger no-drag"
           style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
         >
-          <ChevronRight size={11} />
+          ✕
         </button>
       </header>
 
-      {/* Navigation Tabs (Sleek Segmented Control) */}
-      <div className="grid grid-cols-3 gap-0.5 mx-2 mt-2 mb-1.5 bg-slate-950/80 p-0.5 rounded-lg border border-white/5 shadow-inner shrink-0">
+      {/* Navigation Tabs */}
+      <div className="px-tab-bar">
         <button
           onClick={() => setActiveTab('vitals')}
-          className={`flex items-center justify-center space-x-0.5 py-1 rounded-md font-semibold text-[9px] transition-all ${
-            activeTab === 'vitals'
-              ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 shadow-sm'
-              : 'text-slate-400 hover:text-slate-200'
-          }`}
+          className={activeTab === 'vitals' ? 'px-tab px-tab--active' : 'px-tab'}
         >
-          <Heart size={9} />
-          <span>Vitals</span>
+          VITALS
         </button>
-
         <button
           onClick={() => setActiveTab('inventory')}
-          className={`flex items-center justify-center space-x-0.5 py-1 rounded-md font-semibold text-[9px] transition-all ${
-            activeTab === 'inventory'
-              ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 shadow-sm'
-              : 'text-slate-400 hover:text-slate-200'
-          }`}
+          className={activeTab === 'inventory' ? 'px-tab px-tab--active' : 'px-tab'}
         >
-          <ShoppingBag size={9} />
-          <span>Bag</span>
+          BAG
         </button>
-
         <button
           onClick={() => setActiveTab('dtr')}
-          className={`flex items-center justify-center space-x-0.5 py-1 rounded-md font-semibold text-[9px] transition-all ${
-            activeTab === 'dtr'
-              ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 shadow-sm'
-              : 'text-slate-400 hover:text-slate-200'
-          }`}
+          className={activeTab === 'dtr' ? 'px-tab px-tab--active' : 'px-tab'}
         >
-          <Calendar size={9} />
-          <span>DTR</span>
+          DTR
         </button>
       </div>
 
       {/* Main Scrollable Content Area */}
-      <div className="flex-1 min-h-0 overflow-y-auto px-2 pb-1.5 space-y-2">
+      <div className="px-scrollable" style={{ flex: 1, overflowY: 'auto', padding: '0 8px' }}>
         {/* Tab 1: Pet Vitals & Stats */}
         {activeTab === 'vitals' && (
-          <div className="space-y-2">
-            <div className="bg-slate-900/60 border border-white/10 rounded-lg p-2 space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="font-pixel text-[7.5px] text-indigo-400">LVL {level}</span>
-                <div className="flex items-center space-x-0.5 text-amber-400 font-bold text-[10px]">
-                  <Award size={11} />
-                  <span className="font-mono">{coins}</span>
-                </div>
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between text-[7.5px] text-slate-400 mb-0.5 font-mono">
-                  <span>EXP</span>
-                  <span>{exp}/{maxExp}</span>
-                </div>
-                <div className="w-full bg-slate-950 h-1.5 rounded-full overflow-hidden shadow-inner border border-white/5">
-                  <div
-                    className="bg-indigo-500 h-full transition-all duration-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]"
-                    style={{ width: `${expPercent}%` }}
-                  />
-                </div>
+          <div className="px-card" style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '8px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span className="px-badge">LVL {level}</span>
+              <span className="px-badge--cyan">{coins} G</span>
+            </div>
+            
+            <div>
+              <div className="px-label" style={{ marginBottom: '4px' }}>EXP</div>
+              <div className="px-stat-bar">
+                <div className="px-stat-bar__fill--exp" style={{ width: `${expPercent}%` }} />
               </div>
             </div>
-
-            <div className="space-y-1.5">
-              <div className="bg-slate-900/60 p-2 rounded-lg border border-white/10">
-                <div className="flex items-center justify-between text-[8px] text-amber-300 mb-1 font-semibold">
-                  <span className="flex items-center space-x-1">
-                    <Zap size={10} />
-                    <span>ENERGY</span>
-                  </span>
-                  <span className="font-mono">{energy}%</span>
-                </div>
-                <div className="w-full bg-slate-950 h-1.5 rounded-full overflow-hidden shadow-inner">
-                  <div className="bg-amber-400 h-full transition-all shadow-[0_0_8px_rgba(251,191,36,0.6)]" style={{ width: `${energy}%` }} />
-                </div>
+            
+            <div className="px-divider" />
+            
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                <span className="px-label">ENERGY</span>
+                <span className="px-value">{energy}%</span>
               </div>
-
-              <div className="bg-slate-900/60 p-2 rounded-lg border border-white/10">
-                <div className="flex items-center justify-between text-[8px] text-pink-300 mb-1 font-semibold">
-                  <span className="flex items-center space-x-1">
-                    <Heart size={10} />
-                    <span>JOY</span>
-                  </span>
-                  <span className="font-mono">{happiness}%</span>
-                </div>
-                <div className="w-full bg-slate-950 h-1.5 rounded-full overflow-hidden shadow-inner">
-                  <div className="bg-pink-400 h-full transition-all shadow-[0_0_8px_rgba(244,114,182,0.6)]" style={{ width: `${happiness}%` }} />
-                </div>
+              <div className="px-stat-bar">
+                <div className="px-stat-bar__fill--energy" style={{ width: `${energy}%` }} />
+              </div>
+            </div>
+              
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                <span className="px-label">JOY</span>
+                <span className="px-value">{happiness}%</span>
+              </div>
+              <div className="px-stat-bar">
+                <div className="px-stat-bar__fill--joy" style={{ width: `${happiness}%` }} />
               </div>
             </div>
           </div>
@@ -176,34 +137,29 @@ export const RightPanel: React.FC<RightPanelProps> = ({
 
         {/* Tab 2: Inventory Bag */}
         {activeTab === 'inventory' && (
-          <div className="space-y-1.5">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {inventoryItems.length === 0 ? (
-              <div className="text-center py-4 text-[9px] text-slate-400 bg-slate-900/40 rounded-lg border border-white/5 p-2">
-                Bag empty! Buy snacks from the Pet Shop.
+              <div className="px-card" style={{ padding: '8px', textAlign: 'center' }}>
+                <span className="px-label">BAG EMPTY</span>
               </div>
             ) : (
-              <div className="space-y-1">
-                {inventoryItems.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex items-center justify-between p-1.5 bg-slate-900/60 border border-white/10 rounded-lg hover:bg-slate-800/40 transition-colors"
-                  >
-                    <div className="flex items-center space-x-1.5 truncate">
-                      <span className="text-sm">{item.icon || '📦'}</span>
-                      <div className="truncate">
-                        <div className="font-semibold text-[9.5px] text-slate-200 truncate">{item.name}</div>
-                        <div className="text-[7px] text-indigo-400 capitalize">{item.category}</div>
-                      </div>
+              inventoryItems.map((item) => (
+                <div key={item.id} className="px-item-slot" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
+                    <span style={{ fontSize: '24px' }}>{item.icon || '📦'}</span>
+                    <div style={{ overflow: 'hidden' }}>
+                      <div className="px-label" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</div>
+                      <div className="px-label" style={{ color: 'var(--px-magenta)' }}>{item.category}</div>
                     </div>
-                    <button
-                      onClick={() => handleUseItem(item)}
-                      className="px-1.5 py-0.5 rounded text-[8px] font-semibold shrink-0 transition-colors bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm"
-                    >
-                      Feed
-                    </button>
                   </div>
-                ))}
-              </div>
+                  <button
+                    onClick={() => handleUseItem(item)}
+                    className="px-btn px-btn--primary"
+                  >
+                    USE
+                  </button>
+                </div>
+              ))
             )}
           </div>
         )}
@@ -213,9 +169,10 @@ export const RightPanel: React.FC<RightPanelProps> = ({
       </div>
 
       {/* Footer */}
-      <footer className="h-5 min-h-[20px] flex items-center justify-center border-t border-white/5 text-[7.5px] text-slate-500 font-mono shrink-0">
-        Vitals, Bag & DTR &bull; 220px
-      </footer>
+      <div style={{ padding: '8px', textAlign: 'center' }}>
+        <div className="px-divider" style={{ marginBottom: '8px' }} />
+        <span className="px-label">VITALS & DTR</span>
+      </div>
     </aside>
   );
 };

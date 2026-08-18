@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db, DtrSession } from '../../db/kronosDb';
-import { Calendar, Download, Clock, Award, Plus, Edit2, Trash2 } from 'lucide-react';
 import { DtrEntryModal } from './DtrEntryModal';
 import { DtrDetailModal } from './DtrDetailModal';
 import { DtrConfirmModal } from './DtrConfirmModal';
@@ -65,7 +64,7 @@ export const DtrLogSheet: React.FC = () => {
       'End Time',
       'Duration (Min)',
       'Coins Earned',
-      'Notes'
+      'Notes',
     ];
     const rows = sessions.map((s) => [
       s.id,
@@ -76,7 +75,7 @@ export const DtrLogSheet: React.FC = () => {
       new Date(s.endTime).toLocaleTimeString(),
       s.durationMinutes,
       s.coinsEarned,
-      `"${(s.notes || '').replace(/"/g, '""')}"`
+      `"${(s.notes || '').replace(/"/g, '""')}"`,
     ]);
 
     const csvContent = [
@@ -96,119 +95,120 @@ export const DtrLogSheet: React.FC = () => {
   };
 
   return (
-    <div className="space-y-2 select-none">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
       {/* Metric Summary Cards */}
-      <div className="grid grid-cols-2 gap-1">
-        <div className="bg-slate-950/80 p-2 rounded-xl border border-white/10 flex items-center space-x-2 shadow-inner">
-          <Clock size={14} className="text-indigo-400 shrink-0" />
-          <div className="truncate">
-            <span className="text-[7.5px] text-slate-400 font-semibold block">TOTAL TIME</span>
-            <span className="text-xs font-bold text-slate-100 font-mono">{totalHours}h</span>
-          </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+        <div className="px-card" style={{ display: 'flex', flexDirection: 'column', gap: '4px', padding: '6px' }}>
+          <span className="px-label">TIME</span>
+          <span className="px-value">{totalHours}h</span>
         </div>
 
-        <div className="bg-slate-950/80 p-2 rounded-xl border border-white/10 flex items-center space-x-2 shadow-inner">
-          <Award size={14} className="text-amber-400 shrink-0" />
-          <div className="truncate">
-            <span className="text-[7.5px] text-slate-400 font-semibold block">COINS</span>
-            <span className="text-xs font-bold text-amber-400 font-mono">+{totalCoins}</span>
-          </div>
+        <div className="px-card" style={{ display: 'flex', flexDirection: 'column', gap: '4px', padding: '6px' }}>
+          <span className="px-label">COINS</span>
+          <span className="px-value" style={{ color: 'var(--px-gold)' }}>+{totalCoins}</span>
         </div>
       </div>
 
       {/* Date & Filter Controls */}
-      <div className="flex items-center space-x-1">
-        <div className="flex-1 flex items-center space-x-1 bg-slate-900/60 border border-white/10 rounded-lg px-2 py-1">
-          <Calendar size={11} className="text-slate-400 shrink-0" />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
           <input
             type="date"
             value={filterDate === 'ALL' ? '' : filterDate}
             onChange={(e) => setFilterDate(e.target.value || 'ALL')}
-            className="bg-transparent text-[9px] text-slate-200 focus:outline-none w-full font-mono"
+            className="px-input"
+            style={{ flex: 1 }}
           />
+
+          <button
+            onClick={() => setFilterDate(filterDate === 'ALL' ? new Date().toISOString().split('T')[0] : 'ALL')}
+            className={filterDate === 'ALL' ? 'px-btn px-btn--cyan' : 'px-btn'}
+            style={{ flexShrink: 0 }}
+          >
+            {filterDate === 'ALL' ? 'TODAY' : 'ALL'}
+          </button>
+
+          <button
+            onClick={handleExportCsv}
+            disabled={!sessions || sessions.length === 0}
+            title="Export CSV"
+            className="px-btn"
+            style={{ flexShrink: 0, opacity: !sessions || sessions.length === 0 ? 0.4 : 1 }}
+          >
+            CSV
+          </button>
         </div>
 
-        <button
-          onClick={() => setFilterDate(filterDate === 'ALL' ? new Date().toISOString().split('T')[0] : 'ALL')}
-          className={`text-[8.5px] px-2 py-1 rounded-lg border font-semibold transition-colors shrink-0 ${
-            filterDate === 'ALL'
-              ? 'bg-indigo-600/30 text-indigo-300 border-indigo-500/40'
-              : 'bg-slate-900 text-slate-400 border-white/5 hover:text-slate-200'
-          }`}
-        >
-          {filterDate === 'ALL' ? 'Today' : 'All'}
-        </button>
-
+        {/* Add Entry Button */}
         <button
           onClick={() => {
             setEditingSession(null);
             setIsAddEditModalOpen(true);
           }}
-          title="Add Entry"
-          className="p-1 px-2 flex items-center space-x-1 bg-indigo-600/30 hover:bg-indigo-600/50 border border-indigo-500/40 text-indigo-300 rounded-lg shrink-0 transition-colors"
+          className="px-btn px-btn--primary"
+          style={{ width: '100%' }}
         >
-          <Plus size={11} />
-          <span className="text-[8.5px] font-semibold">Add Entry</span>
-        </button>
-
-        <button
-          onClick={handleExportCsv}
-          disabled={!sessions || sessions.length === 0}
-          title="Export CSV"
-          className="p-1 bg-emerald-600/30 hover:bg-emerald-600/40 border border-emerald-500/30 text-emerald-300 disabled:opacity-30 rounded-lg shrink-0"
-        >
-          <Download size={11} />
+          + ADD DTR ENTRY
         </button>
       </div>
 
       {/* Session Cards List */}
-      <div className="space-y-1">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
         {sessions && sessions.length > 0 ? (
           sessions.map((session: DtrSession) => (
             <div
               key={session.id}
-              className="group bg-slate-900/60 border border-white/5 rounded-xl p-2 flex items-center justify-between hover:border-white/20 hover:bg-slate-800/50 transition-all cursor-pointer relative"
+              className="px-card"
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '6px 8px',
+                cursor: 'pointer',
+              }}
               onClick={() => setSelectedDetailSession(session)}
             >
-              <div className="truncate pr-1">
-                <div className="font-semibold text-[10px] text-slate-200 truncate">
+              <div style={{ minWidth: 0, flex: 1, paddingRight: '6px' }}>
+                <div className="px-label" style={{ color: 'var(--px-white)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {session.taskName}
                 </div>
-                <div className="text-[7.5px] text-indigo-400 font-mono">
-                  {session.durationMinutes} min &bull; {new Date(session.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                <div className="px-label" style={{ marginTop: '2px', color: 'var(--px-cyan)' }}>
+                  {session.durationMinutes}m &bull; {new Date(session.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </div>
               </div>
 
-              <div className="flex items-center space-x-2">
-                <div className="hidden group-hover:flex items-center space-x-1 mr-2">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleEditSession(session);
-                    }}
-                    className="p-1 text-slate-400 hover:text-indigo-300 hover:bg-indigo-500/20 rounded-md transition-colors"
-                  >
-                    <Edit2 size={12} />
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (session.id) handleDeleteSession(session.id);
-                    }}
-                    className="p-1 text-slate-400 hover:text-red-300 hover:bg-red-500/20 rounded-md transition-colors"
-                  >
-                    <Trash2 size={12} />
-                  </button>
-                </div>
-                <span className="text-[8.5px] font-bold text-amber-400 font-mono shrink-0">
-                  +{session.coinsEarned}c
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleEditSession(session);
+                  }}
+                  className="px-btn"
+                  style={{ padding: '2px 4px' }}
+                  title="Edit"
+                >
+                  ✎
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (session.id) handleDeleteSession(session.id);
+                  }}
+                  className="px-btn px-btn--danger"
+                  style={{ padding: '2px 4px' }}
+                  title="Delete"
+                >
+                  ✕
+                </button>
+                <span className="px-badge" style={{ padding: '2px 4px' }}>
+                  +{session.coinsEarned}
                 </span>
               </div>
             </div>
           ))
         ) : (
-          <div className="py-6 text-center text-slate-500 text-[9.5px] bg-slate-900/40 rounded-xl border border-white/5 p-3">
-            No DTR records found. Complete a focus session to log work hours!
+          <div className="px-card" style={{ padding: '12px 8px', textAlign: 'center' }}>
+            <span className="px-label">NO DTR LOGS</span>
           </div>
         )}
       </div>

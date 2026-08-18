@@ -1,143 +1,335 @@
 @import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
 
-@theme {
-  --font-pixel: "Press Start 2P", monospace;
-  --font-sans: "Plus Jakarta Sans", sans-serif;
-  --font-mono: "JetBrains Mono", monospace;
+:root {
+  --px-bg-void:       #07080f;   /* deepest background — main window */
+  --px-bg-base:       #0d0f1a;   /* panel backgrounds */
+  --px-bg-surface:    #151827;   /* card / item surfaces */
+  --px-bg-raised:     #1c2035;   /* raised elements / selected states */
+  --px-border:        #2a3050;   /* default border color */
+  --px-border-bright: #3d4f7a;   /* active/hover border */
+  --px-border-dark:   #0a0c14;   /* dark inset border / shadow side */
+
+  /* Accent colors */
+  --px-gold:          #f5c842;   /* coins, XP, primary accent */
+  --px-gold-dark:     #c49a1a;   /* gold shadow / pressed */
+  --px-cyan:          #4fd1e8;   /* focus/work mode, timer */
+  --px-cyan-dark:     #2a9db0;   /* cyan shadow */
+  --px-magenta:       #e040fb;   /* joy/happiness stat */
+  --px-magenta-dark:  #9c1ab8;
+  --px-green:         #3ddc84;   /* energy stat */
+  --px-green-dark:    #1d8a4a;
+  --px-red:           #ff4444;   /* danger / close */
+  --px-red-dark:      #aa1111;
+  --px-white:         #e8ecf5;   /* primary text */
+  --px-muted:         #5a6480;   /* secondary/disabled text */
+  --px-ink:           #07080f;   /* text on bright buttons */
 }
 
 html, body, #root {
   width: 100vw;
   height: 100vh;
-  margin: 0;
-  padding: 0;
-  background-color: #0b0f19;
-  color: #f8fafc;
-  font-family: "Plus Jakarta Sans", sans-serif;
+  margin: 0; padding: 0;
+  background: var(--px-bg-void);
+  color: var(--px-white);
+  font-family: 'JetBrains Mono', monospace;
   overflow: hidden;
   user-select: none;
-  -webkit-font-smoothing: antialiased;
+  -webkit-font-smoothing: none; /* crisp pixel rendering */
+  image-rendering: pixelated;
 }
 
-/* Frameless Window Drag Regions */
-.drag-region {
-  -webkit-app-region: drag;
-}
-
-.no-drag {
-  -webkit-app-region: no-drag;
-}
-
-/* Retro Typography Helpers */
-.font-pixel {
-  font-family: "Press Start 2P", monospace;
-  letter-spacing: 0.5px;
-}
-
-.font-mono {
-  font-family: "JetBrains Mono", monospace;
-}
-
-/* Glowing Typography */
-.text-shadow-glow {
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
-}
-
-/* --- EXPLICIT 3-PANEL SINGLE WINDOW WORKSPACE CONTAINERS --- */
 .workspace-root {
-  width: 100vw;
-  height: 100vh;
-  display: flex;
-  flex-direction: row;
-  background-color: #0b0f19;
-  color: #f8fafc;
-  overflow: hidden;
+  width: 100vw; height: 100vh;
+  display: flex; flex-direction: row;
+  background: var(--px-bg-void);
+  overflow: hidden; /* nothing bleeds outside window bounds */
 }
 
-/* Left Panel: Shop & Settings (240px) */
+/* Left panel: dynamic width based on scale preset, right border 2px */
 .panel-left-container {
-  width: 240px;
-  min-width: 240px;
-  max-width: 240px;
   height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  background-color: #0d1322;
-  border-right: 1px solid rgba(255, 255, 255, 0.12);
-  overflow: hidden;
-  flex-shrink: 0;
+  display: flex; flex-direction: column;
+  background: var(--px-bg-base);
+  border-right: 2px solid var(--px-border);
+  overflow: hidden; flex-shrink: 0;
 }
 
-/* Middle Panel: Pet Room & Pomodoro Timer */
+/* Middle panel: flexible — content stacks top-to-bottom, fills available space */
 .panel-middle-container {
-  flex: 1 1 0%;
-  min-width: 260px;
+  flex: 1 1 auto;
   height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  background-color: #111827;
-  overflow: hidden;
-  position: relative;
+  display: flex; flex-direction: column;
+  background: var(--px-bg-void);
+  overflow: hidden; position: relative;
 }
 
-/* Right Panel: Vitals, Inventory & DTR (220px) */
+/* Right panel: dynamic width based on scale preset, left border 2px */
 .panel-right-container {
-  width: 220px;
-  min-width: 220px;
-  max-width: 220px;
   height: 100vh;
+  display: flex; flex-direction: column;
+  background: var(--px-bg-base);
+  border-left: 2px solid var(--px-border);
+  overflow: hidden; flex-shrink: 0;
+}
+
+.px-header {
+  height: 36px; min-height: 36px; max-height: 36px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 8px;
+  background: var(--px-bg-base);
+  border-bottom: 2px solid var(--px-border);
+  flex-shrink: 0;
+}
+
+.px-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  color: var(--px-white);
+  letter-spacing: 1px;
+  line-height: 1;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.px-btn {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  padding: 5px 8px;
+  background: var(--px-bg-raised);
+  color: var(--px-white);
+  border: 2px solid var(--px-border-bright);
+  /* Use border-bottom + border-right for depth — stays inside window, no clipping at screen edges */
+  border-bottom-color: var(--px-border-dark);
+  border-right-color: var(--px-border-dark);
+  border-radius: 0;
+  cursor: pointer;
+  transition: filter 80ms;
+  display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+  line-height: 1;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.px-btn:hover {
+  border-color: var(--px-cyan);
+  border-bottom-color: var(--px-cyan-dark);
+  border-right-color: var(--px-cyan-dark);
+  color: var(--px-cyan);
+}
+.px-btn:active {
+  filter: brightness(0.85);
+  border-top-color: var(--px-border-dark);
+  border-left-color: var(--px-border-dark);
+  border-bottom-color: var(--px-border-bright);
+  border-right-color: var(--px-border-bright);
+}
+
+.px-btn--primary {
+  background: var(--px-gold);
+  color: var(--px-ink);
+  border-color: var(--px-gold-dark);
+  border-bottom-color: var(--px-gold-dark);
+  border-right-color: var(--px-gold-dark);
+}
+.px-btn--primary:hover { background: #f8d55a; color: var(--px-ink); }
+.px-btn--primary:active { filter: brightness(0.85); }
+
+.px-btn--danger {
+  background: var(--px-red);
+  color: #fff;
+  border-color: var(--px-red-dark);
+  border-bottom-color: var(--px-red-dark);
+  border-right-color: var(--px-red-dark);
+}
+.px-btn--danger:hover { background: #ff6666; }
+.px-btn--danger:active { filter: brightness(0.85); }
+
+.px-btn--cyan {
+  background: var(--px-cyan);
+  color: var(--px-ink);
+  border-color: var(--px-cyan-dark);
+  border-bottom-color: var(--px-cyan-dark);
+  border-right-color: var(--px-cyan-dark);
+}
+.px-btn--cyan:hover { background: #6fe0f0; }
+.px-btn--cyan:active { filter: brightness(0.85); }
+
+.px-tab-bar {
+  display: flex; flex-direction: row;
+  border-bottom: 2px solid var(--px-border);
+  flex-shrink: 0;
+}
+
+.px-tab {
+  flex: 1;
+  padding: 7px 4px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 6px;
+  color: var(--px-muted);
+  background: var(--px-bg-base);
+  border: none;
+  border-right: 1px solid var(--px-border);
+  cursor: pointer;
+  text-align: center;
+  transition: color 100ms, background 100ms;
+  line-height: 1;
+}
+.px-tab:last-child { border-right: none; }
+.px-tab:hover { color: var(--px-white); background: var(--px-bg-surface); }
+/* px-tab--active is used alongside px-tab, just overrides color + bottom border */
+.px-tab.px-tab--active {
+  color: var(--px-cyan);
+  background: var(--px-bg-surface);
+  border-bottom: 2px solid var(--px-cyan);
+}
+
+.px-card {
+  background: var(--px-bg-surface);
+  border: 2px solid var(--px-border);
+  border-bottom-color: var(--px-border-dark);
+  border-right-color: var(--px-border-dark);
+  padding: 8px;
+}
+
+.px-stat-bar {
+  width: 100%;
+  height: 8px;
+  background: var(--px-bg-void);
+  border: 2px solid var(--px-border);
+  overflow: hidden;
+}
+.px-stat-bar__fill {
+  height: 100%;
+  transition: width 400ms steps(20, end);
+}
+/* Each color variant MUST also set height so it works standalone without base class */
+.px-stat-bar__fill--energy  { height: 100%; background: var(--px-gold);    transition: width 400ms steps(20, end); }
+.px-stat-bar__fill--joy     { height: 100%; background: var(--px-magenta); transition: width 400ms steps(20, end); }
+.px-stat-bar__fill--exp     { height: 100%; background: var(--px-cyan);    transition: width 400ms steps(20, end); }
+.px-stat-bar__fill--hp      { height: 100%; background: var(--px-green);   transition: width 400ms steps(20, end); }
+
+.px-label {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 6px;
+  color: var(--px-muted);
+  letter-spacing: 0.5px;
+  line-height: 1;
+}
+
+.px-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--px-white);
+  line-height: 1;
+}
+
+.px-item-slot {
+  background: var(--px-bg-surface);
+  border: 2px solid var(--px-border);
+  border-bottom-color: var(--px-border-dark);
+  border-right-color: var(--px-border-dark);
+  padding: 6px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  background-color: #0d1322;
-  border-left: 1px solid rgba(255, 255, 255, 0.12);
-  overflow: hidden;
-  flex-shrink: 0;
-}
-
-/* Standard Unified Titlebar (36px) */
-.unified-header {
-  height: 36px;
-  min-height: 36px;
-  max-height: 36px;
-  display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 0 8px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-  background-color: rgba(13, 19, 34, 0.95);
-  z-index: 20;
-  flex-shrink: 0;
-}
-
-/* Button & Form Resets */
-button {
+  gap: 4px;
   cursor: pointer;
-  border: none;
-  background: none;
-  font: inherit;
-  color: inherit;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  transition: border-color 80ms;
+}
+.px-item-slot:hover {
+  border-color: var(--px-gold);
+}
+.px-item-slot--selected {
+  border-color: var(--px-cyan);
+  background: var(--px-bg-raised);
 }
 
-/* Custom Sleek Scrollbar */
-::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
+.px-badge {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  padding: 3px 6px;
+  background: var(--px-gold);
+  color: var(--px-ink);
+  border: 2px solid var(--px-gold-dark);
+  border-bottom-color: var(--px-gold-dark);
+  border-right-color: var(--px-gold-dark);
+  line-height: 1;
 }
-::-webkit-scrollbar-track {
-  background: rgba(15, 23, 42, 0.3);
-  border-radius: 4px;
+
+.px-badge--cyan {
+  background: var(--px-cyan);
+  color: var(--px-ink);
+  border-color: var(--px-cyan-dark);
+  border-bottom-color: var(--px-cyan-dark);
+  border-right-color: var(--px-cyan-dark);
 }
-::-webkit-scrollbar-thumb {
-  background: rgba(99, 102, 241, 0.3);
-  border-radius: 4px;
+
+.px-divider {
+  width: 100%;
+  height: 2px;
+  background: var(--px-border);
+  flex-shrink: 0;
 }
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(99, 102, 241, 0.6);
+
+.px-input {
+  width: 100%;
+  background: var(--px-bg-void);
+  border: 2px solid var(--px-border);
+  color: var(--px-white);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  padding: 4px 6px;
+  border-radius: 0;
+  outline: none;
+  box-shadow: inset 1px 1px 0px var(--px-border-dark);
 }
+.px-input:focus {
+  border-color: var(--px-cyan);
+}
+
+.px-scrollable {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+/* px-timer scales with preset — base is for 1x (320px window height) */
+.px-timer {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 20px;       /* 28px was too large for 1x preset height */
+  color: var(--px-white);
+  letter-spacing: 3px;
+  line-height: 1;
+  /* Inset shadow — stays within element bounds */
+  text-shadow: 2px 2px 0px var(--px-border-dark);
+}
+
+/* Phase label base + variants: each variant includes all base styles so the div only needs one class */
+.px-phase-label,
+.px-phase-label--work,
+.px-phase-label--break,
+.px-phase-label--longbreak {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  letter-spacing: 2px;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.px-phase-label--work     { color: var(--px-cyan); }
+.px-phase-label--break    { color: var(--px-green); }
+.px-phase-label--longbreak { color: var(--px-magenta); }
+
+.drag-region { -webkit-app-region: drag; }
+.no-drag { -webkit-app-region: no-drag; }
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: var(--px-bg-void); }
+::-webkit-scrollbar-thumb { background: var(--px-border-bright); border-radius: 0; }
+::-webkit-scrollbar-thumb:hover { background: var(--px-cyan); }
+
+button { cursor: pointer; border: none; background: none; font: inherit; color: inherit; display: inline-flex; align-items: center; justify-content: center; }
+
+.font-pixel { font-family: 'Press Start 2P', monospace; }
+.font-mono  { font-family: 'JetBrains Mono', monospace; }

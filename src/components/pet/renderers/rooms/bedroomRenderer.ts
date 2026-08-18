@@ -1,5 +1,16 @@
 import { drawWindowSky, getTimeOfDay } from '../dayNightEngine';
 import { RoomDoor, drawRoomDoors } from '../doorRenderer';
+import {
+  PALETTES,
+  drawPixelRect,
+  drawWoodGrain,
+  drawBrickWall,
+  drawPseudo3DBox,
+  drawPixelSphere,
+  drawFabric,
+  drawLeaf,
+  dither
+} from '../pixelArtEngine';
 
 export interface BedroomObjectStates {
   isDeskLampOn?: boolean;
@@ -11,218 +22,145 @@ export function renderStudyBedroom(
   width: number,
   height: number,
   frame: number,
-  mode: string,
-  status: string,
+  _mode?: string,
+  _status?: string,
   doors: RoomDoor[] = [],
   hoveredDoorId?: string | null,
   objectStates: BedroomObjectStates = {}
 ): { platformY: number; deskX: number; deskY: number } {
   const timeOfDay = getTimeOfDay();
   const platformY = height - 28;
+  const deskX = width - 80;
+  const deskY = platformY - 24;
 
-  // 1. Wallpaper (Warm Indigo Diamond Motif with High Contrast)
-  ctx.fillStyle = '#312e81';
-  ctx.fillRect(0, 0, width, platformY);
+  // Wall
+  drawBrickWall(ctx, 0, 0, width, platformY, {
+    highlight: '#312e81',
+    mid: '#1e1b4b',
+    shadow: '#171438',
+    outline: '#0f0d23'
+  }, 6, 16);
 
-  // Wallpaper Diamond Pattern
-  ctx.fillStyle = '#4338ca';
-  for (let x = 8; x < width; x += 24) {
-    for (let y = 8; y < platformY; y += 24) {
-      ctx.fillRect(x + 2, y, 4, 4);
-      ctx.fillRect(x, y + 2, 8, 2);
-    }
-  }
+  // Floor
+  drawWoodGrain(ctx, 0, platformY, width, 28, PALETTES.oakWood, 9);
 
-  // 2. Real-Time Day/Night Window (Left Side)
+  // Window
   const winW = 36;
   const winH = 42;
   const winX = 14;
   const winY = 12;
   drawWindowSky(ctx, winX, winY, winW, winH, timeOfDay, frame);
+  // Architectural frame
+  drawPixelRect(ctx, winX - 2, winY - 2, winW + 4, 2, PALETTES.darkWalnut); // top
+  drawPixelRect(ctx, winX - 2, winY + winH, winW + 4, 2, PALETTES.darkWalnut); // bottom
+  drawPixelRect(ctx, winX - 2, winY, 2, winH, PALETTES.darkWalnut); // left
+  drawPixelRect(ctx, winX + winW, winY, 2, winH, PALETTES.darkWalnut); // right
+  drawPixelRect(ctx, winX + winW / 2 - 1, winY, 2, winH, PALETTES.darkWalnut); // mullion v
+  drawPixelRect(ctx, winX, winY + winH / 2 - 1, winW, 2, PALETTES.darkWalnut); // mullion h
 
-  // Hanging Ivy
-  const sway = Math.sin(frame * 0.1) * 2;
-  ctx.fillStyle = '#15803d';
-  ctx.fillRect(100 + sway, 0, 2, 25);
-  ctx.fillStyle = '#22c55e';
-  ctx.fillRect(98 + sway, 10, 3, 4);
-  ctx.fillRect(102 + sway, 16, 4, 3);
-  ctx.fillRect(99 + sway, 22, 3, 4);
-
-  // Wall Clock
-  const clockX = 35;
-  const clockY = 15;
-  ctx.fillStyle = '#78350f';
-  ctx.fillRect(clockX, clockY, 14, 14);
-  ctx.fillStyle = '#fef08a';
-  ctx.beginPath();
-  ctx.arc(clockX + 7, clockY + 7, 5, 0, Math.PI * 2);
-  ctx.fill();
-  
-  const swingSpeed = objectStates.clockChimeTimer && objectStates.clockChimeTimer > 0 ? 0.4 : 0.1;
-  const pendulumSway = Math.sin(frame * swingSpeed) * 4;
-  ctx.strokeStyle = '#b45309';
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(clockX + 7, clockY + 14);
-  ctx.lineTo(clockX + 7 + pendulumSway, clockY + 24);
-  ctx.stroke();
-  ctx.fillStyle = '#fbbf24';
-  ctx.beginPath();
-  ctx.arc(clockX + 7 + pendulumSway, clockY + 24, 2, 0, Math.PI * 2);
-  ctx.fill();
-
-  // 3. Cozy Pixel Wall Painting (Center)
-  const artX = 64;
-  const artY = 14;
-  ctx.fillStyle = '#78350f'; // Wood frame
-  ctx.fillRect(artX, artY, 26, 20);
-  ctx.fillStyle = '#0f172a'; // Canvas
-  ctx.fillRect(artX + 2, artY + 2, 22, 16);
-
-  // Mountain Sunset Mini Pixel Painting
-  ctx.fillStyle = '#f97316';
-  ctx.fillRect(artX + 2, artY + 2, 22, 8);
-  ctx.fillStyle = '#fbbf24';
-  ctx.fillRect(artX + 11, artY + 4, 4, 4); // Sun
-  ctx.fillStyle = '#4f46e5';
-  ctx.beginPath();
-  ctx.moveTo(artX + 2, artY + 18);
-  ctx.lineTo(artX + 10, artY + 8);
-  ctx.lineTo(artX + 18, artY + 18);
-  ctx.fill();
-
-  // 4. Cozy Bed with Patchwork Quilt (Far Left Corner)
-  const bedX = 8;
-  const bedY = platformY - 20;
-
-  // Bed Frame
-  ctx.fillStyle = '#78350f';
-  ctx.fillRect(bedX, bedY, 44, 20);
-  ctx.fillStyle = '#92400e';
-  ctx.fillRect(bedX, bedY - 12, 6, 32); // Wooden Headboard with details
-  ctx.fillStyle = '#451a03';
-  ctx.fillRect(bedX + 2, bedY - 10, 2, 28);
-
-  // Pillow
-  ctx.fillStyle = '#f8fafc';
-  ctx.fillRect(bedX + 8, bedY + 2, 12, 8);
-  ctx.fillStyle = '#e2e8f0';
-  ctx.fillRect(bedX + 10, bedY + 4, 8, 4);
-
-  // Patchwork Quilt (Pink/Rose/Burgundy blocks)
-  ctx.fillStyle = '#f43f5e';
-  ctx.fillRect(bedX + 20, bedY + 2, 24, 18);
-  ctx.fillStyle = '#fb7185';
-  ctx.fillRect(bedX + 24, bedY + 4, 8, 7);
-  ctx.fillRect(bedX + 34, bedY + 11, 8, 7);
-  ctx.fillStyle = '#9f1239';
-  ctx.fillRect(bedX + 24, bedY + 11, 8, 7);
-  ctx.fillRect(bedX + 34, bedY + 4, 8, 7);
-
-  // 5. Cozy Floor Rug (Walking Path)
-  const rugX = 72;
-  const rugY = platformY - 5;
-  ctx.fillStyle = '#be123c';
-  ctx.beginPath();
-  ctx.ellipse(rugX + 25, rugY + 2, 28, 6, 0, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.fillStyle = '#fb7185';
-  ctx.beginPath();
-  ctx.ellipse(rugX + 25, rugY + 2, 22, 4, 0, 0, Math.PI * 2);
-  ctx.fill();
-
-  // 6. Vibrant Golden Oak Hardwood Floorboards
-  ctx.fillStyle = '#92400e';
-  ctx.fillRect(0, platformY, width, 28);
-  ctx.fillStyle = '#d97706';
-  ctx.fillRect(0, platformY, width, 2.5); // Top highlight line
-
-  // Horizontal plank seams
-  ctx.fillStyle = '#451a03';
-  ctx.fillRect(0, platformY + 9, width, 1);
-  ctx.fillRect(0, platformY + 18, width, 1);
-
-  // Vertical plank joints
-  for (let x = 0; x < width; x += 38) {
-    ctx.fillRect(x, platformY, 1, 9);
-    ctx.fillRect(x + 19, platformY + 9, 1, 9);
-    ctx.fillRect(x + 9, platformY + 18, 1, 10);
-  }
-
-  // 7. Workstation Oak Desk & Glowing Lamp (Right)
-  const deskX = width - 70;
-  const deskY = platformY - 24;
-
-  ctx.fillStyle = '#b45309';
-  ctx.fillRect(deskX, deskY, 45, 24);
-  ctx.fillStyle = '#f59e0b';
-  ctx.fillRect(deskX, deskY, 45, 3);
-
-  // Mini Potted Succulent Plant on Desk
-  ctx.fillStyle = '#ea580c';
-  ctx.fillRect(deskX + 3, deskY - 8, 6, 8); // Pot
-  ctx.fillStyle = '#22c55e';
-  ctx.fillRect(deskX + 4, deskY - 12, 4, 4); // Succulent
-
-  // Laptop
-  ctx.fillStyle = '#94a3b8';
-  ctx.fillRect(deskX + 12, deskY - 18, 22, 18);
-  ctx.fillStyle = status === 'running' && mode === 'work' ? '#38bdf8' : '#0284c7';
-  ctx.fillRect(deskX + 14, deskY - 16, 18, 14);
-
-  if (status === 'running' && mode === 'work') {
-    // Blue screen glow
-    ctx.fillStyle = 'rgba(56, 189, 248, 0.15)';
-    ctx.fillRect(deskX - 8, deskY - 20, 24, 24);
-
-    ctx.fillStyle = '#ffffff';
-    const lineOffset = (frame % 3) * 3;
-    ctx.fillRect(deskX + 16, deskY - 14 + lineOffset, 8, 2);
-    ctx.fillRect(deskX + 16, deskY - 10 + lineOffset, 12, 2);
-    
-    // Blinking cursor
-    if (frame % 30 < 15) {
-      ctx.font = '8px monospace';
-      ctx.fillStyle = '#ffffff';
-      ctx.fillText('>_', deskX + 15, deskY - 2);
+  // Hanging Ivy Vines
+  for (let i = 0; i < 3; i++) {
+    const sway = Math.sin(frame * 0.05 + i) * 1.5;
+    const ivyX = winX + winW + 10 + i * 12 + sway;
+    ctx.fillStyle = '#14532d';
+    ctx.fillRect(ivyX, 0, 1, 25 - i * 5); // vine stem
+    for(let l = 0; l < 5 - i; l++) {
+      drawLeaf(ctx, ivyX - 2 + (l%2)*4, 4 + l*5, '#16a34a', '#14532d', 4);
     }
   }
 
-  // Desk Chair
-  ctx.fillStyle = '#64748b';
-  ctx.fillRect(deskX - 14, deskY + 6, 12, 18);
-  ctx.fillRect(deskX - 16, deskY - 6, 4, 20);
+  // Bed (left side)
+  const bedX = 8;
+  const bedW = 54;
+  const bedH = 14;
+  const bedY = platformY - bedH;
+  // Frame
+  drawPseudo3DBox(ctx, bedX, bedY, bedW, bedH, 4, PALETTES.darkWalnut);
+  // Headboard
+  drawPixelRect(ctx, bedX, platformY - 24, 6, 24, PALETTES.darkWalnut);
+  // Pillow
+  drawPixelRect(ctx, bedX + 4, bedY - 4, 12, 6, PALETTES.plaster);
+  // Quilt
+  drawFabric(ctx, bedX + 18, bedY - 3, bedW - 18, bedH + 3, { highlight: '#e11d48', mid: '#be123c', shadow: '#9f1239', outline: '#4c0519' }, 6);
 
-  // Desk Lamp Glow Cone
-  if (objectStates.isDeskLampOn ?? true) {
-    ctx.fillStyle = 'rgba(251, 191, 36, 0.25)';
-    ctx.beginPath();
-    ctx.moveTo(deskX + 40, deskY - 14);
-    ctx.lineTo(deskX + 10, platformY);
-    ctx.lineTo(deskX + 48, platformY);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = 'rgba(253, 230, 138, 0.8)';
-    ctx.beginPath();
-    ctx.arc(deskX + 39, deskY - 15, 4, 0, Math.PI * 2);
-    ctx.fill();
-  } else {
-    ctx.fillStyle = 'rgba(251, 191, 36, 0.05)'; // dim
-    ctx.beginPath();
-    ctx.moveTo(deskX + 40, deskY - 14);
-    ctx.lineTo(deskX + 10, platformY);
-    ctx.lineTo(deskX + 48, platformY);
-    ctx.closePath();
-    ctx.fill();
+  // Wall Clock
+  const clockX = 80;
+  const clockY = 16;
+  drawPixelRect(ctx, clockX, clockY, 12, 16, PALETTES.oakWood);
+  drawPixelSphere(ctx, clockX + 6, clockY + 6, 4, PALETTES.plaster);
+  // hands
+  ctx.fillStyle = '#000';
+  ctx.fillRect(clockX + 6, clockY + 6, 1, 2);
+  ctx.fillRect(clockX + 6, clockY + 5, 2, 1);
+  // Pendulum
+  const pSway = Math.sin(frame * 0.1) * 3;
+  ctx.fillStyle = '#ca8a04';
+  ctx.fillRect(clockX + 5 + pSway, clockY + 12, 1, 6);
+  drawPixelSphere(ctx, clockX + 5 + pSway, clockY + 18, 2, {highlight:'#fef08a', mid:'#ca8a04', shadow:'#713f12', outline:'#422006'});
+
+  // Bedside rug
+  const rugX = 40;
+  const rugY = platformY + 6;
+  ctx.fillStyle = '#64748b';
+  ctx.beginPath();
+  ctx.ellipse(rugX, rugY, 24, 6, 0, 0, Math.PI * 2);
+  ctx.fill();
+  dither(ctx, rugX - 18, rugY - 4, 36, 8, '#475569', 0.5);
+
+  // Desk
+  drawPseudo3DBox(ctx, deskX, deskY, 50, 24, 3, PALETTES.oakWood);
+  
+  // Laptop
+  drawPixelRect(ctx, deskX + 10, deskY - 8, 14, 10, PALETTES.slate);
+  ctx.fillStyle = '#38bdf8'; // screen inner
+  ctx.fillRect(deskX + 11, deskY - 7, 12, 8);
+  // Typing lines
+  ctx.fillStyle = '#e0f2fe';
+  const typeLine = (frame % 40) < 20 ? 4 : 8;
+  ctx.fillRect(deskX + 12, deskY - 5, typeLine, 1);
+
+  // Desk Lamp
+  ctx.fillStyle = '#64748b';
+  ctx.fillRect(deskX + 34, deskY - 2, 4, 2);
+  ctx.fillRect(deskX + 35, deskY - 10, 2, 8);
+  drawPixelRect(ctx, deskX + 31, deskY - 14, 8, 4, PALETTES.iron);
+  if (objectStates.isDeskLampOn) {
+    dither(ctx, deskX + 26, deskY - 10, 18, 10, 'rgba(253, 224, 71, 0.4)', 0.5);
   }
 
-  // Lamp Body
-  ctx.fillStyle = '#fbbf24';
-  ctx.fillRect(deskX + 38, deskY - 16, 6, 6);
-  ctx.fillStyle = '#92400e';
-  ctx.fillRect(deskX + 40, deskY - 10, 2, 10);
+  // Chair
+  const chairX = deskX + 24;
+  const chairY = deskY + 6;
+  drawPixelRect(ctx, chairX, chairY, 12, 4, PALETTES.slate);
+  drawPixelRect(ctx, chairX + 2, chairY - 8, 8, 8, PALETTES.slate);
+  ctx.fillStyle = PALETTES.iron.outline;
+  ctx.fillRect(chairX + 4, chairY + 4, 1, 14);
+  ctx.fillRect(chairX + 7, chairY + 4, 1, 14);
+
+  // Fairy lights
+  ctx.strokeStyle = '#1e293b';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(0, 5);
+  ctx.quadraticCurveTo(width / 4, 15, width / 2, 5);
+  ctx.quadraticCurveTo((width * 3) / 4, 15, width, 5);
+  ctx.stroke();
+
+  const pulse = Math.sin(frame * 0.05) * 0.5 + 0.5;
+  for (let i = 0; i <= 12; i++) {
+    const lx = (width / 12) * i;
+    const progress = (i % 6) / 6;
+    const ly = 5 + Math.sin(progress * Math.PI) * 10;
+    
+    drawPixelRect(ctx, lx - 1, ly - 2, 3, 2, PALETTES.iron);
+    ctx.fillStyle = `rgba(251, 191, 36, ${0.15 + pulse * 0.15})`;
+    ctx.beginPath();
+    ctx.arc(lx, ly + 1, 4, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.fillStyle = '#fbbf24';
+    ctx.fillRect(lx, ly, 1, 1);
+  }
 
   drawRoomDoors(ctx, doors, frame, hoveredDoorId);
 
