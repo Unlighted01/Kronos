@@ -47,6 +47,11 @@ web_modules/
 # TypeScript cache
 *.tsbuildinfo
 
+# Godot 4 Build & Editor Artifacts
+.godot/
+*.translation
+export_presets.cfg
+
 # Optional npm cache directory
 .npm
 

@@ -1,0 +1,308 @@
+[gd_scene load_steps=3 format=3 uid="uid://e4f7a8b9c0d1e"]
+
+[ext_resource type="Theme" uid="uid://b5g2j8k1m3n4p" path="res://themes/pixel_theme.tres" id="1_theme"]
+[ext_resource type="Script" path="res://scenes/panels/RightPanel.gd" id="2_rpanel"]
+
+[node name="RightPanel" type="PanelContainer"]
+custom_minimum_size = Vector2(200, 320)
+layout_mode = 2
+size_flags_vertical = 3
+theme = ExtResource("1_theme")
+script = ExtResource("2_rpanel")
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Header" type="PanelContainer" parent="VBox"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+
+[node name="HBox" type="HBoxContainer" parent="VBox/Header"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Title" type="Label" parent="VBox/Header/HBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 9
+text = "◈ VITALS"
+
+[node name="Spacer" type="Control" parent="VBox/Header/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="CloseButton" type="Button" parent="VBox/Header/HBox"]
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 2
+text = "✕"
+
+[node name="TabContainer" type="TabContainer" parent="VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+current_tab = 0
+
+[node name="VITALS" type="Control" parent="VBox/TabContainer"]
+layout_mode = 2
+metadata/_tab_index = 0
+
+[node name="ScrollContainer" type="ScrollContainer" parent="VBox/TabContainer/VITALS"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+horizontal_scroll_mode = 0
+
+[node name="VitalsVBox" type="VBoxContainer" parent="VBox/TabContainer/VITALS/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 6
+
+[node name="HeaderCard" type="PanelContainer" parent="VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox"]
+layout_mode = 2
+
+[node name="HBox" type="HBoxContainer" parent="VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox/HeaderCard"]
+layout_mode = 2
+
+[node name="LevelBadge" type="Label" parent="VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox/HeaderCard/HBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 9
+text = "LVL 1"
+
+[node name="Spacer" type="Control" parent="VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox/HeaderCard/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="CoinsBadge" type="Label" parent="VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox/HeaderCard/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.960784, 0.619608, 0.0431373, 1)
+theme_override_font_sizes/font_size = 9
+text = "100 G"
+
+[node name="ExpCard" type="PanelContainer" parent="VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox"]
+layout_mode = 2
+
+[node name="VBox" type="VBoxContainer" parent="VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox/ExpCard"]
+layout_mode = 2
+theme_override_constants/separation = 3
+
+[node name="HBox" type="HBoxContainer" parent="VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox/ExpCard/VBox"]
+layout_mode = 2
+
+[node name="ExpTitle" type="Label" parent="VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox/ExpCard/VBox/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.580392, 0.639216, 0.721569, 1)
+theme_override_font_sizes/font_size = 8
+text = "EXP"
+
+[node name="Spacer" type="Control" parent="VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox/ExpCard/VBox/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ExpLabel" type="Label" parent="VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox/ExpCard/VBox/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.309804, 0.819608, 0.909804, 1)
+theme_override_font_sizes/font_size = 8
+text = "0 / 100"
+
+[node name="ExpBar" type="ProgressBar" parent="VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox/ExpCard/VBox"]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+show_percentage = false
+
+[node name="EnergyCard" type="PanelContainer" parent="VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox"]
+layout_mode = 2
+
+[node name="VBox" type="VBoxContainer" parent="VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox/EnergyCard"]
+layout_mode = 2
+theme_override_constants/separation = 3
+
+[node name="HBox" type="HBoxContainer" parent="VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox/EnergyCard/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="EnergyTitle" type="Label" parent="VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox/EnergyCard/VBox/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.580392, 0.639216, 0.721569, 1)
+theme_override_font_sizes/font_size = 8
+text = "ENERGY"
+
+[node name="Spacer" type="Control" parent="VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox/EnergyCard/VBox/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="BuffBadge" type="Label" parent="VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox/EnergyCard/VBox/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.960784, 0.619608, 0.0431373, 1)
+theme_override_font_sizes/font_size = 7
+text = "⚡ +20% BUFF"
+
+[node name="EnergyValLabel" type="Label" parent="VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox/EnergyCard/VBox/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.960784, 0.619608, 0.0431373, 1)
+theme_override_font_sizes/font_size = 8
+text = "80%"
+
+[node name="EnergyBar" type="ProgressBar" parent="VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox/EnergyCard/VBox"]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+value = 80.0
+show_percentage = false
+
+[node name="JoyCard" type="PanelContainer" parent="VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox"]
+layout_mode = 2
+
+[node name="VBox" type="VBoxContainer" parent="VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox/JoyCard"]
+layout_mode = 2
+theme_override_constants/separation = 3
+
+[node name="HBox" type="HBoxContainer" parent="VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox/JoyCard/VBox"]
+layout_mode = 2
+
+[node name="JoyTitle" type="Label" parent="VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox/JoyCard/VBox/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.580392, 0.639216, 0.721569, 1)
+theme_override_font_sizes/font_size = 8
+text = "JOY"
+
+[node name="Spacer" type="Control" parent="VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox/JoyCard/VBox/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="JoyValLabel" type="Label" parent="VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox/JoyCard/VBox/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.92549, 0.282353, 0.6, 1)
+theme_override_font_sizes/font_size = 8
+text = "80%"
+
+[node name="JoyBar" type="ProgressBar" parent="VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox/JoyCard/VBox"]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+value = 80.0
+show_percentage = false
+
+[node name="StreakCard" type="PanelContainer" parent="VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox"]
+layout_mode = 2
+
+[node name="StreakLabel" type="Label" parent="VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox/StreakCard"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.960784, 0.619608, 0.0431373, 1)
+theme_override_font_sizes/font_size = 8
+text = "🔥 0 FOCUS STREAK"
+horizontal_alignment = 1
+
+[node name="BAG" type="Control" parent="VBox/TabContainer"]
+visible = false
+layout_mode = 2
+metadata/_tab_index = 1
+
+[node name="ScrollContainer" type="ScrollContainer" parent="VBox/TabContainer/BAG"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+horizontal_scroll_mode = 0
+
+[node name="BagVBox" type="VBoxContainer" parent="VBox/TabContainer/BAG/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 4
+
+[node name="DTR" type="Control" parent="VBox/TabContainer"]
+visible = false
+layout_mode = 2
+metadata/_tab_index = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="VBox/TabContainer/DTR"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+horizontal_scroll_mode = 0
+
+[node name="DtrVBox" type="VBoxContainer" parent="VBox/TabContainer/DTR/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 6
+
+[node name="MetricsRow" type="HBoxContainer" parent="VBox/TabContainer/DTR/ScrollContainer/DtrVBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="TimeCard" type="PanelContainer" parent="VBox/TabContainer/DTR/ScrollContainer/DtrVBox/MetricsRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="VBox" type="VBoxContainer" parent="VBox/TabContainer/DTR/ScrollContainer/DtrVBox/MetricsRow/TimeCard"]
+layout_mode = 2
+
+[node name="TimeLbl" type="Label" parent="VBox/TabContainer/DTR/ScrollContainer/DtrVBox/MetricsRow/TimeCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.580392, 0.639216, 0.721569, 1)
+theme_override_font_sizes/font_size = 7
+text = "TIME"
+
+[node name="TimeVal" type="Label" parent="VBox/TabContainer/DTR/ScrollContainer/DtrVBox/MetricsRow/TimeCard/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "0m"
+
+[node name="CoinsCard" type="PanelContainer" parent="VBox/TabContainer/DTR/ScrollContainer/DtrVBox/MetricsRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="VBox" type="VBoxContainer" parent="VBox/TabContainer/DTR/ScrollContainer/DtrVBox/MetricsRow/CoinsCard"]
+layout_mode = 2
+
+[node name="CoinsLbl" type="Label" parent="VBox/TabContainer/DTR/ScrollContainer/DtrVBox/MetricsRow/CoinsCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.580392, 0.639216, 0.721569, 1)
+theme_override_font_sizes/font_size = 7
+text = "COINS"
+
+[node name="CoinsVal" type="Label" parent="VBox/TabContainer/DTR/ScrollContainer/DtrVBox/MetricsRow/CoinsCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.960784, 0.619608, 0.0431373, 1)
+theme_override_font_sizes/font_size = 10
+text = "+0"
+
+[node name="ControlsRow" type="HBoxContainer" parent="VBox/TabContainer/DTR/ScrollContainer/DtrVBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="DateInput" type="LineEdit" parent="VBox/TabContainer/DTR/ScrollContainer/DtrVBox/ControlsRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "YYYY-MM-DD"
+
+[node name="DateToggleBtn" type="Button" parent="VBox/TabContainer/DTR/ScrollContainer/DtrVBox/ControlsRow"]
+custom_minimum_size = Vector2(40, 0)
+layout_mode = 2
+text = "TODAY"
+
+[node name="ExportCsvBtn" type="Button" parent="VBox/TabContainer/DTR/ScrollContainer/DtrVBox/ControlsRow"]
+custom_minimum_size = Vector2(32, 0)
+layout_mode = 2
+text = "CSV"
+
+[node name="AddEntryBtn" type="Button" parent="VBox/TabContainer/DTR/ScrollContainer/DtrVBox"]
+layout_mode = 2
+text = "+ ADD DTR ENTRY"
+
+[node name="ExportStatusLabel" type="Label" parent="VBox/TabContainer/DTR/ScrollContainer/DtrVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 7
+horizontal_alignment = 1
+
+[node name="SessionsListVBox" type="VBoxContainer" parent="VBox/TabContainer/DTR/ScrollContainer/DtrVBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4

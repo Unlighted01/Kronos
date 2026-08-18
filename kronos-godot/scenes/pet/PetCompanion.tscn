@@ -1,0 +1,38 @@
+[gd_scene load_steps=6 format=3 uid="uid://d1h2k3p4e5t6a"]
+
+[ext_resource type="Script" path="res://scenes/pet/PetBrain.gd" id="1_pbrain"]
+[ext_resource type="Script" path="res://scenes/pet/PetRenderer.gd" id="2_prender"]
+[ext_resource type="Script" path="res://scenes/pet/CosmeticLayer.gd" id="3_pcosmetic"]
+[ext_resource type="PackedScene" uid="uid://c5b8e9f1a2d3c" path="res://scenes/pet/ThoughtBubble.tscn" id="4_ptbubble"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_pet"]
+size = Vector2(24, 20)
+
+[node name="PetCompanion" type="CharacterBody2D"]
+z_index = 10
+collision_layer = 2
+collision_mask = 1
+input_pickable = true
+script = ExtResource("1_pbrain")
+
+[node name="PetRenderer" type="Node2D" parent="."]
+script = ExtResource("2_prender")
+
+[node name="CosmeticLayer" type="Node2D" parent="." node_paths=PackedStringArray("pet_renderer")]
+script = ExtResource("3_pcosmetic")
+pet_renderer = NodePath("../PetRenderer")
+
+[node name="ThoughtBubble" parent="." instance=ExtResource("4_ptbubble")]
+position = Vector2(0, -18)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -8)
+shape = SubResource("RectangleShape2D_pet")
+
+[node name="ClickArea" type="Area2D" parent="."]
+position = Vector2(0, -8)
+collision_layer = 2
+collision_mask = 0
+
+[node name="ClickShape" type="CollisionShape2D" parent="ClickArea"]
+shape = SubResource("RectangleShape2D_pet")

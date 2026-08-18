@@ -1,0 +1,39 @@
+[gd_scene load_steps=3 format=3 uid="uid://b7v8c9x0z1a2s"]
+
+[ext_resource type="Script" path="res://scenes/rooms/Greenhouse.gd" id="1_green"]
+[ext_resource type="PackedScene" uid="uid://b2d8e4f6a1c9x" path="res://scenes/rooms/Door.tscn" id="2_door"]
+
+[node name="Greenhouse" type="Node2D"]
+script = ExtResource("1_green")
+room_id = "room_greenhouse"
+room_name = "Botanical Conservatory"
+desk_x = 85.0
+nap_x = 165.0
+drink_x = 85.0
+
+[node name="AmbientModulate" type="CanvasModulate" parent="."]
+color = Color(1, 1, 1, 1)
+
+[node name="SakuraPetals" type="CPUParticles2D" parent="."]
+position = Vector2(120, 10)
+amount = 20
+lifetime = 4.5
+randomness = 0.5
+emission_shape = 3
+emission_rect_extents = Vector2(110, 10)
+gravity = Vector2(8, 16)
+initial_velocity_min = 4.0
+initial_velocity_max = 14.0
+tangential_accel_min = -12.0
+tangential_accel_max = 12.0
+angle_min = -45.0
+angle_max = 45.0
+scale_amount_min = 1.5
+scale_amount_max = 3.0
+color = Color(0.98, 0.68, 0.80, 0.85)
+
+[node name="DoorLeft" parent="." instance=ExtResource("2_door")]
+position = Vector2(14, 115)
+target_room = "room_kitchen"
+door_label = "Kitchen"
+door_direction = "left"

@@ -1,0 +1,308 @@
+[gd_scene load_steps=10 format=3 uid="uid://c8x1nav5k2w3q"]
+
+[ext_resource type="Theme" uid="uid://b5g2j8k1m3n4p" path="res://themes/pixel_theme.tres" id="1_theme"]
+[ext_resource type="Script" path="res://scenes/main/WindowController.gd" id="2_wctrl"]
+[ext_resource type="PackedScene" uid="uid://dm7j2k3n4p5q6" path="res://scenes/panels/LeftPanel.tscn" id="3_lpanel"]
+[ext_resource type="PackedScene" uid="uid://81co6e0rsiam" path="res://scenes/panels/RightPanel.tscn" id="4_rpanel"]
+[ext_resource type="PackedScene" uid="uid://c1v2b3n4m5l6k" path="res://scenes/rooms/RoomManager.tscn" id="5_rmgr"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_middle_panel"]
+bg_color = Color(0.027451, 0.0313726, 0.0588235, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.145098, 0.164706, 0.25098, 1)
+corner_detail = 1
+anti_aliasing = false
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_call_btn"]
+content_margin_left = 3.0
+content_margin_top = 1.0
+content_margin_right = 3.0
+content_margin_bottom = 1.0
+bg_color = Color(0.14, 0.16, 0.25, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.96, 0.62, 0.04, 0.9)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+anti_aliasing = false
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_call_btn_hover"]
+content_margin_left = 3.0
+content_margin_top = 1.0
+content_margin_right = 3.0
+content_margin_bottom = 1.0
+bg_color = Color(0.22, 0.26, 0.40, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1.0, 0.85, 0.35, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+anti_aliasing = false
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_timer_dock"]
+content_margin_left = 6.0
+content_margin_top = 4.0
+content_margin_right = 6.0
+content_margin_bottom = 4.0
+bg_color = Color(0.0509804, 0.0588235, 0.101961, 1)
+border_width_top = 2
+border_color = Color(0.145098, 0.164706, 0.25098, 1)
+corner_detail = 1
+anti_aliasing = false
+
+[node name="MainWorkspace" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_theme")
+script = ExtResource("2_wctrl")
+
+[node name="MainContainer" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 0
+
+[node name="LeftPanel" parent="MainContainer" instance=ExtResource("3_lpanel")]
+visible = false
+layout_mode = 2
+
+[node name="MiddlePanel" type="PanelContainer" parent="MainContainer"]
+custom_minimum_size = Vector2(240, 320)
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_middle_panel")
+
+[node name="VBox" type="VBoxContainer" parent="MainContainer/MiddlePanel"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="HeaderBar" type="PanelContainer" parent="MainContainer/MiddlePanel/VBox"]
+custom_minimum_size = Vector2(0, 26)
+layout_mode = 2
+mouse_filter = 1
+
+[node name="HBox" type="HBoxContainer" parent="MainContainer/MiddlePanel/VBox/HeaderBar"]
+layout_mode = 2
+mouse_filter = 1
+theme_override_constants/separation = 3
+
+[node name="ToggleLeftButton" type="Button" parent="MainContainer/MiddlePanel/VBox/HeaderBar/HBox"]
+custom_minimum_size = Vector2(22, 20)
+layout_mode = 2
+focus_mode = 0
+mouse_filter = 0
+mouse_default_cursor_shape = 2
+text = "◀"
+
+[node name="LevelLabel" type="Label" parent="MainContainer/MiddlePanel/VBox/HeaderBar/HBox"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.309804, 0.819608, 0.909804, 1)
+theme_override_font_sizes/font_size = 8
+text = "Lv.1"
+
+[node name="TitleLabel" type="Label" parent="MainContainer/MiddlePanel/VBox/HeaderBar/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 0
+mouse_default_cursor_shape = 13
+theme_override_colors/font_color = Color(0.972549, 0.980392, 0.988235, 1)
+theme_override_font_sizes/font_size = 8
+text = "Kronos"
+horizontal_alignment = 1
+
+[node name="ScaleButton" type="Button" parent="MainContainer/MiddlePanel/VBox/HeaderBar/HBox"]
+custom_minimum_size = Vector2(24, 20)
+layout_mode = 2
+focus_mode = 0
+mouse_filter = 0
+mouse_default_cursor_shape = 2
+text = "1x"
+
+[node name="PinButton" type="Button" parent="MainContainer/MiddlePanel/VBox/HeaderBar/HBox"]
+modulate = Color(1, 1, 1, 0.6)
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 2
+focus_mode = 0
+mouse_filter = 0
+mouse_default_cursor_shape = 2
+text = "📍"
+
+[node name="ToggleRightButton" type="Button" parent="MainContainer/MiddlePanel/VBox/HeaderBar/HBox"]
+custom_minimum_size = Vector2(22, 20)
+layout_mode = 2
+focus_mode = 0
+mouse_filter = 0
+mouse_default_cursor_shape = 2
+text = "▶"
+
+[node name="CloseButton" type="Button" parent="MainContainer/MiddlePanel/VBox/HeaderBar/HBox"]
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 2
+focus_mode = 0
+mouse_filter = 0
+mouse_default_cursor_shape = 2
+text = "✕"
+
+[node name="HUD" type="PanelContainer" parent="MainContainer/MiddlePanel/VBox"]
+custom_minimum_size = Vector2(0, 22)
+layout_mode = 2
+
+[node name="HBox" type="HBoxContainer" parent="MainContainer/MiddlePanel/VBox/HUD"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="CoinsLabel" type="Label" parent="MainContainer/MiddlePanel/VBox/HUD/HBox"]
+custom_minimum_size = Vector2(42, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.960784, 0.619608, 0.0431373, 1)
+theme_override_font_sizes/font_size = 8
+text = "🪙 100 G"
+
+[node name="RoomStatusContainer" type="HBoxContainer" parent="MainContainer/MiddlePanel/VBox/HUD/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+theme_override_constants/separation = 2
+
+[node name="RoomLabel" type="Label" parent="MainContainer/MiddlePanel/VBox/HUD/HBox/RoomStatusContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.35, 0.85, 0.55, 1)
+theme_override_font_sizes/font_size = 7
+text = "BEDROOM ● HERE"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="CallPetButton" type="Button" parent="MainContainer/MiddlePanel/VBox/HUD/HBox/RoomStatusContainer"]
+visible = false
+custom_minimum_size = Vector2(36, 14)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.960784, 0.75, 0.2, 1)
+theme_override_font_sizes/font_size = 6
+theme_override_styles/hover = SubResource("StyleBoxFlat_call_btn_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_call_btn_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_call_btn")
+text = "Call Pet"
+
+[node name="EnergyIcon" type="Label" parent="MainContainer/MiddlePanel/VBox/HUD/HBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 7
+text = "⚡"
+
+[node name="EnergyBar" type="ProgressBar" parent="MainContainer/MiddlePanel/VBox/HUD/HBox"]
+custom_minimum_size = Vector2(24, 6)
+layout_mode = 2
+size_flags_vertical = 4
+value = 80.0
+show_percentage = false
+
+[node name="JoyIcon" type="Label" parent="MainContainer/MiddlePanel/VBox/HUD/HBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 7
+text = "💖"
+
+[node name="JoyBar" type="ProgressBar" parent="MainContainer/MiddlePanel/VBox/HUD/HBox"]
+custom_minimum_size = Vector2(24, 6)
+layout_mode = 2
+size_flags_vertical = 4
+value = 80.0
+show_percentage = false
+
+[node name="PetSlot" type="Control" parent="MainContainer/MiddlePanel/VBox"]
+custom_minimum_size = Vector2(236, 140)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="RoomManager" parent="MainContainer/MiddlePanel/VBox/PetSlot" instance=ExtResource("5_rmgr")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TimerDock" type="PanelContainer" parent="MainContainer/MiddlePanel/VBox"]
+custom_minimum_size = Vector2(0, 96)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_timer_dock")
+
+[node name="DockVBox" type="VBoxContainer" parent="MainContainer/MiddlePanel/VBox/TimerDock"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="PhaseTabBar" type="HBoxContainer" parent="MainContainer/MiddlePanel/VBox/TimerDock/DockVBox"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="WorkTabBtn" type="Button" parent="MainContainer/MiddlePanel/VBox/TimerDock/DockVBox/PhaseTabBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 7
+text = "FOCUS (25m)"
+
+[node name="ShortBreakTabBtn" type="Button" parent="MainContainer/MiddlePanel/VBox/TimerDock/DockVBox/PhaseTabBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 7
+text = "BREAK (5m)"
+
+[node name="LongBreakTabBtn" type="Button" parent="MainContainer/MiddlePanel/VBox/TimerDock/DockVBox/PhaseTabBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 7
+text = "REST (15m)"
+
+[node name="TimerLabel" type="Label" parent="MainContainer/MiddlePanel/VBox/TimerDock/DockVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.972549, 0.980392, 0.988235, 1)
+theme_override_font_sizes/font_size = 22
+text = "25:00"
+horizontal_alignment = 1
+
+[node name="ActionControls" type="HBoxContainer" parent="MainContainer/MiddlePanel/VBox/TimerDock/DockVBox"]
+layout_mode = 2
+theme_override_constants/separation = 3
+alignment = 1
+
+[node name="PlayPauseButton" type="Button" parent="MainContainer/MiddlePanel/VBox/TimerDock/DockVBox/ActionControls"]
+custom_minimum_size = Vector2(70, 22)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 8
+text = "▶ Start"
+
+[node name="SkipButton" type="Button" parent="MainContainer/MiddlePanel/VBox/TimerDock/DockVBox/ActionControls"]
+custom_minimum_size = Vector2(46, 22)
+layout_mode = 2
+theme_override_font_sizes/font_size = 8
+text = "⏭ Skip"
+
+[node name="ResetButton" type="Button" parent="MainContainer/MiddlePanel/VBox/TimerDock/DockVBox/ActionControls"]
+custom_minimum_size = Vector2(46, 22)
+layout_mode = 2
+theme_override_font_sizes/font_size = 8
+text = "↺ Reset"
+
+[node name="RightPanel" parent="MainContainer" instance=ExtResource("4_rpanel")]
+visible = false
+layout_mode = 2

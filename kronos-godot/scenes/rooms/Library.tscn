@@ -1,0 +1,40 @@
+[gd_scene load_steps=3 format=3 uid="uid://c3m4n5b6v7c8x"]
+
+[ext_resource type="Script" path="res://scenes/rooms/Library.gd" id="1_libr"]
+[ext_resource type="PackedScene" uid="uid://c5l8a2d1d4e7r" path="res://scenes/rooms/Ladder.tscn" id="2_ladder"]
+
+[node name="Library" type="Node2D"]
+script = ExtResource("1_libr")
+room_id = "room_library"
+room_name = "Attic Library"
+desk_x = 160.0
+nap_x = 75.0
+drink_x = 160.0
+
+[node name="AmbientModulate" type="CanvasModulate" parent="."]
+color = Color(1, 1, 1, 1)
+
+[node name="ParchmentSparks" type="CPUParticles2D" parent="."]
+position = Vector2(120, 60)
+amount = 14
+lifetime = 3.5
+randomness = 0.5
+emission_shape = 3
+emission_rect_extents = Vector2(80, 40)
+gravity = Vector2(0, -6)
+initial_velocity_min = 2.0
+initial_velocity_max = 8.0
+tangential_accel_min = -4.0
+tangential_accel_max = 4.0
+scale_amount_min = 1.0
+scale_amount_max = 2.0
+color = Color(1, 0.88, 0.45, 0.6)
+
+[node name="TrapdoorLiving" parent="." instance=ExtResource("2_ladder")]
+z_index = 1
+position = Vector2(25, 115)
+target_room = "room_livingroom"
+ladder_label = "Living Room"
+indicator_text = "[ 🪜 Living Room ⬇ ]"
+direction = "down"
+is_trapdoor_hatch = true
