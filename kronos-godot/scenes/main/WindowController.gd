@@ -78,8 +78,14 @@ func _notification(what: int) -> void:
 		if is_pinned:
 			_apply_always_on_top(true)
 
-func _process(_delta: float) -> void:
-	pass
+var _pin_enforce_timer: float = 0.0
+
+func _process(delta: float) -> void:
+	if is_pinned:
+		_pin_enforce_timer += delta
+		if _pin_enforce_timer >= 0.2:
+			_pin_enforce_timer = 0.0
+			_apply_always_on_top(true)
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
@@ -269,10 +275,18 @@ func toggle_always_on_top() -> void:
 
 func _apply_always_on_top(pinned: bool) -> void:
 	is_pinned = pinned
-	var root_win: Window = get_tree().root if get_tree() else get_window()
-	if root_win:
-		root_win.always_on_top = pinned
+	
+	# 1. Root Window & Current Window Nodes
+	if get_tree() and get_tree().root:
+		get_tree().root.always_on_top = pinned
+		
+	var win: Window = get_window()
+	if win and win != (get_tree().root if get_tree() else null):
+		win.always_on_top = pinned
+		
+	# 2. DisplayServer OS window flags (0 and MAIN_WINDOW_ID)
 	DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_ALWAYS_ON_TOP, pinned, 0)
+	DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_ALWAYS_ON_TOP, pinned, DisplayServer.MAIN_WINDOW_ID)
 
 ## Recalculates dimensions, applies scaling, resizes OS window, and re-clamps to screen
 func _update_layout() -> void:
