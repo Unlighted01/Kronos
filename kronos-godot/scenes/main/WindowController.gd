@@ -445,7 +445,10 @@ func _update_minigame_button_state() -> void:
 func _update_play_pause_button_text() -> void:
 	if not play_pause_btn or not TimerEngine:
 		return
-	if TimerEngine.status == TimerEngine.TimerStatus.RUNNING:
+	if TimerEngine.status == TimerEngine.TimerStatus.ALARMING:
+		play_pause_btn.text = "⏹ Stop Alarm"
+		play_pause_btn.modulate = Color(1.0, 0.35, 0.35, 1.0)
+	elif TimerEngine.status == TimerEngine.TimerStatus.RUNNING:
 		play_pause_btn.text = "⏸ Pause"
 		play_pause_btn.modulate = Color(1.0, 0.7, 0.2, 1.0)
 	elif TimerEngine.status == TimerEngine.TimerStatus.PAUSED:

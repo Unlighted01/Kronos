@@ -69,7 +69,6 @@ func _start_initial_ambience() -> void:
 
 func _connect_event_bus() -> void:
 	EventBus.coins_changed.connect(_on_coins_changed)
-	EventBus.session_completed.connect(func(_type, _coins, _xp, _streak): start_alarm())
 	EventBus.timer_started.connect(func(): stop_alarm())
 	EventBus.room_light_toggled.connect(func(_r, _s): play_sfx("switch"))
 	EventBus.item_used.connect(func(_i, _d): play_sfx("munch"))
@@ -78,9 +77,10 @@ func _connect_event_bus() -> void:
 	EventBus.room_changed.connect(_on_room_changed)
 
 # ==============================================================================
-# ⏰ TRANSITION ALARM FANFARE
+# ⏰ ALARM FANFARE API
 # ==============================================================================
-func start_alarm() -> void:
+## Loops continuously until user clicks [⏹ Stop Alarm] (Used when Focus/Work ends)
+func start_continuous_alarm() -> void:
 	if not _alarm_player:
 		return
 	var stream: AudioStreamWAV = _sfx_cache.get("bell", null)
@@ -99,7 +99,34 @@ func start_alarm() -> void:
 	if is_muted:
 		return
 		
-	# Play pleasant 3.5s Kalimba chord fanfare cleanly without infinite loop
+	stream.loop_mode = AudioStreamWAV.LOOP_FORWARD
+	stream.loop_begin = 0
+	stream.loop_end = stream.data.size() / 2
+	
+	_alarm_player.stream = stream
+	_alarm_player.volume_db = linear_to_db(clampf(master_vol * sfx_vol, 0.001, 1.0))
+	_alarm_player.play()
+
+## Plays a short 3.5s fanfare once (Used when Break ends)
+func play_short_alarm() -> void:
+	if not _alarm_player:
+		return
+	var stream: AudioStreamWAV = _sfx_cache.get("bell", null)
+	if not stream:
+		return
+		
+	var is_muted: bool = false
+	var master_vol: float = 0.8
+	var sfx_vol: float = 0.8
+	if GameState and GameState.audio_settings:
+		var settings: Dictionary = GameState.audio_settings
+		is_muted = settings.get("is_muted", false)
+		master_vol = settings.get("master_volume", 0.8)
+		sfx_vol = settings.get("sfx_volume", 0.8)
+		
+	if is_muted:
+		return
+		
 	stream.loop_mode = AudioStreamWAV.LOOP_DISABLED
 	
 	_alarm_player.stream = stream

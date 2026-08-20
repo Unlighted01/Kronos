@@ -136,18 +136,20 @@ func _on_phase_finished_naturally() -> void:
 		_log_dtr_session("completed", jackpot_coins, jackpot_exp)
 		
 		completed_work_sessions += 1
-		EventBus.session_completed.emit("work", jackpot_coins, jackpot_exp, GameState.streak)
 		
-		# Auto-transition to Break based on cycle goal and immediately start break timer!
-		if completed_work_sessions >= pomodoro_cycle_goal:
-			completed_work_sessions = 0 # Reset cycle
-			_switch_to_phase(TimerPhase.LONG_BREAK)
-		else:
-			_switch_to_phase(TimerPhase.SHORT_BREAK)
+		# Enter ALARMING state and play continuous alarm until user clicks [⏹ Stop Alarm]
+		status = TimerStatus.ALARMING
+		if AudioManager:
+			AudioManager.start_continuous_alarm()
 			
-		start_timer()
+		EventBus.session_completed.emit("work", jackpot_coins, jackpot_exp, GameState.streak)
+		EventBus.timer_state_changed.emit(false, false)
+		EventBus.timer_tick.emit(0.0, total_phase_duration, get_phase_string())
 	else:
-		# Break finished naturally -> Auto-transition and start next Focus session!
+		# Break finished naturally -> Short alarm + Auto-start next focus sprint!
+		if AudioManager:
+			AudioManager.play_short_alarm()
+			
 		EventBus.session_completed.emit(get_phase_string(), 0, 0, GameState.streak)
 		_switch_to_phase(TimerPhase.WORK)
 		start_timer()
@@ -159,8 +161,28 @@ func _on_phase_finished_naturally() -> void:
 # ==============================================================================
 # 🎮 CONTROLS & API
 # ==============================================================================
+## Acknowledges a finished focus sprint, silences the continuous alarm, and immediately starts the break timer!
+func acknowledge_alarm() -> void:
+	if AudioManager:
+		AudioManager.stop_alarm()
+		AudioManager.play_sfx("click")
+		
+	if current_phase == TimerPhase.WORK:
+		if completed_work_sessions >= pomodoro_cycle_goal:
+			completed_work_sessions = 0 # Reset cycle
+			_switch_to_phase(TimerPhase.LONG_BREAK)
+		else:
+			_switch_to_phase(TimerPhase.SHORT_BREAK)
+			
+		start_timer() # Immediately auto-starts the break timer!
+	else:
+		_switch_to_phase(TimerPhase.WORK)
+		start_timer()
+
 ## Starts or resumes the timer
 func start_timer() -> void:
+	if AudioManager:
+		AudioManager.stop_alarm()
 	if status == TimerStatus.RUNNING:
 		return
 	if status == TimerStatus.STOPPED:
@@ -186,9 +208,11 @@ func resume_timer() -> void:
 	status = TimerStatus.RUNNING
 	EventBus.timer_state_changed.emit(true, false)
 
-## Toggles between running and paused
+## Toggles between running, paused, or stopping an active alarm
 func toggle_timer() -> void:
-	if status == TimerStatus.RUNNING:
+	if status == TimerStatus.ALARMING:
+		acknowledge_alarm()
+	elif status == TimerStatus.RUNNING:
 		pause_timer()
 	elif status == TimerStatus.PAUSED or status == TimerStatus.STOPPED:
 		start_timer()
@@ -203,6 +227,9 @@ func set_custom_durations(work_sec: float, break_sec: float) -> void:
 func stop_timer() -> void:
 	if AudioManager:
 		AudioManager.stop_alarm()
+	if status == TimerStatus.ALARMING:
+		acknowledge_alarm()
+		return
 		
 	status = TimerStatus.STOPPED
 	_coin_accumulator = 0.0
