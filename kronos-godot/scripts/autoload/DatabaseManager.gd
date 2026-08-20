@@ -133,6 +133,22 @@ func log_session(session_record: Dictionary) -> void:
 	_dtr_cache.append(session_record)
 	save_dtr()
 
+func update_session(created_unix: int, updated_record: Dictionary) -> bool:
+	for i in range(_dtr_cache.size()):
+		if int(_dtr_cache[i].get("created_unix", 0)) == created_unix:
+			_dtr_cache[i] = updated_record
+			save_dtr()
+			return true
+	return false
+
+func delete_session(created_unix: int) -> bool:
+	for i in range(_dtr_cache.size()):
+		if int(_dtr_cache[i].get("created_unix", 0)) == created_unix:
+			_dtr_cache.remove_at(i)
+			save_dtr()
+			return true
+	return false
+
 ## Saves all cached DTR records to disk
 func save_dtr() -> bool:
 	var json_string: String = JSON.stringify(_dtr_cache, "\t")

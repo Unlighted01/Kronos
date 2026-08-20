@@ -9,7 +9,7 @@ class_name WindowController
 # 📐 CONSTANTS & BASE DIMENSIONS (1x scale)
 # ==============================================================================
 const BASE_MIDDLE_WIDTH: int = 240
-const BASE_LEFT_WIDTH: int = 220
+const BASE_LEFT_WIDTH: int = 235
 const BASE_RIGHT_WIDTH: int = 200
 const BASE_HEIGHT: int = 320
 
@@ -45,9 +45,9 @@ const SCALE_LABELS: Array[String] = ["1x", "1.25x", "1.5x"]
 @onready var work_tab_btn: Button = $MainContainer/MiddlePanel/VBox/TimerDock/DockVBox/PhaseTabBar/WorkTabBtn
 @onready var short_break_tab_btn: Button = $MainContainer/MiddlePanel/VBox/TimerDock/DockVBox/PhaseTabBar/ShortBreakTabBtn
 @onready var long_break_tab_btn: Button = $MainContainer/MiddlePanel/VBox/TimerDock/DockVBox/PhaseTabBar/LongBreakTabBtn
+@onready var active_task_label: Label = $MainContainer/MiddlePanel/VBox/TimerDock/DockVBox/ActiveTaskLabel
 @onready var timer_label: Label = $MainContainer/MiddlePanel/VBox/TimerDock/DockVBox/TimerLabel
 @onready var play_pause_btn: Button = $MainContainer/MiddlePanel/VBox/TimerDock/DockVBox/ActionControls/PlayPauseButton
-@onready var skip_btn: Button = $MainContainer/MiddlePanel/VBox/TimerDock/DockVBox/ActionControls/SkipButton
 @onready var reset_btn: Button = $MainContainer/MiddlePanel/VBox/TimerDock/DockVBox/ActionControls/ResetButton
 
 # ==============================================================================
@@ -55,6 +55,7 @@ const SCALE_LABELS: Array[String] = ["1x", "1.25x", "1.5x"]
 # ==============================================================================
 var current_scale_index: int = 0 # 0 -> 1.0x, 1 -> 1.25x, 2 -> 1.5x
 var is_pinned: bool = false
+var is_position_locked: bool = false
 var is_left_open: bool = false
 var is_right_open: bool = false
 
@@ -73,19 +74,11 @@ func _ready() -> void:
 	_update_layout()
 	_refresh_ui_from_state()
 
-func _notification(what: int) -> void:
-	if what == NOTIFICATION_APPLICATION_FOCUS_IN or what == NOTIFICATION_WM_WINDOW_FOCUS_IN or what == NOTIFICATION_APPLICATION_FOCUS_OUT or what == NOTIFICATION_WM_WINDOW_FOCUS_OUT:
-		if is_pinned:
-			_apply_always_on_top(true)
+func _notification(_what: int) -> void:
+	pass
 
-var _pin_enforce_timer: float = 0.0
-
-func _process(delta: float) -> void:
-	if is_pinned:
-		_pin_enforce_timer += delta
-		if _pin_enforce_timer >= 0.2:
-			_pin_enforce_timer = 0.0
-			_apply_always_on_top(true)
+func _process(_delta: float) -> void:
+	pass
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
@@ -126,7 +119,7 @@ func _connect_signals() -> void:
 	if scale_btn:
 		scale_btn.pressed.connect(cycle_window_scale)
 	if pin_btn:
-		pin_btn.pressed.connect(toggle_always_on_top)
+		pin_btn.pressed.connect(toggle_position_lock)
 	if close_btn:
 		close_btn.pressed.connect(func(): get_tree().quit())
 		
@@ -134,19 +127,9 @@ func _connect_signals() -> void:
 	if call_pet_btn:
 		call_pet_btn.pressed.connect(_on_call_pet_pressed)
 		
-	# Phase Selector Buttons
-	if work_tab_btn:
-		work_tab_btn.pressed.connect(func(): TimerEngine.switch_to_phase_by_name("work"))
-	if short_break_tab_btn:
-		short_break_tab_btn.pressed.connect(func(): TimerEngine.switch_to_phase_by_name("short_break"))
-	if long_break_tab_btn:
-		long_break_tab_btn.pressed.connect(func(): TimerEngine.switch_to_phase_by_name("long_break"))
-		
 	# Action Controls
 	if play_pause_btn:
 		play_pause_btn.pressed.connect(func(): TimerEngine.toggle_timer())
-	if skip_btn:
-		skip_btn.pressed.connect(func(): TimerEngine.skip_phase(true))
 	if reset_btn:
 		reset_btn.pressed.connect(func(): TimerEngine.stop_timer())
 
@@ -164,6 +147,7 @@ func _connect_event_bus() -> void:
 	EventBus.pet_called.connect(_on_pet_called)
 	EventBus.panel_visibility_changed.connect(_on_panel_visibility_changed)
 	EventBus.window_pin_toggled.connect(_on_window_pin_toggled)
+	EventBus.active_task_selected.connect(func(_id, title): _update_active_task_display(title))
 
 func _refresh_ui_from_state() -> void:
 	if GameState:
@@ -176,6 +160,7 @@ func _refresh_ui_from_state() -> void:
 		if joy_bar:
 			joy_bar.value = GameState.joy
 		_update_room_and_pet_hud()
+		_update_active_task_display(GameState.get_active_task_title())
 			
 	if TimerEngine:
 		if timer_label:
@@ -186,10 +171,17 @@ func _refresh_ui_from_state() -> void:
 		pin_btn.modulate = Color(1.0, 0.84, 0.0, 1.0) if is_pinned else Color(1.0, 1.0, 1.0, 0.6)
 		pin_btn.text = "📌" if is_pinned else "📍"
 
+func _update_active_task_display(task_title: String) -> void:
+	if active_task_label:
+		active_task_label.text = "🎯 Focus: " + task_title
+
 # ==============================================================================
 # 🖱️ WINDOW DRAGGING
 # ==============================================================================
 func _on_header_gui_input(event: InputEvent) -> void:
+	if is_position_locked:
+		return
+		
 	if event is InputEventMouseButton:
 		var mb: InputEventMouseButton = event as InputEventMouseButton
 		if mb.button_index == MOUSE_BUTTON_LEFT:
@@ -264,29 +256,31 @@ func _on_panel_visibility_changed(panel_id: String, is_visible: bool) -> void:
 			toggle_right_btn.text = "◀" if is_right_open else "▶"
 		_update_layout()
 
-## Toggles Always-on-Top pin state
+## Toggles the on-screen position lock (disables dragging)
+func toggle_position_lock() -> void:
+	is_position_locked = not is_position_locked
+	if pin_btn:
+		pin_btn.modulate = Color(1.0, 0.84, 0.0, 1.0) if is_position_locked else Color(1.0, 1.0, 1.0, 0.6)
+		pin_btn.text = "📌" if is_position_locked else "📍"
+
+## Toggles Always-on-Top pin state (called by Settings panel)
 func toggle_always_on_top() -> void:
 	is_pinned = not is_pinned
 	_apply_always_on_top(is_pinned)
-	if pin_btn:
-		pin_btn.modulate = Color(1.0, 0.84, 0.0, 1.0) if is_pinned else Color(1.0, 1.0, 1.0, 0.6)
-		pin_btn.text = "📌" if is_pinned else "📍"
 	EventBus.window_pin_toggled.emit(is_pinned)
 
 func _apply_always_on_top(pinned: bool) -> void:
 	is_pinned = pinned
 	
-	# 1. Root Window & Current Window Nodes
-	if get_tree() and get_tree().root:
-		get_tree().root.always_on_top = pinned
+	# Get the actual native Windows HWND integer from Godot
+	var hwnd: int = DisplayServer.window_get_native_handle(DisplayServer.WINDOW_HANDLE, 0)
+	
+	if hwnd != 0:
+		var exe_path = ProjectSettings.globalize_path("res://bin/kronos_pinner.exe")
+		var state_str = "1" if pinned else "0"
 		
-	var win: Window = get_window()
-	if win and win != (get_tree().root if get_tree() else null):
-		win.always_on_top = pinned
-		
-	# 2. DisplayServer OS window flags (0 and MAIN_WINDOW_ID)
-	DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_ALWAYS_ON_TOP, pinned, 0)
-	DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_ALWAYS_ON_TOP, pinned, DisplayServer.MAIN_WINDOW_ID)
+		# Execute our silent native Win32 helper
+		OS.create_process(exe_path, [str(hwnd), state_str])
 
 ## Recalculates dimensions, applies scaling, resizes OS window, and re-clamps to screen
 func _update_layout() -> void:
@@ -403,12 +397,18 @@ func _get_room_display_name(room_id: String) -> String:
 
 func _on_timer_tick(time_left_sec: float, _total_sec: float, _phase: String) -> void:
 	if timer_label:
-		var mins: int = int(time_left_sec) / 60
-		var secs: int = int(time_left_sec) % 60
-		timer_label.text = "%02d:%02d" % [mins, secs]
+		if TimerEngine and TimerEngine.status == TimerEngine.TimerStatus.ALARMING:
+			timer_label.text = "00:00"
+			timer_label.modulate = Color(1.0, 0.84, 0.0, 1.0)
+		else:
+			timer_label.modulate = Color(1.0, 1.0, 1.0, 1.0)
+			var mins: int = int(time_left_sec) / 60
+			var secs: int = int(time_left_sec) % 60
+			timer_label.text = "%02d:%02d" % [mins, secs]
 
 func _on_phase_changed(new_phase: String, _duration: float) -> void:
 	_update_phase_tab_styles(new_phase)
+	_update_play_pause_button_text()
 
 func _update_phase_tab_styles(current_phase_name: String) -> void:
 	if work_tab_btn:
@@ -418,17 +418,27 @@ func _update_phase_tab_styles(current_phase_name: String) -> void:
 	if long_break_tab_btn:
 		long_break_tab_btn.modulate = Color(1.0, 0.8, 0.3, 1.0) if current_phase_name == "long_break" else Color(0.6, 0.6, 0.7, 0.6)
 
-func _on_timer_state_changed(is_running: bool, is_paused: bool) -> void:
-	if play_pause_btn:
-		if is_running:
-			play_pause_btn.text = "⏸ Pause"
-			play_pause_btn.modulate = Color(1.0, 0.7, 0.2, 1.0)
-		elif is_paused:
-			play_pause_btn.text = "▶ Resume"
-			play_pause_btn.modulate = Color(0.4, 0.8, 1.0, 1.0)
+func _update_play_pause_button_text() -> void:
+	if not play_pause_btn or not TimerEngine:
+		return
+	if TimerEngine.status == TimerEngine.TimerStatus.ALARMING:
+		play_pause_btn.text = "⏹ Stop Alarm"
+		play_pause_btn.modulate = Color(1.0, 0.35, 0.35, 1.0)
+	elif TimerEngine.status == TimerEngine.TimerStatus.RUNNING:
+		play_pause_btn.text = "⏸ Pause"
+		play_pause_btn.modulate = Color(1.0, 0.7, 0.2, 1.0)
+	elif TimerEngine.status == TimerEngine.TimerStatus.PAUSED:
+		play_pause_btn.text = "▶ Resume"
+		play_pause_btn.modulate = Color(0.4, 0.8, 1.0, 1.0)
+	else:
+		if TimerEngine.current_phase == TimerEngine.TimerPhase.WORK:
+			play_pause_btn.text = "▶ Start Focus"
 		else:
-			play_pause_btn.text = "▶ Start"
-			play_pause_btn.modulate = Color(0.35, 0.75, 1.0, 1.0)
+			play_pause_btn.text = "▶ Start Break"
+		play_pause_btn.modulate = Color(0.35, 0.75, 1.0, 1.0)
+
+func _on_timer_state_changed(_is_running: bool, _is_paused: bool) -> void:
+	_update_play_pause_button_text()
 
 func _on_coins_changed(new_balance: int, _delta: int, _reason: String) -> void:
 	if coins_label:

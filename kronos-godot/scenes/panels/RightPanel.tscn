@@ -306,3 +306,358 @@ horizontal_alignment = 1
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 4
+
+[node name="CONFIG" type="Control" parent="VBox/TabContainer"]
+visible = false
+layout_mode = 2
+metadata/_tab_index = 3
+
+[node name="ScrollContainer" type="ScrollContainer" parent="VBox/TabContainer/CONFIG"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+horizontal_scroll_mode = 0
+
+[node name="ConfigVBox" type="VBoxContainer" parent="VBox/TabContainer/CONFIG/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 6
+
+[node name="ScaleCard" type="PanelContainer" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox"]
+layout_mode = 2
+
+[node name="VBox" type="VBoxContainer" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/ScaleCard"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="ScaleLabel" type="Label" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/ScaleCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.580392, 0.639216, 0.721569, 1)
+theme_override_font_sizes/font_size = 8
+text = "WINDOW SCALE"
+
+[node name="HBox" type="HBoxContainer" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/ScaleCard/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Scale1xBtn" type="Button" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/ScaleCard/VBox/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "1X"
+
+[node name="Scale125xBtn" type="Button" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/ScaleCard/VBox/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "1.25X"
+
+[node name="Scale15xBtn" type="Button" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/ScaleCard/VBox/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "1.5X"
+
+[node name="PinCard" type="PanelContainer" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox"]
+layout_mode = 2
+
+[node name="VBox" type="VBoxContainer" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/PinCard"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="PinLabel" type="Label" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/PinCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.580392, 0.639216, 0.721569, 1)
+theme_override_font_sizes/font_size = 8
+text = "ALWAYS ON TOP"
+
+[node name="PinButton" type="Button" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/PinCard/VBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "📌 PIN TO TOP"
+
+[node name="AudioCard" type="PanelContainer" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox"]
+layout_mode = 2
+
+[node name="VBox" type="VBoxContainer" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/AudioCard"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="AudioLabel" type="Label" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/AudioCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.580392, 0.639216, 0.721569, 1)
+theme_override_font_sizes/font_size = 8
+text = "AUDIO & ALERTS"
+
+[node name="MasterRow" type="HBoxContainer" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/AudioCard/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="MasterLbl" type="Label" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/AudioCard/VBox/MasterRow"]
+custom_minimum_size = Vector2(40, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 7
+text = "MASTER"
+
+[node name="MasterSlider" type="HSlider" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/AudioCard/VBox/MasterRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+max_value = 1.0
+step = 0.05
+value = 0.8
+
+[node name="MuteBtn" type="Button" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/AudioCard/VBox/MasterRow"]
+custom_minimum_size = Vector2(48, 0)
+layout_mode = 2
+text = "🔊 ON"
+
+[node name="AmbienceRow" type="HBoxContainer" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/AudioCard/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="AmbienceLbl" type="Label" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/AudioCard/VBox/AmbienceRow"]
+custom_minimum_size = Vector2(40, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 7
+text = "AMBIENT"
+
+[node name="AmbienceSlider" type="HSlider" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/AudioCard/VBox/AmbienceRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+max_value = 1.0
+step = 0.05
+value = 0.5
+
+[node name="AmbienceToggleBtn" type="Button" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/AudioCard/VBox/AmbienceRow"]
+custom_minimum_size = Vector2(48, 0)
+layout_mode = 2
+text = "✓ ROOM"
+
+[node name="SfxRow" type="HBoxContainer" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/AudioCard/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="SfxLbl" type="Label" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/AudioCard/VBox/SfxRow"]
+custom_minimum_size = Vector2(40, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 7
+text = "SFX"
+
+[node name="SfxSlider" type="HSlider" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/AudioCard/VBox/SfxRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+max_value = 1.0
+step = 0.05
+value = 0.7
+
+[node name="TestSfxBtn" type="Button" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/AudioCard/VBox/SfxRow"]
+custom_minimum_size = Vector2(48, 0)
+layout_mode = 2
+text = "▶ TEST"
+
+[node name="NotifsRow" type="HBoxContainer" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/AudioCard/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="TimerNotifBtn" type="Button" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/AudioCard/VBox/NotifsRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "🔔 TIMER ALERTS"
+
+[node name="PetNudgeBtn" type="Button" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/AudioCard/VBox/NotifsRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "🐾 PET NUDGES"
+
+[node name="TimerCard" type="PanelContainer" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox"]
+layout_mode = 2
+
+[node name="VBox" type="VBoxContainer" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/TimerCard"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="TimerLabel" type="Label" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/TimerCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.580392, 0.639216, 0.721569, 1)
+theme_override_font_sizes/font_size = 8
+text = "TIMER PRESET (MINUTES)"
+
+[node name="Grid" type="HBoxContainer" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/TimerCard/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="WorkVBox" type="VBoxContainer" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/TimerCard/VBox/Grid"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 2
+
+[node name="WorkLbl" type="Label" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/TimerCard/VBox/Grid/WorkVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.580392, 0.639216, 0.721569, 1)
+theme_override_font_sizes/font_size = 7
+text = "FOCUS"
+
+[node name="WorkTimeInput" type="LineEdit" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/TimerCard/VBox/Grid/WorkVBox"]
+layout_mode = 2
+text = "25"
+
+[node name="BreakVBox" type="VBoxContainer" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/TimerCard/VBox/Grid"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 2
+
+[node name="BreakLbl" type="Label" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/TimerCard/VBox/Grid/BreakVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.580392, 0.639216, 0.721569, 1)
+theme_override_font_sizes/font_size = 7
+text = "BREAK"
+
+[node name="BreakTimeInput" type="LineEdit" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/TimerCard/VBox/Grid/BreakVBox"]
+layout_mode = 2
+text = "5"
+
+[node name="CycleVBox" type="VBoxContainer" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/TimerCard/VBox/Grid"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 2
+
+[node name="CycleLbl" type="Label" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/TimerCard/VBox/Grid/CycleVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.580392, 0.639216, 0.721569, 1)
+theme_override_font_sizes/font_size = 7
+text = "CYCLES"
+
+[node name="CycleInput" type="LineEdit" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/TimerCard/VBox/Grid/CycleVBox"]
+layout_mode = 2
+text = "4"
+
+[node name="ApplyTimerBtn" type="Button" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/TimerCard/VBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "APPLY TIMERS"
+
+[node name="SaveCard" type="PanelContainer" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox"]
+layout_mode = 2
+
+[node name="VBox" type="VBoxContainer" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/SaveCard"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="SaveLabel" type="Label" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/SaveCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.580392, 0.639216, 0.721569, 1)
+theme_override_font_sizes/font_size = 8
+text = "DATA PERSISTENCE"
+
+[node name="ManualSaveBtn" type="Button" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/SaveCard/VBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "💾 SAVE GAME"
+
+[node name="SaveStatusLabel" type="Label" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/SaveCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.580392, 0.639216, 0.721569, 1)
+theme_override_font_sizes/font_size = 7
+text = "Auto-save active (60s)"
+horizontal_alignment = 1
+
+
+[node name="DTRModal" type="PanelContainer" parent="."]
+visible = false
+layout_mode = 2
+
+[node name="Center" type="CenterContainer" parent="DTRModal"]
+layout_mode = 2
+
+[node name="Card" type="PanelContainer" parent="DTRModal/Center"]
+custom_minimum_size = Vector2(180, 220)
+layout_mode = 2
+
+[node name="VBox" type="VBoxContainer" parent="DTRModal/Center/Card"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Title" type="Label" parent="DTRModal/Center/Card/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.960784, 0.619608, 0.0392157, 1)
+text = "EDIT DTR ENTRY"
+horizontal_alignment = 1
+
+[node name="TaskLbl" type="Label" parent="DTRModal/Center/Card/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 7
+text = "TASK NAME"
+
+[node name="TaskInput" type="LineEdit" parent="DTRModal/Center/Card/VBox"]
+layout_mode = 2
+placeholder_text = "e.g. Debugging"
+
+[node name="CategoryLbl" type="Label" parent="DTRModal/Center/Card/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 7
+text = "CATEGORY"
+
+[node name="CategoryInput" type="LineEdit" parent="DTRModal/Center/Card/VBox"]
+layout_mode = 2
+placeholder_text = "e.g. work"
+
+[node name="HBox" type="HBoxContainer" parent="DTRModal/Center/Card/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="StartVBox" type="VBoxContainer" parent="DTRModal/Center/Card/VBox/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="StartLbl" type="Label" parent="DTRModal/Center/Card/VBox/HBox/StartVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 7
+text = "START TIME (HH:MM)"
+
+[node name="StartInput" type="LineEdit" parent="DTRModal/Center/Card/VBox/HBox/StartVBox"]
+layout_mode = 2
+placeholder_text = "09:00"
+
+[node name="EndVBox" type="VBoxContainer" parent="DTRModal/Center/Card/VBox/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="EndLbl" type="Label" parent="DTRModal/Center/Card/VBox/HBox/EndVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 7
+text = "END TIME (HH:MM)"
+
+[node name="EndInput" type="LineEdit" parent="DTRModal/Center/Card/VBox/HBox/EndVBox"]
+layout_mode = 2
+placeholder_text = "09:25"
+
+[node name="DateLbl" type="Label" parent="DTRModal/Center/Card/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 7
+text = "DATE (YYYY-MM-DD)"
+
+[node name="DateInput" type="LineEdit" parent="DTRModal/Center/Card/VBox"]
+layout_mode = 2
+placeholder_text = "2026-08-18"
+
+[node name="Spacer" type="Control" parent="DTRModal/Center/Card/VBox"]
+custom_minimum_size = Vector2(0, 4)
+layout_mode = 2
+
+[node name="SaveBtn" type="Button" parent="DTRModal/Center/Card/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.309804, 0.819608, 0.909804, 1)
+text = "SAVE ENTRY"
+
+[node name="DeleteBtn" type="Button" parent="DTRModal/Center/Card/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.301961, 0.301961, 1)
+text = "DELETE ENTRY"
+
+[node name="CancelBtn" type="Button" parent="DTRModal/Center/Card/VBox"]
+layout_mode = 2
+text = "CANCEL"

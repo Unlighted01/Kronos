@@ -84,6 +84,9 @@ func _ready() -> void:
 	_update_indicator_text()
 	_update_collider_shape()
 	
+	if EventBus:
+		EventBus.room_light_toggled.connect(_on_room_light_toggled)
+	
 	if indicator_container:
 		indicator_container.visible = false
 		indicator_container.modulate.a = 0.0
@@ -99,6 +102,9 @@ func _ready() -> void:
 		click_area.mouse_entered.connect(_on_mouse_entered)
 		click_area.mouse_exited.connect(_on_mouse_exited)
 		click_area.input_event.connect(_on_input_event)
+
+func _on_room_light_toggled(_toggled_room_id: String, _is_on: bool) -> void:
+	queue_redraw()
 
 func _process(delta: float) -> void:
 	_beam_shimmer_timer += delta * 3.0
@@ -157,35 +163,60 @@ func _draw_wooden_ladder_prop() -> void:
 	var rail_top: float = -105.0
 	var rail_h: float = 105.0
 	
-	# 1. Warm Golden Light Beam from ceiling hatch down to floor
-	var beam_outer: PackedVector2Array = PackedVector2Array([
-		Vector2(-6, rail_top),
-		Vector2(6, rail_top),
-		Vector2(14, 0),
-		Vector2(-14, 0)
-	])
-	var col_beam: Color = COL_BEAM
-	col_beam.a = clampf(0.14 + shimmer, 0.08, 0.20)
-	draw_colored_polygon(beam_outer, col_beam)
+	# Determine realistic lighting state from target room (attic) and diurnal cycle
+	var is_attic_light_on: bool = GameState.is_room_light_on(target_room) if GameState else false
+	var hour: int = Time.get_time_dict_from_system().get("hour", 12)
+	var is_night: bool = (hour < 6 or hour >= 20)
 	
-	# Inner bright beam core
-	var beam_inner: PackedVector2Array = PackedVector2Array([
-		Vector2(-3, rail_top),
-		Vector2(3, rail_top),
-		Vector2(7, 0),
-		Vector2(-7, 0)
-	])
-	var col_core: Color = COL_BEAM_CORE
-	col_core.a = clampf(0.20 + shimmer * 1.5, 0.12, 0.28)
-	draw_colored_polygon(beam_inner, col_core)
-	
-	# Warm Light Splash on Floor
-	draw_rect(Rect2(-12, 0, 24, 2), COL_BEAM_FLOOR_GLOW)
-	draw_rect(Rect2(-7, 0, 14, 1), COL_BEAM_CORE)
+	# 1. Realistic Light Beam from ceiling hatch down to floor
+	if is_attic_light_on:
+		# Attic light ON: Warm golden beam
+		var beam_outer: PackedVector2Array = PackedVector2Array([
+			Vector2(-6, rail_top),
+			Vector2(6, rail_top),
+			Vector2(14, 0),
+			Vector2(-14, 0)
+		])
+		var col_beam: Color = COL_BEAM
+		col_beam.a = clampf(0.14 + shimmer, 0.08, 0.20)
+		draw_colored_polygon(beam_outer, col_beam)
+		
+		# Inner bright beam core
+		var beam_inner: PackedVector2Array = PackedVector2Array([
+			Vector2(-3, rail_top),
+			Vector2(3, rail_top),
+			Vector2(7, 0),
+			Vector2(-7, 0)
+		])
+		var col_core: Color = COL_BEAM_CORE
+		col_core.a = clampf(0.20 + shimmer * 1.5, 0.12, 0.28)
+		draw_colored_polygon(beam_inner, col_core)
+		
+		# Warm Light Splash on Floor
+		draw_rect(Rect2(-12, 0, 24, 2), COL_BEAM_FLOOR_GLOW)
+		draw_rect(Rect2(-7, 0, 14, 1), COL_BEAM_CORE)
+	elif not is_night:
+		# Attic light OFF in Daytime: Subtle soft ambient daylight shaft
+		var beam_outer_day: PackedVector2Array = PackedVector2Array([
+			Vector2(-5, rail_top),
+			Vector2(5, rail_top),
+			Vector2(10, 0),
+			Vector2(-10, 0)
+		])
+		draw_colored_polygon(beam_outer_day, Color(0.85, 0.92, 1.0, 0.06 + shimmer * 0.5))
+	# When attic light is OFF at night, NO bright beam is drawn (realistic darkness!)
 	
 	# 2. Ceiling Hatch Opening at Top (y = -105)
 	draw_rect(Rect2(-9, rail_top - 4, 18, 5), COL_WOOD_SHADOW)
-	draw_rect(Rect2(-7, rail_top - 3, 14, 4), Color(1.0, 0.90, 0.55, 0.75)) # Glowing portal
+	
+	# Hatch portal color depends on attic light state
+	var portal_col: Color = Color(0.08, 0.09, 0.14, 0.9) # Dark night
+	if is_attic_light_on:
+		portal_col = Color(1.0, 0.90, 0.55, 0.75) # Warm lamp
+	elif not is_night:
+		portal_col = Color(0.55, 0.70, 0.85, 0.45) # Soft daylight
+	draw_rect(Rect2(-7, rail_top - 3, 14, 4), portal_col)
+	
 	draw_rect(Rect2(-10, rail_top - 5, 20, 2), COL_WOOD_MAIN)               # Ceiling frame trim
 	draw_rect(Rect2(-10, rail_top - 5, 20, 1), COL_WOOD_HIGHLIGHT)          # Molding highlight
 	# Propped open wooden hatch flap at top right

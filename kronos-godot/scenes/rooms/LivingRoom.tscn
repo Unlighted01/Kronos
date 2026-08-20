@@ -8,15 +8,15 @@
 script = ExtResource("1_livr")
 room_id = "room_livingroom"
 room_name = "Living Room Lounge"
-desk_x = 100.0
-nap_x = 150.0
-drink_x = 145.0
+desk_x = 92.0
+nap_x = 138.0
+drink_x = 138.0
 
 [node name="AmbientModulate" type="CanvasModulate" parent="."]
 color = Color(1, 1, 1, 1)
 
 [node name="FireEmbers" type="CPUParticles2D" parent="."]
-position = Vector2(59, 84)
+position = Vector2(55, 84)
 amount = 16
 lifetime = 1.8
 randomness = 0.6
@@ -31,6 +31,21 @@ scale_amount_min = 1.0
 scale_amount_max = 2.5
 color = Color(1, 0.7, 0.2, 0.9)
 
+[node name="SeasonalWeatherParticles" type="CPUParticles2D" parent="."]
+position = Vector2(137, 30)
+emitting = false
+amount = 20
+lifetime = 3.5
+randomness = 0.6
+emission_shape = 3
+emission_rect_extents = Vector2(18, 16)
+gravity = Vector2(14, 18)
+initial_velocity_min = 6.0
+initial_velocity_max = 16.0
+scale_amount_min = 1.5
+scale_amount_max = 2.5
+color = Color(0.95, 0.98, 1, 0.9)
+
 [node name="DoorLeft" parent="." instance=ExtResource("2_door")]
 position = Vector2(14, 115)
 target_room = "room_bedroom"
@@ -39,7 +54,7 @@ door_direction = "left"
 
 [node name="LadderAttic" parent="." instance=ExtResource("3_ladder")]
 z_index = 1
-position = Vector2(100, 115)
+position = Vector2(92, 115)
 target_room = "room_library"
 ladder_label = "Attic Library"
 direction = "up"

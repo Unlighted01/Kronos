@@ -59,16 +59,49 @@ const ITEM_DEFINITIONS: Dictionary = {
 		"joy_boost": 60.0,
 		"exp_boost": 0
 	},
+	"snack_pancake": {
+		"id": "snack_pancake",
+		"name": "Souffle Pancakes",
+		"icon": "🥞",
+		"category": "snack",
+		"price": 110,
+		"description": "Fluffy stacks with maple syrup! +50 Energy & +50 Joy.",
+		"energy_boost": 50.0,
+		"joy_boost": 50.0,
+		"exp_boost": 5
+	},
+	"snack_boba": {
+		"id": "snack_boba",
+		"name": "Brown Sugar Boba",
+		"icon": "🧋",
+		"category": "snack",
+		"price": 120,
+		"description": "Sweet iced milk tea! +40 Energy & +45 Joy.",
+		"energy_boost": 40.0,
+		"joy_boost": 45.0,
+		"exp_boost": 5
+	},
+	"snack_onigiri": {
+		"id": "snack_onigiri",
+		"name": "Salmon Onigiri",
+		"icon": "🍙",
+		"category": "snack",
+		"price": 130,
+		"description": "Nori-wrapped rice ball! +55 Energy & +30 Joy.",
+		"energy_boost": 55.0,
+		"joy_boost": 30.0,
+		"exp_boost": 8
+	},
 	"snack_ramen": {
 		"id": "snack_ramen",
 		"name": "Midnight Ramen",
 		"icon": "🍜",
 		"category": "snack",
 		"price": 150,
-		"description": "Hearty broth! +75 Energy & +40 Joy.",
+		"description": "Hearty rich broth! +75 Energy & +40 Joy.",
 		"energy_boost": 75.0,
 		"joy_boost": 40.0,
-		"exp_boost": 0
+		"exp_boost": 10
 	},
 	"snack_bento": {
 		"id": "snack_bento",
@@ -82,24 +115,7 @@ const ITEM_DEFINITIONS: Dictionary = {
 		"exp_boost": 25
 	},
 	# Wearable Cosmetics
-	"cosmetic_bow": {
-		"id": "cosmetic_bow",
-		"name": "Red Bowtie",
-		"icon": "🎀",
-		"category": "cosmetic",
-		"slot": "neck",
-		"price": 200,
-		"description": "A charming red bow to wear proudly."
-	},
-	"cosmetic_shades": {
-		"id": "cosmetic_shades",
-		"name": "Cool Sunglasses",
-		"icon": "🕶️",
-		"category": "cosmetic",
-		"slot": "face",
-		"price": 350,
-		"description": "Dark pixel shades for max swagger."
-	},
+	# Head
 	"cosmetic_crown": {
 		"id": "cosmetic_crown",
 		"name": "Golden Crown",
@@ -118,30 +134,194 @@ const ITEM_DEFINITIONS: Dictionary = {
 		"price": 900,
 		"description": "Pointed starry sorcerer hat of deep focus."
 	},
+	"cosmetic_beanie": {
+		"id": "cosmetic_beanie",
+		"name": "Slouch Beanie",
+		"icon": "🧶",
+		"category": "cosmetic",
+		"slot": "head",
+		"price": 280,
+		"description": "Cozy knitted winter beanie for chilly focus sessions."
+	},
+	"cosmetic_chef": {
+		"id": "cosmetic_chef",
+		"name": "Toque Chef Hat",
+		"icon": "👨‍🍳",
+		"category": "cosmetic",
+		"slot": "head",
+		"price": 320,
+		"description": "Crisp white baker hat for kitchen connoisseurs."
+	},
+	"cosmetic_cap": {
+		"id": "cosmetic_cap",
+		"name": "Baseball Cap",
+		"icon": "🧢",
+		"category": "cosmetic",
+		"slot": "head",
+		"price": 240,
+		"description": "Retro backwards cap with vintage sporty flair."
+	},
+	# Face
+	"cosmetic_shades": {
+		"id": "cosmetic_shades",
+		"name": "Cool Sunglasses",
+		"icon": "🕶️",
+		"category": "cosmetic",
+		"slot": "face",
+		"price": 350,
+		"description": "Dark pixel shades for max swagger."
+	},
+	"cosmetic_glasses": {
+		"id": "cosmetic_glasses",
+		"name": "Round Glasses",
+		"icon": "👓",
+		"category": "cosmetic",
+		"slot": "face",
+		"price": 220,
+		"description": "Cute circular wireframe spectacles for deep study."
+	},
+	"cosmetic_monocle": {
+		"id": "cosmetic_monocle",
+		"name": "Brass Monocle",
+		"icon": "🧐",
+		"category": "cosmetic",
+		"slot": "face",
+		"price": 400,
+		"description": "Distinguished single lens with golden chain."
+	},
+	# Neck
+	"cosmetic_bow": {
+		"id": "cosmetic_bow",
+		"name": "Red Bowtie",
+		"icon": "🎀",
+		"category": "cosmetic",
+		"slot": "neck",
+		"price": 200,
+		"description": "A charming red bow to wear proudly."
+	},
+	"cosmetic_scarf": {
+		"id": "cosmetic_scarf",
+		"name": "Plaid Scarf",
+		"icon": "🧣",
+		"category": "cosmetic",
+		"slot": "neck",
+		"price": 300,
+		"description": "Warm flannel tartan scarf wrapped cozily."
+	},
+	"cosmetic_bell": {
+		"id": "cosmetic_bell",
+		"name": "Bell Collar",
+		"icon": "🔔",
+		"category": "cosmetic",
+		"slot": "neck",
+		"price": 250,
+		"description": "Silken red collar with jingling golden bell."
+	},
 	# Room Decor
+	# Bedroom Decor
 	"decor_bonsai": {
 		"id": "decor_bonsai",
 		"name": "Mini Bonsai",
 		"icon": "🪴",
 		"category": "decor",
+		"target_room": "room_bedroom",
+		"target_room_name": "Study Bedroom",
 		"price": 300,
-		"description": "Tranquil miniature tree for the bedroom."
+		"description": "Tranquil miniature pine bonsai on the desk shelf."
 	},
+	"decor_lava_lamp": {
+		"id": "decor_lava_lamp",
+		"name": "Lava Lamp",
+		"icon": "🏮",
+		"category": "decor",
+		"target_room": "room_bedroom",
+		"target_room_name": "Study Bedroom",
+		"price": 400,
+		"description": "Mesmerizing glowing lava lamp on the nightstand."
+	},
+	# Living Room Decor
 	"decor_boombox": {
 		"id": "decor_boombox",
 		"name": "Retro Boombox",
 		"icon": "📻",
 		"category": "decor",
+		"target_room": "room_livingroom",
+		"target_room_name": "Living Room",
 		"price": 450,
-		"description": "Old-school cassette beatbox for the lounge."
+		"description": "Old-school cassette beatbox on the lounge credenza."
 	},
+	"decor_record_stack": {
+		"id": "decor_record_stack",
+		"name": "Vinyl Stack",
+		"icon": "🎶",
+		"category": "decor",
+		"target_room": "room_livingroom",
+		"target_room_name": "Living Room",
+		"price": 350,
+		"description": "Color-coded vintage vinyl albums stacked beside turntable."
+	},
+	# Library Decor
 	"decor_arcade": {
 		"id": "decor_arcade",
 		"name": "Arcade Cabinet",
 		"icon": "🎮",
 		"category": "decor",
+		"target_room": "room_library",
+		"target_room_name": "Attic Library",
 		"price": 1200,
-		"description": "Vintage pixel arcade machine for the library."
+		"description": "Vintage tabletop pixel arcade cabinet with glowing demo screen."
+	},
+	"decor_telescope": {
+		"id": "decor_telescope",
+		"name": "Brass Telescope",
+		"icon": "🔭",
+		"category": "decor",
+		"target_room": "room_library",
+		"target_room_name": "Attic Library",
+		"price": 500,
+		"description": "Antique brass stargazing telescope pointed out the rafter window."
+	},
+	# Kitchen Decor
+	"decor_spice_rack": {
+		"id": "decor_spice_rack",
+		"name": "Artisan Spice Rack",
+		"icon": "🧂",
+		"category": "decor",
+		"target_room": "room_kitchen",
+		"target_room_name": "Bakery Kitchen",
+		"price": 380,
+		"description": "Handcrafted wooden spice rack with glass herb jars."
+	},
+	"decor_pastry_dome": {
+		"id": "decor_pastry_dome",
+		"name": "Glass Pastry Cloche",
+		"icon": "🧁",
+		"category": "decor",
+		"target_room": "room_kitchen",
+		"target_room_name": "Bakery Kitchen",
+		"price": 420,
+		"description": "Elegant glass display cloche with blueberry muffins."
+	},
+	# Greenhouse Decor
+	"decor_terrarium": {
+		"id": "decor_terrarium",
+		"name": "Glass Terrarium",
+		"icon": "🌿",
+		"category": "decor",
+		"target_room": "room_greenhouse",
+		"target_room_name": "Conservatory",
+		"price": 450,
+		"description": "Geometric brass & crystal terrarium housing rare moss."
+	},
+	"decor_fairy_lantern": {
+		"id": "decor_fairy_lantern",
+		"name": "Solar Fairy Lamp",
+		"icon": "💡",
+		"category": "decor",
+		"target_room": "room_greenhouse",
+		"target_room_name": "Conservatory",
+		"price": 360,
+		"description": "Hanging blown-glass lantern casting fairy light motes."
 	}
 }
 
@@ -156,18 +336,145 @@ var energy: float = 80.0
 var joy: float = 80.0
 var streak: int = 0
 var equipped_cosmetic: String = "" # Active head/neck accessory
-var equipped_cosmetics: Dictionary = {} # Multi-slot support: {"head": "cosmetic_crown", "neck": "cosmetic_bow"}
+var equipped_cosmetics: Dictionary = {} # Multi-slot support: {"head": "cosmetic_crown", "face": "cosmetic_shades", "neck": "cosmetic_bow"}
 var active_view_room: String = "room_bedroom" # Default bedroom environment
 var pet_room: String = "room_bedroom" # Where the pet companion is currently located
 var active_room: String = "room_bedroom" # Backwards compatibility alias for active_view_room
 var inventory: Array[Dictionary] = [] # Array of {"item_id": String, "quantity": int, "metadata": Dictionary}
+var placed_decor: Dictionary = {} # {"decor_bonsai": true, "decor_boombox": true}
+
+# House Lighting & Interactive Object States
+var room_lights: Dictionary = {
+	"room_bedroom": false,
+	"room_livingroom": false,
+	"room_library": false,
+	"room_kitchen": false,
+	"room_greenhouse": false
+}
+
+var object_states: Dictionary = {
+	"bedroom_bed_open": false,
+	"bedroom_window_open": false
+}
+
+# Audio & Notification Preferences
+var audio_settings: Dictionary = {
+	"master_volume": 0.8,
+	"ambience_volume": 0.5,
+	"sfx_volume": 0.7,
+	"is_muted": false,
+	"ambience_enabled": true,
+	"timer_notifs_enabled": true,
+	"pet_nudges_enabled": true
+}
+
+# Micro-Tasks & Daily Quests State
+var tasks: Array[Dictionary] = []
+var active_task_id: String = ""
+var daily_quests: Array[Dictionary] = []
+var quest_generation_date: String = ""
+
+const QUEST_TEMPLATES: Array[Dictionary] = [
+	{
+		"id": "quest_focus",
+		"title": "Focus Master",
+		"description": "Complete 2 Focus Sprints",
+		"icon": "⏱️",
+		"target_type": "focus_session",
+		"target_count": 2,
+		"reward_coins": 150,
+		"reward_exp": 50
+	},
+	{
+		"id": "quest_snack",
+		"title": "Pet Nutritionist",
+		"description": "Feed Shiba 1 snack treat",
+		"icon": "🥐",
+		"target_type": "feed_snack",
+		"target_count": 1,
+		"reward_coins": 100,
+		"reward_exp": 40
+	},
+	{
+		"id": "quest_explore",
+		"title": "House Explorer",
+		"description": "Visit 3 different rooms",
+		"icon": "🚪",
+		"target_type": "room_change",
+		"target_count": 3,
+		"reward_coins": 80,
+		"reward_exp": 30
+	},
+	{
+		"id": "quest_cuddle",
+		"title": "Affectionate Bond",
+		"description": "Pet your companion 5 times",
+		"icon": "💖",
+		"target_type": "pet_cuddle",
+		"target_count": 5,
+		"reward_coins": 120,
+		"reward_exp": 45
+	}
+]
+
+var _last_checked_hour: int = -1
 
 # ==============================================================================
 # ⚙️ LIFECYCLE
 # ==============================================================================
 func _ready() -> void:
-	# Initial notification
+	_last_checked_hour = Time.get_time_dict_from_system().get("hour", 12)
+	check_and_generate_daily_quests()
+	_connect_quest_listeners()
 	_emit_all_stats()
+
+func _process(_delta: float) -> void:
+	_check_morning_light_shutoff()
+
+## Automatically shuts off all house lights when real-world time crosses into morning (06:00)
+func _check_morning_light_shutoff() -> void:
+	var cur_hour: int = Time.get_time_dict_from_system().get("hour", 12)
+	if cur_hour == 6 and _last_checked_hour != 6:
+		for r_id in room_lights.keys():
+			if room_lights[r_id]:
+				room_lights[r_id] = false
+				EventBus.room_light_toggled.emit(r_id, false)
+	_last_checked_hour = cur_hour
+
+# ==============================================================================
+# 💡 HOUSE LIGHTING & OBJECT INTERACTION API
+# ==============================================================================
+## Toggles the light state of a specific room, emitting room_light_toggled
+func toggle_room_light(room_id: String) -> bool:
+	var next_state: bool = not room_lights.get(room_id, false)
+	room_lights[room_id] = next_state
+	EventBus.room_light_toggled.emit(room_id, next_state)
+	return next_state
+
+## Returns whether the light switch in a room is currently ON
+func is_room_light_on(room_id: String) -> bool:
+	return room_lights.get(room_id, false)
+
+## Sets interactive object state (e.g. bed open/closed, window open/closed)
+func set_object_state(key: String, val: Variant) -> void:
+	object_states[key] = val
+	EventBus.object_state_changed.emit(key, val)
+
+## Retrieves interactive object state
+func get_object_state(key: String, default_val: Variant = null) -> Variant:
+	return object_states.get(key, default_val)
+
+## Returns the current real-world season ("spring", "summer", "autumn", "winter")
+func get_current_season() -> String:
+	var month: int = Time.get_date_dict_from_system().get("month", 8)
+	if month >= 3 and month <= 5:
+		return "spring"
+	elif month >= 6 and month <= 8:
+		return "summer"
+	elif month >= 9 and month <= 11:
+		return "autumn"
+	else:
+		return "winter"
 
 # ==============================================================================
 # ⚡ STAT MODIFIERS & HELPERS
@@ -407,6 +714,212 @@ func set_room(room_id: String) -> void:
 	set_view_room(room_id)
 
 # ==============================================================================
+# 🪴 ROOM DECORATION MANAGEMENT
+# ==============================================================================
+## Places a decor item in its designated room
+func place_decor(item_id: String) -> bool:
+	if not has_item(item_id, 1):
+		return false
+	var def: Dictionary = ITEM_DEFINITIONS.get(item_id, {})
+	var target_r: String = def.get("target_room", "")
+	placed_decor[item_id] = true
+	EventBus.decor_placed.emit(item_id, target_r, true)
+	return true
+
+## Removes/stows a placed decor item
+func remove_decor(item_id: String) -> bool:
+	if placed_decor.has(item_id):
+		placed_decor.erase(item_id)
+		var def: Dictionary = ITEM_DEFINITIONS.get(item_id, {})
+		var target_r: String = def.get("target_room", "")
+		EventBus.decor_placed.emit(item_id, target_r, false)
+		return true
+	return false
+
+## Toggles placed state of decor item
+func toggle_decor(item_id: String) -> bool:
+	if is_decor_placed(item_id):
+		remove_decor(item_id)
+		return false
+	else:
+		place_decor(item_id)
+		return true
+
+## Checks if a decor item is currently placed in its room
+func is_decor_placed(item_id: String) -> bool:
+	return placed_decor.get(item_id, false)
+
+## Returns array of placed decor item IDs for a specific room
+func get_placed_decor_for_room(room_id: String) -> Array[String]:
+	var result: Array[String] = []
+	for item_id in placed_decor.keys():
+		if placed_decor.get(item_id, false):
+			var def: Dictionary = ITEM_DEFINITIONS.get(item_id, {})
+			if def.get("target_room", "") == room_id:
+				result.append(item_id)
+	return result
+
+# ==============================================================================
+# 📋 MICRO-TASKS API
+# ==============================================================================
+## Adds a new micro-task
+func add_task(title: String) -> Dictionary:
+	var clean_t: String = title.strip_edges()
+	if clean_t.is_empty():
+		return {}
+		
+	var task: Dictionary = {
+		"id": "task_%d_%d" % [int(Time.get_unix_time_from_system()), randi() % 1000],
+		"title": clean_t,
+		"completed": false,
+		"created_at": Time.get_unix_time_from_system(),
+		"completed_at": 0
+	}
+	
+	tasks.append(task)
+	if active_task_id.is_empty():
+		set_active_task(task["id"])
+		
+	EventBus.task_added.emit(task)
+	if DatabaseManager:
+		DatabaseManager.save_game()
+	return task
+
+## Toggles a task completion state
+func toggle_task(task_id: String) -> bool:
+	for t in tasks:
+		if t.get("id", "") == task_id:
+			var next_state: bool = not t.get("completed", false)
+			t["completed"] = next_state
+			t["completed_at"] = Time.get_unix_time_from_system() if next_state else 0
+			EventBus.task_toggled.emit(task_id, next_state)
+			if DatabaseManager:
+				DatabaseManager.save_game()
+			return next_state
+	return false
+
+## Deletes a task
+func delete_task(task_id: String) -> bool:
+	for i in range(tasks.size()):
+		if tasks[i].get("id", "") == task_id:
+			tasks.remove_at(i)
+			if active_task_id == task_id:
+				active_task_id = tasks[0]["id"] if tasks.size() > 0 else ""
+				var new_title = get_active_task_title()
+				EventBus.active_task_selected.emit(active_task_id, new_title)
+			EventBus.task_deleted.emit(task_id)
+			if DatabaseManager:
+				DatabaseManager.save_game()
+			return true
+	return false
+
+## Sets the active focus task
+func set_active_task(task_id: String) -> void:
+	active_task_id = task_id
+	var title: String = get_active_task_title()
+	EventBus.active_task_selected.emit(active_task_id, title)
+	if TimerEngine:
+		TimerEngine.active_task_name = title
+	if DatabaseManager:
+		DatabaseManager.save_game()
+
+## Gets the active task Dictionary
+func get_active_task() -> Dictionary:
+	for t in tasks:
+		if t.get("id", "") == active_task_id:
+			return t
+	return {}
+
+## Gets the active task title string
+func get_active_task_title() -> String:
+	var t = get_active_task()
+	return t.get("title", "General Deep Work") if not t.is_empty() else "General Deep Work"
+
+# ==============================================================================
+# 📜 DAILY PET QUESTS API
+# ==============================================================================
+## Checks date and generates fresh daily quests if needed
+func check_and_generate_daily_quests() -> void:
+	var today_str: String = Time.get_date_string_from_system()
+	
+	if quest_generation_date != today_str or daily_quests.is_empty():
+		quest_generation_date = today_str
+		daily_quests.clear()
+		
+		for tpl in QUEST_TEMPLATES:
+			var q: Dictionary = {
+				"id": tpl["id"],
+				"title": tpl["title"],
+				"description": tpl["description"],
+				"icon": tpl["icon"],
+				"target_type": tpl["target_type"],
+				"target_count": tpl["target_count"],
+				"current_count": 0,
+				"reward_coins": tpl["reward_coins"],
+				"reward_exp": tpl["reward_exp"],
+				"claimed": false
+			}
+			daily_quests.append(q)
+			
+		if DatabaseManager:
+			DatabaseManager.save_game()
+
+## Advances progress for any active quest matching the target_type
+func progress_quest(target_type: String, amount: int = 1) -> void:
+	var changed: bool = false
+	for q in daily_quests:
+		if q.get("target_type", "") == target_type and not q.get("claimed", false):
+			var cur: int = int(q.get("current_count", 0))
+			var target: int = int(q.get("target_count", 1))
+			if cur < target:
+				q["current_count"] = mini(target, cur + amount)
+				changed = true
+				
+	if changed:
+		EventBus.quests_updated.emit()
+		if DatabaseManager:
+			DatabaseManager.save_game()
+
+## Claims a completed quest reward
+func claim_quest(quest_id: String) -> bool:
+	for q in daily_quests:
+		if q.get("id", "") == quest_id:
+			var cur: int = int(q.get("current_count", 0))
+			var target: int = int(q.get("target_count", 1))
+			var claimed: bool = q.get("claimed", false)
+			if cur >= target and not claimed:
+				q["claimed"] = true
+				var reward_coins: int = int(q.get("reward_coins", 100))
+				var reward_exp: int = int(q.get("reward_exp", 50))
+				add_coins(reward_coins, "quest_reward")
+				add_exp(reward_exp)
+				EventBus.quest_claimed.emit(quest_id, reward_coins, reward_exp)
+				EventBus.quests_updated.emit()
+				if AudioManager:
+					AudioManager.play_sfx("coin")
+				if DatabaseManager:
+					DatabaseManager.save_game()
+				return true
+	return false
+
+func _connect_quest_listeners() -> void:
+	EventBus.session_completed.connect(func(type, _c, _x, _s): 
+		if type == "work": 
+			progress_quest("focus_session")
+	)
+	EventBus.item_used.connect(func(_id, data): 
+		if data.get("category", "") == "snack": 
+			progress_quest("feed_snack")
+	)
+	EventBus.room_changed.connect(func(_r): 
+		progress_quest("room_change")
+	)
+	EventBus.pet_interacted.connect(func(t): 
+		if t == "pet" or t == "cuddle": 
+			progress_quest("pet_cuddle")
+	)
+
+# ==============================================================================
 # 💾 SERIALIZATION / DATA EXPORT
 # ==============================================================================
 ## Exports complete game state to a Dictionary
@@ -425,6 +938,14 @@ func serialize() -> Dictionary:
 		"active_view_room": active_view_room,
 		"pet_room": pet_room,
 		"inventory": inventory,
+		"placed_decor": placed_decor,
+		"room_lights": room_lights,
+		"object_states": object_states,
+		"audio_settings": audio_settings,
+		"tasks": tasks,
+		"active_task_id": active_task_id,
+		"daily_quests": daily_quests,
+		"quest_generation_date": quest_generation_date,
 		"last_saved_unix": Time.get_unix_time_from_system()
 	}
 
@@ -443,6 +964,27 @@ func deserialize(data: Dictionary) -> void:
 	active_room = active_view_room
 	pet_room = data.get("pet_room", "room_bedroom")
 	
+	var raw_decor = data.get("placed_decor", {})
+	placed_decor.clear()
+	if raw_decor is Dictionary:
+		for k in raw_decor.keys():
+			placed_decor[k] = raw_decor[k]
+	
+	var raw_lights = data.get("room_lights", {})
+	if raw_lights is Dictionary:
+		for k in raw_lights.keys():
+			room_lights[k] = raw_lights[k]
+			
+	var raw_objs = data.get("object_states", {})
+	if raw_objs is Dictionary:
+		for k in raw_objs.keys():
+			object_states[k] = raw_objs[k]
+			
+	var raw_audio = data.get("audio_settings", {})
+	if raw_audio is Dictionary:
+		for k in raw_audio.keys():
+			audio_settings[k] = raw_audio[k]
+	
 	var raw_inv = data.get("inventory", [])
 	inventory.clear()
 	if raw_inv is Array:
@@ -450,7 +992,37 @@ func deserialize(data: Dictionary) -> void:
 			if item is Dictionary:
 				inventory.append(item)
 				
+	var raw_tasks = data.get("tasks", [])
+	tasks.clear()
+	if raw_tasks is Array:
+		for t in raw_tasks:
+			if t is Dictionary:
+				tasks.append(t)
+	active_task_id = data.get("active_task_id", "")
+	if active_task_id.is_empty() and tasks.size() > 0:
+		active_task_id = tasks[0].get("id", "")
+		
+	var raw_quests = data.get("daily_quests", [])
+	daily_quests.clear()
+	if raw_quests is Array:
+		for q in raw_quests:
+			if q is Dictionary:
+				daily_quests.append(q)
+	quest_generation_date = data.get("quest_generation_date", "")
+	check_and_generate_daily_quests()
+				
 	_emit_all_stats()
+
+## Sets an individual audio setting and applies volume changes
+func set_audio_setting(key: String, val: Variant) -> void:
+	audio_settings[key] = val
+	EventBus.audio_settings_changed.emit()
+	if has_node("/root/AudioManager"):
+		var am = get_node("/root/AudioManager")
+		if am and am.has_method("update_volumes"):
+			am.update_volumes()
+	if DatabaseManager:
+		DatabaseManager.save_game()
 
 func _emit_all_stats() -> void:
 	EventBus.coins_changed.emit(coins, 0, "init")
@@ -461,4 +1033,5 @@ func _emit_all_stats() -> void:
 	EventBus.inventory_changed.emit(inventory)
 	EventBus.room_changed.emit(active_view_room)
 	EventBus.pet_room_changed.emit(pet_room)
+	EventBus.quests_updated.emit()
 	EventBus.stats_updated.emit(serialize())

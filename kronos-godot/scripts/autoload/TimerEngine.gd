@@ -6,7 +6,7 @@ extends Node
 # ⏱️ ENUMS & CONSTANTS
 # ==============================================================================
 enum TimerPhase { WORK, SHORT_BREAK, LONG_BREAK }
-enum TimerStatus { STOPPED, RUNNING, PAUSED }
+enum TimerStatus { STOPPED, RUNNING, PAUSED, ALARMING }
 
 const PHASE_WORK_KEY: String = "work"
 const PHASE_SHORT_BREAK_KEY: String = "short_break"
@@ -20,7 +20,8 @@ const BASE_JACKPOT_COINS: int = 100
 const BASE_JACKPOT_EXP: int = 50
 
 # Continuous Earning Rates
-const FOCUS_COIN_INTERVAL: float = 10.0 # Seconds per base coin
+const FOCUS_COIN_INTERVAL: float = 10.0 # Seconds per base focus coin (work session)
+const PASSIVE_COIN_INTERVAL: float = 30.0 # Seconds per passive presence coin (timer idle)
 const ENERGY_BURN_RATE: float = 1.0 / 120.0 # 1 energy point per 120s of active focus
 const BREAK_RECOVERY_RATE: float = 1.0 / 30.0 # 1 energy point per 30s of break
 
@@ -38,6 +39,7 @@ var time_left: float = DEFAULT_WORK_SECONDS
 var total_phase_duration: float = DEFAULT_WORK_SECONDS
 
 var completed_work_sessions: int = 0
+var pomodoro_cycle_goal: int = 4 # Defaults to 4 Pomodoros before Long Break
 var focus_seconds_elapsed: float = 0.0 # Accumulator for continuous coin ticks in current session
 var session_start_unix: int = 0
 
@@ -46,6 +48,7 @@ var active_category: String = "Development"
 
 # Sub-second accumulators
 var _coin_accumulator: float = 0.0
+var _passive_coin_accumulator: float = 0.0
 
 # ==============================================================================
 # ⚙️ LIFECYCLE & PROCESS
@@ -56,6 +59,14 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	if status != TimerStatus.RUNNING:
+		# Passive Presence Coin Earning: +1 coin per 30s while Kronos is open on desktop
+		_passive_coin_accumulator += delta
+		if _passive_coin_accumulator >= PASSIVE_COIN_INTERVAL:
+			var passive_coins: int = int(_passive_coin_accumulator / PASSIVE_COIN_INTERVAL)
+			_passive_coin_accumulator = fmod(_passive_coin_accumulator, PASSIVE_COIN_INTERVAL)
+			if GameState:
+				GameState.add_coins(passive_coins, "passive_presence")
+				EventBus.focus_coin_earned.emit(passive_coins, false)
 		return
 		
 	time_left -= delta
@@ -107,6 +118,8 @@ func _process_break_tick(delta: float) -> void:
 # 🎯 PHASE COMPLETION & JACKPOT LOGIC
 # ==============================================================================
 func _on_phase_finished_naturally() -> void:
+	status = TimerStatus.ALARMING
+	
 	if current_phase == TimerPhase.WORK:
 		# Natural 25-min jackpot computation
 		var current_streak: int = GameState.streak
@@ -126,50 +139,41 @@ func _on_phase_finished_naturally() -> void:
 		
 		completed_work_sessions += 1
 		EventBus.session_completed.emit("work", jackpot_coins, jackpot_exp, GameState.streak)
-		
-		# Transition to break: 4 work sessions -> 1 long break, else short break
-		if completed_work_sessions % 4 == 0:
-			_switch_to_phase(TimerPhase.LONG_BREAK)
-		else:
-			_switch_to_phase(TimerPhase.SHORT_BREAK)
 	else:
-		# Break finished naturally -> transition back to work
+		# Break finished naturally
 		EventBus.session_completed.emit(get_phase_string(), 0, 0, GameState.streak)
-		_switch_to_phase(TimerPhase.WORK)
+		
+	# Broadcast state change so UI button becomes [⏹ STOP ALARM]
+	EventBus.timer_state_changed.emit(false, false)
+	EventBus.timer_tick.emit(0.0, total_phase_duration, get_phase_string())
 		
 	# Auto-save after session completion
 	if DatabaseManager:
 		DatabaseManager.save_game()
 
 # ==============================================================================
-# 🛑 SKIP & CANCEL POLICY
+# 🎮 CONTROLS & API
 # ==============================================================================
-## Skips the current phase. If skipping work manually, 0 jackpot and resets streak.
-func skip_phase(is_manual: bool = true) -> void:
+## Acknowledges a finished session, silences the continuous alarm chime, and advances to the next phase
+func acknowledge_alarm() -> void:
+	if AudioManager:
+		AudioManager.stop_alarm()
+		AudioManager.play_sfx("click")
+		
 	if current_phase == TimerPhase.WORK:
-		if is_manual:
-			# Log partial session if active for at least 60 seconds
-			if focus_seconds_elapsed >= 60.0:
-				_log_dtr_session("skipped", 0, 0)
-			GameState.reset_streak()
-			EventBus.session_skipped.emit("work")
-			
-		completed_work_sessions += 1
-		if completed_work_sessions % 4 == 0:
+		# Transition to break based on cycle goal
+		if completed_work_sessions >= pomodoro_cycle_goal:
+			completed_work_sessions = 0 # Reset cycle
 			_switch_to_phase(TimerPhase.LONG_BREAK)
 		else:
 			_switch_to_phase(TimerPhase.SHORT_BREAK)
 	else:
 		_switch_to_phase(TimerPhase.WORK)
-		
-	status = TimerStatus.STOPPED
-	EventBus.timer_state_changed.emit(false, false)
 
-# ==============================================================================
-# 🎮 CONTROLS & API
-# ==============================================================================
 ## Starts or resumes the timer
 func start_timer() -> void:
+	if AudioManager:
+		AudioManager.stop_alarm()
 	if status == TimerStatus.RUNNING:
 		return
 	if status == TimerStatus.STOPPED:
@@ -179,6 +183,7 @@ func start_timer() -> void:
 		
 	status = TimerStatus.RUNNING
 	EventBus.timer_state_changed.emit(true, false)
+	EventBus.timer_started.emit()
 
 ## Pauses the running timer
 func pause_timer() -> void:
@@ -193,22 +198,45 @@ func resume_timer() -> void:
 		return
 	status = TimerStatus.RUNNING
 	EventBus.timer_state_changed.emit(true, false)
+	EventBus.timer_started.emit()
 
-## Toggles between running and paused/started
+## Toggles between running, paused, or stopping an active alarm
 func toggle_timer() -> void:
-	if status == TimerStatus.RUNNING:
+	if status == TimerStatus.ALARMING:
+		acknowledge_alarm()
+	elif status == TimerStatus.RUNNING:
 		pause_timer()
 	elif status == TimerStatus.PAUSED or status == TimerStatus.STOPPED:
 		start_timer()
 
+## Sets custom durations for work and break phases and resets the current timer
+func set_custom_durations(work_sec: float, break_sec: float) -> void:
+	work_duration = maxf(5.0, work_sec)
+	short_break_duration = maxf(5.0, break_sec)
+	stop_timer()
+
 ## Stops and resets the current timer to the beginning of its phase
 func stop_timer() -> void:
+	if AudioManager:
+		AudioManager.stop_alarm()
+	if status == TimerStatus.ALARMING:
+		acknowledge_alarm()
+		return
+		
 	status = TimerStatus.STOPPED
 	_coin_accumulator = 0.0
 	focus_seconds_elapsed = 0.0
+	match current_phase:
+		TimerPhase.WORK:
+			total_phase_duration = work_duration
+		TimerPhase.SHORT_BREAK:
+			total_phase_duration = short_break_duration
+		TimerPhase.LONG_BREAK:
+			total_phase_duration = long_break_duration
 	time_left = total_phase_duration
-	EventBus.timer_state_changed.emit(false, false)
+	EventBus.phase_changed.emit(get_phase_string(), total_phase_duration)
 	EventBus.timer_tick.emit(time_left, total_phase_duration, get_phase_string())
+	EventBus.timer_state_changed.emit(false, false)
 
 ## Switches to a specific phase ("work", "short_break", "long_break")
 func switch_to_phase_by_name(phase_name: String) -> void:

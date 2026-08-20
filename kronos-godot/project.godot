@@ -17,9 +17,8 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 config/name="Kronos"
 config/description="Cozy Pixel-Art Pomodoro Desktop Widget & Tamagotchi Workspace"
 run/main_scene="res://scenes/main/MainWorkspace.tscn"
-run/low_processor_mode=true
-run/low_processor_mode_sleep_usec=6900
 config/features=PackedStringArray("4.7", "GL Compatibility")
+run/low_processor_mode=true
 
 [autoload]
 
@@ -27,6 +26,8 @@ EventBus="*res://scripts/autoload/EventBus.gd"
 GameState="*res://scripts/autoload/GameState.gd"
 TimerEngine="*res://scripts/autoload/TimerEngine.gd"
 DatabaseManager="*res://scripts/autoload/DatabaseManager.gd"
+AudioManager="*res://scripts/autoload/AudioManager.gd"
+NotificationManager="*res://scripts/autoload/NotificationManager.gd"
 
 [display]
 
@@ -44,15 +45,14 @@ theme/custom="res://themes/pixel_theme.tres"
 
 [physics]
 
-3d/active=false
-2d/run_on_separate_thread=false
 common/physics_ticks_per_second=20
+3d/active=false
 
 [rendering]
 
+textures/canvas_textures/default_texture_filter=0
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
-textures/canvas_textures/default_texture_filter=0
 viewport/transparent_background=true
 2d/snap/snap_2d_transforms_to_pixel=true
 2d/snap/snap_2d_vertices_to_pixel=true

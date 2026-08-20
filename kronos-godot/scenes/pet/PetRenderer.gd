@@ -12,7 +12,13 @@ enum AnimState {
 	DRINK,
 	NAP,
 	PETTED,
-	VICTORY
+	VICTORY,
+	WATCH_TV,
+	WARM_PAWS,
+	STUDY,
+	WINDOW_GAZE,
+	TUCKED_IN,
+	CHEF_SNIFF
 }
 
 # ==============================================================================
@@ -89,6 +95,12 @@ func _get_frame_count_for_state(state: AnimState) -> int:
 		AnimState.NAP: return 4
 		AnimState.PETTED: return 4
 		AnimState.VICTORY: return 6
+		AnimState.WATCH_TV: return 4
+		AnimState.WARM_PAWS: return 4
+		AnimState.STUDY: return 4
+		AnimState.WINDOW_GAZE: return 4
+		AnimState.TUCKED_IN: return 4
+		AnimState.CHEF_SNIFF: return 4
 	return 4
 
 func _get_frame_speed_for_state(state: AnimState) -> float:
@@ -100,6 +112,12 @@ func _get_frame_speed_for_state(state: AnimState) -> float:
 		AnimState.NAP: return 0.40
 		AnimState.PETTED: return 0.15
 		AnimState.VICTORY: return 0.12
+		AnimState.WATCH_TV: return 0.30
+		AnimState.WARM_PAWS: return 0.35
+		AnimState.STUDY: return 0.25
+		AnimState.WINDOW_GAZE: return 0.30
+		AnimState.TUCKED_IN: return 0.45
+		AnimState.CHEF_SNIFF: return 0.20
 	return 0.20
 
 # ==============================================================================
@@ -112,15 +130,18 @@ func _update_particles(delta: float) -> void:
 	if current_state == AnimState.PETTED and _particle_timer >= 0.25:
 		_particle_timer = 0.0
 		_spawn_particle("heart", Vector2(randf_range(-10, 10), -12))
-	elif current_state == AnimState.DRINK and _particle_timer >= 0.35:
+	elif current_state == AnimState.WARM_PAWS and _particle_timer >= 0.45:
+		_particle_timer = 0.0
+		_spawn_particle("heart", Vector2(randf_range(2, 10), -8))
+	elif (current_state == AnimState.DRINK or current_state == AnimState.CHEF_SNIFF) and _particle_timer >= 0.35:
 		_particle_timer = 0.0
 		_spawn_particle("steam", Vector2(8 if facing_right else -8, -4))
-	elif current_state == AnimState.NAP and _particle_timer >= 0.6:
+	elif (current_state == AnimState.NAP or current_state == AnimState.TUCKED_IN) and _particle_timer >= 0.6:
 		_particle_timer = 0.0
 		_spawn_particle("zzz", Vector2(randf_range(2, 10), -10))
-	elif current_state == AnimState.VICTORY and _particle_timer >= 0.20:
+	elif (current_state == AnimState.VICTORY or current_state == AnimState.STUDY or current_state == AnimState.WATCH_TV) and _particle_timer >= 0.30:
 		_particle_timer = 0.0
-		_spawn_particle("star", Vector2(randf_range(-14, 14), randf_range(-20, -5)))
+		_spawn_particle("star", Vector2(randf_range(-10, 10), randf_range(-18, -8)))
 		
 	# Update active particles
 	for i in range(_particles.size() - 1, -1, -1):
@@ -131,7 +152,7 @@ func _update_particles(delta: float) -> void:
 		if p["life"] <= 0.0:
 			_particles.remove_at(i)
 
-func _spawn_particle(type: String, origin: Vector2) -> void:
+func _spawn_particle(type: String, origin: Vector2 = Vector2.ZERO) -> void:
 	var max_life: float = randf_range(0.8, 1.4)
 	var vel: Vector2 = Vector2(randf_range(-4, 4), randf_range(-14, -8))
 	if type == "zzz":
@@ -178,6 +199,18 @@ func _draw() -> void:
 			_draw_petted_anim()
 		AnimState.VICTORY:
 			_draw_victory_anim()
+		AnimState.WATCH_TV:
+			_draw_watch_tv_anim()
+		AnimState.WARM_PAWS:
+			_draw_warm_paws_anim()
+		AnimState.STUDY:
+			_draw_study_anim()
+		AnimState.WINDOW_GAZE:
+			_draw_window_gaze_anim()
+		AnimState.TUCKED_IN:
+			_draw_tucked_in_anim()
+		AnimState.CHEF_SNIFF:
+			_draw_chef_sniff_anim()
 			
 	# Reset transform for world-space particle drawing
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
@@ -414,6 +447,112 @@ func _draw_victory_anim() -> void:
 	# Cheerful head with open smile
 	_draw_shiba_head(Vector2(0, -17 + hop_height), 0.0, false, false, true, true)
 
+# ------------------------------------------------------------------------------
+# 8. WATCH TV ANIMATION (Sits upright facing right, sparkling eyes)
+# ------------------------------------------------------------------------------
+func _draw_watch_tv_anim() -> void:
+	var head_tilt: float = -1.0 if anim_frame == 2 else 0.0
+	
+	# Curled Tail resting over couch
+	_draw_curled_tail(Vector2(-10, -6), 0.0)
+	
+	# Body sitting upright
+	_draw_pixel_rect(Rect2(-7, -11, 14, 11), COL_FUR_MAIN)
+	_draw_pixel_rect(Rect2(-3, -8, 8, 8), COL_FUR_CREAM)
+	
+	# Paws resting forward
+	_draw_pixel_rect(Rect2(2, -2, 4, 3), COL_FUR_CREAM)
+	_draw_pixel_rect(Rect2(-4, -2, 4, 3), COL_FUR_CREAM)
+	
+	# Attentive head with wide sparkling eyes watching TV screen
+	_draw_shiba_head(Vector2(2, -15 + head_tilt), 0.0, false, false, false, false)
+
+# ------------------------------------------------------------------------------
+# 9. WARM PAWS ANIMATION (Lying on belly in front of fire, toasting paws)
+# ------------------------------------------------------------------------------
+func _draw_warm_paws_anim() -> void:
+	var breath: float = 1.0 if (anim_frame == 1 or anim_frame == 2) else 0.0
+	
+	# Body resting flat
+	_draw_pixel_rect(Rect2(-10, -7 - breath, 20, 8 + breath), COL_FUR_MAIN)
+	_draw_pixel_rect(Rect2(-4, -5 - breath, 10, 6 + breath), COL_FUR_CREAM)
+	
+	# Curled Tail
+	_draw_curled_tail(Vector2(-11, -5), 1.0)
+	
+	# Front paws stretched forward towards fire
+	_draw_pixel_rect(Rect2(7, -2, 6, 3), COL_FUR_CREAM)
+	_draw_pixel_rect(Rect2(4, -2, 4, 3), COL_FUR_CREAM)
+	
+	# Happy cozy head with blushing cheeks and closed eyes
+	_draw_shiba_head(Vector2(3, -11), 0.0, false, true, true, false)
+
+# ------------------------------------------------------------------------------
+# 10. STUDY ANIMATION (Sitting at library desk, studying open grimoire)
+# ------------------------------------------------------------------------------
+func _draw_study_anim() -> void:
+	var look_down: float = 1.0 if (anim_frame == 1 or anim_frame == 2) else 0.0
+	
+	# Curled Tail
+	_draw_curled_tail(Vector2(-10, -6), 0.0)
+	
+	# Body sitting upright
+	_draw_pixel_rect(Rect2(-7, -10, 14, 10), COL_FUR_MAIN)
+	_draw_pixel_rect(Rect2(-3, -7, 8, 7), COL_FUR_CREAM)
+	
+	# Paws resting on desk surface
+	_draw_pixel_rect(Rect2(3, -4, 4, 4), COL_FUR_CREAM)
+	_draw_pixel_rect(Rect2(-2, -4, 4, 4), COL_FUR_CREAM)
+	
+	# Focused head looking down at book
+	_draw_shiba_head(Vector2(2, -14 + look_down), 0.0, true, false, false, false)
+
+# ------------------------------------------------------------------------------
+# 11. WINDOW GAZE ANIMATION (Sitting peacefully watching breeze & particles)
+# ------------------------------------------------------------------------------
+func _draw_window_gaze_anim() -> void:
+	var ear_twitch: float = -1.0 if (anim_frame == 1 or anim_frame == 3) else 0.0
+	
+	# Curled Tail with gentle sway
+	_draw_curled_tail(Vector2(-10, -6), sin(anim_frame * 1.5) * 1.5)
+	
+	# Body sitting quietly
+	_draw_pixel_rect(Rect2(-7, -10, 14, 10), COL_FUR_MAIN)
+	_draw_pixel_rect(Rect2(-3, -7, 8, 7), COL_FUR_CREAM)
+	
+	# Paws
+	_draw_pixel_rect(Rect2(2, -2, 4, 4), COL_FUR_CREAM)
+	_draw_pixel_rect(Rect2(-3, -2, 4, 4), COL_FUR_CREAM)
+	
+	# Head tilted upward gazing at sky with breezy ear twitch
+	_draw_shiba_head(Vector2(2, -16), ear_twitch, false, false, false, false)
+
+# ------------------------------------------------------------------------------
+# 12. TUCKED IN BED ANIMATION (Classic cozy curled sleeping donut)
+# ------------------------------------------------------------------------------
+func _draw_tucked_in_anim() -> void:
+	_draw_nap_anim()
+
+# ------------------------------------------------------------------------------
+# 13. CHEF SNIFF ANIMATION (Leaning forward sniffing savory steam)
+# ------------------------------------------------------------------------------
+func _draw_chef_sniff_anim() -> void:
+	var sniff_bob: float = -1.0 if (anim_frame % 2 == 1) else 0.0
+	
+	# Curled Tail wagging
+	_draw_curled_tail(Vector2(-10, -6), 2.0)
+	
+	# Body leaning forward
+	_draw_pixel_rect(Rect2(-6, -9 + sniff_bob, 14, 9), COL_FUR_MAIN)
+	_draw_pixel_rect(Rect2(-2, -6 + sniff_bob, 8, 6), COL_FUR_CREAM)
+	
+	# Paws standing alert
+	_draw_pixel_rect(Rect2(4, -2, 4, 4), COL_FUR_CREAM)
+	_draw_pixel_rect(Rect2(-3, -2, 4, 4), COL_FUR_CREAM)
+	
+	# Sniffing head with open mouth and shiny eyes
+	_draw_shiba_head(Vector2(4, -13 + sniff_bob), 0.0, false, false, false, true)
+
 # ==============================================================================
 # 🦊 MODULAR SHIBA HEAD RENDERER
 # ==============================================================================
@@ -500,6 +639,10 @@ func _draw_all_particles() -> void:
 				_draw_pixel_zzz(pos, alpha)
 			"star":
 				_draw_pixel_star(pos, alpha)
+			"anger":
+				_draw_pixel_anger(pos, alpha)
+			"exclamation":
+				_draw_pixel_exclamation(pos, alpha)
 
 func _draw_pixel_heart(pos: Vector2, alpha: float) -> void:
 	var col: Color = Color(COL_HEART_PINK.r, COL_HEART_PINK.g, COL_HEART_PINK.b, alpha)
@@ -529,3 +672,18 @@ func _draw_pixel_star(pos: Vector2, alpha: float) -> void:
 	_draw_pixel_rect(Rect2(pos.x, pos.y - 2, 1, 5), col)
 	_draw_pixel_rect(Rect2(pos.x - 2, pos.y, 5, 1), col)
 	_draw_pixel_rect(Rect2(pos.x - 1, pos.y - 1, 3, 3), Color(1.0, 1.0, 1.0, alpha))
+
+func _draw_pixel_anger(pos: Vector2, alpha: float) -> void:
+	var col: Color = Color(0.95, 0.20, 0.25, alpha)
+	# 4-corner anime anger mark 💢
+	_draw_pixel_rect(Rect2(pos.x - 3, pos.y - 3, 2, 2), col)
+	_draw_pixel_rect(Rect2(pos.x + 2, pos.y - 3, 2, 2), col)
+	_draw_pixel_rect(Rect2(pos.x - 3, pos.y + 2, 2, 2), col)
+	_draw_pixel_rect(Rect2(pos.x + 2, pos.y + 2, 2, 2), col)
+	_draw_pixel_rect(Rect2(pos.x - 1, pos.y - 1, 3, 3), col)
+
+func _draw_pixel_exclamation(pos: Vector2, alpha: float) -> void:
+	var col: Color = Color(1.0, 0.90, 0.20, alpha)
+	# 2x6 pixel exclamation mark !
+	_draw_pixel_rect(Rect2(pos.x, pos.y - 6, 2, 4), col)
+	_draw_pixel_rect(Rect2(pos.x, pos.y - 1, 2, 2), col)

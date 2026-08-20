@@ -52,11 +52,15 @@ func _ready() -> void:
 	EventBus.pet_room_changed.connect(_on_pet_room_changed)
 	EventBus.pet_called.connect(_on_pet_called)
 	
-	# Instantiate pet companion
+	# Instantiate pet companion first
 	_spawn_pet_companion()
 	
 	# Load initial room from GameState
 	var init_room = GameState.active_view_room if (GameState and GameState.active_view_room != "") else "room_bedroom"
+	if GameState:
+		# Sync pet to view room on startup if unassigned
+		if GameState.pet_room == "" or GameState.pet_room == null:
+			GameState.pet_room = init_room
 	_load_room_instant(init_room)
 	_update_pet_visibility_and_anchors()
 
@@ -65,6 +69,9 @@ func _spawn_pet_companion() -> void:
 		return
 		
 	pet_companion = PET_SCENE.instantiate() as PetBrain
+	pet_companion.position = Vector2(120.0, 115.0)
+	pet_companion.modulate = Color(1.0, 1.0, 1.0, 1.0)
+	pet_companion.visible = true
 	if pet_layer:
 		pet_layer.add_child(pet_companion)
 	else:
@@ -89,12 +96,15 @@ func switch_to_room(target_room_id: String) -> void:
 	
 	if transition_overlay:
 		transition_overlay.visible = true
+		transition_overlay.modulate.a = 0.0
 		var tween: Tween = create_tween()
-		tween.tween_property(transition_overlay, "modulate:a", 1.0, 0.22).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tween.tween_property(transition_overlay, "modulate:a", 1.0, 0.18).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 		tween.tween_callback(func(): _perform_room_swap(target_room_id))
 		tween.tween_property(transition_overlay, "modulate:a", 0.0, 0.22).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 		tween.tween_callback(func():
-			transition_overlay.visible = false
+			if transition_overlay:
+				transition_overlay.visible = false
+				transition_overlay.modulate.a = 0.0
 			is_transitioning = false
 		)
 	else:

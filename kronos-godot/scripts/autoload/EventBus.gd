@@ -20,8 +20,35 @@ signal session_completed(session_type: String, coins_earned: int, xp_earned: int
 ## Emitted when a session is manually skipped or reset
 signal session_skipped(session_type: String)
 
+## Emitted when timer starts or resumes
+signal timer_started()
+
+## Emitted when audio or notification settings change
+signal audio_settings_changed()
+
 ## Emitted on continuous focus coin ticks (+1 coin / 10s, +50% speed if energy >= 70)
 signal focus_coin_earned(coins_added: int, is_buffed: bool)
+
+# ==============================================================================
+# 📋 MICRO-TASKS & DAILY QUEST SIGNALS
+# ==============================================================================
+## Emitted when a micro-task is added
+signal task_added(task: Dictionary)
+
+## Emitted when a task is checked or unchecked
+signal task_toggled(task_id: String, completed: bool)
+
+## Emitted when a task is deleted
+signal task_deleted(task_id: String)
+
+## Emitted when the active focus task is changed
+signal active_task_selected(task_id: String, task_title: String)
+
+## Emitted when daily quests are generated, refreshed, or progressed
+signal quests_updated()
+
+## Emitted when a quest reward is claimed
+signal quest_claimed(quest_id: String, coins: int, exp: int)
 
 # ==============================================================================
 # 🐾 GAME STATE & PET STAT SIGNALS
@@ -71,6 +98,9 @@ signal cosmetic_equipped(slot: String, cosmetic_id: String)
 ## Emitted when a cosmetic accessory is unequipped
 signal cosmetic_unequipped(slot: String)
 
+## Emitted when a room decoration is placed or stowed
+signal decor_placed(item_id: String, room_id: String, is_placed: bool)
+
 ## Emitted when active room / biome changes
 signal room_changed(room_id: String)
 
@@ -82,6 +112,12 @@ signal pet_room_changed(new_pet_room: String)
 
 ## Emitted when pet is summoned to view room
 signal pet_called(target_room: String)
+
+## Emitted when a room's light switch is toggled
+signal room_light_toggled(room_id: String, is_on: bool)
+
+## Emitted when an interactive room object state changes (e.g. bed open, window open)
+signal object_state_changed(object_id: String, state_value: Variant)
 
 # ==============================================================================
 # 🪟 WINDOW & WORKSPACE SIGNALS
