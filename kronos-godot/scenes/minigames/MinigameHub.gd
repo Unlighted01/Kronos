@@ -34,6 +34,8 @@ func _launch_game(scene_path: String) -> void:
 	var scene = load(scene_path)
 	if scene:
 		var game_instance: Control = scene.instantiate()
+		game_instance.custom_minimum_size = Vector2(236, 140)
+		game_instance.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		var p = get_parent()
 		if p:
 			p.add_child(game_instance)

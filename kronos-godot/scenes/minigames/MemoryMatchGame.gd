@@ -59,6 +59,10 @@ var _particles: Array[Dictionary] = []
 # ⚙️ LIFECYCLE
 # ==============================================================================
 func _ready() -> void:
+	custom_minimum_size = Vector2(236, 140)
+	mouse_filter = MOUSE_FILTER_STOP
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	
 	if close_btn:
 		close_btn.pressed.connect(_on_exit_pressed)
 	if replay_btn:
@@ -135,6 +139,17 @@ func _process(delta: float) -> void:
 			_particles.remove_at(i)
 			
 	queue_redraw()
+
+func _unhandled_input(event: InputEvent) -> void:
+	if not is_playing or is_game_over or _lock_input:
+		return
+		
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		var local_pos: Vector2 = get_local_mouse_position()
+		var clicked_idx: int = _get_card_at_pos(local_pos)
+		if clicked_idx >= 0:
+			_on_card_clicked(clicked_idx)
+			get_viewport().set_input_as_handled()
 
 func _gui_input(event: InputEvent) -> void:
 	if not is_playing or is_game_over or _lock_input:

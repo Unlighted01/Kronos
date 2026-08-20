@@ -170,6 +170,7 @@ func _refresh_ui_from_state() -> void:
 		if timer_label:
 			timer_label.text = TimerEngine.get_formatted_time()
 		_update_phase_tab_styles(TimerEngine.get_phase_string())
+		_update_minigame_button_state()
 		
 	if pin_btn:
 		pin_btn.modulate = Color(1.0, 0.84, 0.0, 1.0) if is_pinned else Color(1.0, 1.0, 1.0, 0.6)
@@ -413,6 +414,7 @@ func _on_timer_tick(time_left_sec: float, _total_sec: float, _phase: String) -> 
 func _on_phase_changed(new_phase: String, _duration: float) -> void:
 	_update_phase_tab_styles(new_phase)
 	_update_play_pause_button_text()
+	_update_minigame_button_state()
 
 func _update_phase_tab_styles(current_phase_name: String) -> void:
 	if work_tab_btn:
@@ -421,6 +423,24 @@ func _update_phase_tab_styles(current_phase_name: String) -> void:
 		short_break_tab_btn.modulate = Color(0.4, 1.0, 0.6, 1.0) if current_phase_name == "short_break" else Color(0.6, 0.6, 0.7, 0.6)
 	if long_break_tab_btn:
 		long_break_tab_btn.modulate = Color(1.0, 0.8, 0.3, 1.0) if current_phase_name == "long_break" else Color(0.6, 0.6, 0.7, 0.6)
+
+func _update_minigame_button_state() -> void:
+	if not minigame_btn or not TimerEngine:
+		return
+	var is_break: bool = (TimerEngine.current_phase == TimerEngine.TimerPhase.SHORT_BREAK or TimerEngine.current_phase == TimerEngine.TimerPhase.LONG_BREAK)
+	
+	minigame_btn.disabled = not is_break
+	if is_break:
+		minigame_btn.modulate = Color(1.0, 0.85, 0.2, 1.0)
+		minigame_btn.tooltip_text = "🎮 Break Time! Play Arcade Minigames"
+	else:
+		minigame_btn.modulate = Color(0.6, 0.6, 0.7, 0.35)
+		minigame_btn.tooltip_text = "☕ Minigames unlock during Break Time!"
+		
+		if pet_slot:
+			for m_name in ["MinigameHub", "SnackCatchGame", "PlantBloomGame", "MemoryMatchGame"]:
+				if pet_slot.has_node(m_name):
+					pet_slot.get_node(m_name).queue_free()
 
 func _update_play_pause_button_text() -> void:
 	if not play_pause_btn or not TimerEngine:
@@ -443,6 +463,7 @@ func _update_play_pause_button_text() -> void:
 
 func _on_timer_state_changed(_is_running: bool, _is_paused: bool) -> void:
 	_update_play_pause_button_text()
+	_update_minigame_button_state()
 
 func _on_coins_changed(new_balance: int, _delta: int, _reason: String) -> void:
 	if coins_label:
@@ -475,6 +496,12 @@ func _on_window_pin_toggled(pinned: bool) -> void:
 		pin_btn.text = "📌" if is_pinned else "📍"
 
 func _on_minigame_pressed() -> void:
+	if not TimerEngine:
+		return
+	var is_break: bool = (TimerEngine.current_phase == TimerEngine.TimerPhase.SHORT_BREAK or TimerEngine.current_phase == TimerEngine.TimerPhase.LONG_BREAK)
+	if not is_break:
+		return
+		
 	if not pet_slot:
 		return
 	# If any minigame modal is open, close it
@@ -487,4 +514,6 @@ func _on_minigame_pressed() -> void:
 	if scene:
 		var hub_instance: Control = scene.instantiate()
 		hub_instance.name = "MinigameHub"
+		hub_instance.custom_minimum_size = Vector2(236, 140)
+		hub_instance.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		pet_slot.add_child(hub_instance)

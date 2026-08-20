@@ -53,6 +53,10 @@ var _popups: Array[Dictionary] = []
 # ⚙️ LIFECYCLE
 # ==============================================================================
 func _ready() -> void:
+	custom_minimum_size = Vector2(236, 140)
+	mouse_filter = MOUSE_FILTER_STOP
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	
 	if close_btn:
 		close_btn.pressed.connect(_on_exit_pressed)
 	if replay_btn:

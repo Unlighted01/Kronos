@@ -56,6 +56,10 @@ var _particles: Array[Dictionary] = []
 # ⚙️ LIFECYCLE
 # ==============================================================================
 func _ready() -> void:
+	custom_minimum_size = Vector2(236, 140)
+	mouse_filter = MOUSE_FILTER_STOP
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	
 	if close_btn:
 		close_btn.pressed.connect(_on_exit_pressed)
 	if replay_btn:
@@ -96,7 +100,7 @@ func start_round(round_idx: int) -> void:
 		
 	current_state = GameState.PLAYING_SEQUENCE
 	_seq_index = 0
-	_anim_timer = 0.6 # Brief pause before playing notes
+	_anim_timer = 0.6
 	queue_redraw()
 
 func _process(delta: float) -> void:
@@ -141,6 +145,24 @@ func _process(delta: float) -> void:
 			
 	queue_redraw()
 
+func _unhandled_input(event: InputEvent) -> void:
+	if current_state != GameState.PLAYER_INPUT:
+		return
+		
+	if event is InputEventKey and event.pressed:
+		match event.keycode:
+			KEY_1: _on_player_pot_clicked(0)
+			KEY_2: _on_player_pot_clicked(1)
+			KEY_3: _on_player_pot_clicked(2)
+			KEY_4: _on_player_pot_clicked(3)
+			
+	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		var local_pos: Vector2 = get_local_mouse_position()
+		var clicked_pot: int = _get_pot_at_pos(local_pos)
+		if clicked_pot >= 0:
+			_on_player_pot_clicked(clicked_pot)
+			get_viewport().set_input_as_handled()
+
 func _gui_input(event: InputEvent) -> void:
 	if current_state != GameState.PLAYER_INPUT:
 		return
@@ -157,8 +179,8 @@ func _get_pot_at_pos(pos: Vector2) -> int:
 	var start_x: float = 24.0
 	var pot_w: float = 44.0
 	var pot_gap: float = 6.0
-	var pot_y: float = 78.0
-	var pot_h: float = 46.0
+	var pot_y: float = 50.0
+	var pot_h: float = 75.0
 	
 	for i in range(4):
 		var px: float = start_x + i * (pot_w + pot_gap)
