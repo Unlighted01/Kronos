@@ -17,7 +17,7 @@ const DEFAULT_SHORT_BREAK_SECONDS: float = 5.0 * 60.0 # 300.0s (05:00)
 const DEFAULT_LONG_BREAK_SECONDS: float = 15.0 * 60.0 # 900.0s (15:00)
 
 const BASE_JACKPOT_COINS: int = 100
-const BASE_JACKPOT_EXP: int = 50
+const BASE_JACKPOT_EXP: int = 75
 
 # Continuous Earning Rates
 const FOCUS_COIN_INTERVAL: float = 10.0 # Seconds per base focus coin (work session)
@@ -170,6 +170,8 @@ func acknowledge_alarm() -> void:
 	if current_phase == TimerPhase.WORK:
 		if completed_work_sessions >= pomodoro_cycle_goal:
 			completed_work_sessions = 0 # Reset cycle
+			if GameState:
+				GameState.add_exp(150) # Generous +150 EXP bonus for completing 4-Pomodoro cycle!
 			_switch_to_phase(TimerPhase.LONG_BREAK)
 		else:
 			_switch_to_phase(TimerPhase.SHORT_BREAK)
@@ -189,6 +191,8 @@ func start_timer() -> void:
 		session_start_unix = Time.get_unix_time_from_system()
 		_coin_accumulator = 0.0
 		focus_seconds_elapsed = 0.0
+		if GameState and current_phase == TimerPhase.WORK:
+			GameState.add_exp(10) # Generous +10 EXP instant start bonus!
 		
 	status = TimerStatus.RUNNING
 	EventBus.timer_state_changed.emit(true, false)

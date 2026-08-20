@@ -78,7 +78,19 @@ metadata/_tab_index = 0
 [node name="FilterHBox" type="HBoxContainer" parent="VBox/TabContainer/SHOP"]
 custom_minimum_size = Vector2(0, 22)
 layout_mode = 2
-theme_override_constants/separation = 3
+theme_override_constants/separation = 2
+
+[node name="RoomsFilterBtn" type="Button" parent="VBox/TabContainer/SHOP/FilterHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 7
+text = "🏠 Rooms"
+
+[node name="PetsFilterBtn" type="Button" parent="VBox/TabContainer/SHOP/FilterHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 7
+text = "🐾 Pets"
 
 [node name="TreatsFilterBtn" type="Button" parent="VBox/TabContainer/SHOP/FilterHBox"]
 layout_mode = 2

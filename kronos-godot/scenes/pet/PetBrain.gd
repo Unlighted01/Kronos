@@ -77,12 +77,34 @@ const ROOM_ENTRIES: Dictionary = {
 # ==============================================================================
 # 📊 INTERNAL STATE MACHINE & PATIENCE
 # ==============================================================================
+var pet_id: String = "pet_shiba"
+var pet_name: String = "Kronos"
+var species: String = "shiba"
+var assigned_room: String = "room_bedroom"
+var pet_index: int = 0
+
 var current_state: State = State.IDLE
 var target_x: float = 120.0
 var current_target_y: float = 115.0
 var post_target_y: float = 115.0
 var state_timer: float = 0.0
 var post_target_state: State = State.IDLE
+
+func get_slot_offset_x() -> float:
+	return (float(pet_index) - 1.0) * 16.0
+
+func setup_pet(data: Dictionary) -> void:
+	pet_id = data.get("id", "pet_shiba")
+	pet_name = data.get("name", "Kronos")
+	species = data.get("species", "shiba")
+	assigned_room = data.get("room", "room_bedroom")
+	if not renderer:
+		renderer = get_node_or_null("PetRenderer")
+	if renderer:
+		renderer.species = species
+		renderer.queue_redraw()
+	# Re-evaluate visibility now that assigned_room is correctly set
+	_update_visibility_from_room_state()
 
 # Previous state cache for interruptions (like petting)
 var _previous_state: State = State.IDLE
@@ -107,8 +129,12 @@ var _pending_target_room: String = ""
 # ⚙️ LIFECYCLE
 # ==============================================================================
 func _ready() -> void:
-	position.x = 120.0
-	target_x = 120.0
+	randomize() # Seed RNG so each pet behaves differently
+	
+	# Only initialize position if we don't have one set by RoomManager
+	if position.x == 0:
+		position.x = 120.0
+	target_x = position.x
 	current_target_y = floor_y
 	post_target_y = floor_y
 	position.y = floor_y
@@ -117,6 +143,16 @@ func _ready() -> void:
 	_reset_roam_timer()
 	_work_patience_duration = randf_range(120.0, 240.0)
 	
+	# Jitter timers so pets don't do the exact same things on the exact same frame
+	state_timer = randf_range(0.0, 3.0)
+	_periodic_thought_timer = randf_range(0.0, 10.0)
+	
+	if not renderer:
+		renderer = get_node_or_null("PetRenderer")
+	if renderer:
+		renderer.species = species
+		renderer.queue_redraw()
+		
 	_connect_event_bus()
 	
 	if click_area:
@@ -130,7 +166,6 @@ func _connect_event_bus() -> void:
 	EventBus.phase_changed.connect(_on_phase_changed)
 	EventBus.session_completed.connect(_on_session_completed)
 	EventBus.session_skipped.connect(_on_session_skipped)
-	EventBus.pet_interacted.connect(_on_pet_interacted)
 	EventBus.item_used.connect(_on_item_used)
 	EventBus.room_changed.connect(_on_room_changed)
 	EventBus.pet_room_changed.connect(_on_pet_room_changed)
@@ -218,7 +253,7 @@ func _process_idle_state(_delta: float) -> void:
 	_set_renderer_state(PetRenderer.AnimState.IDLE)
 	
 	var profile: Dictionary = _get_time_profile()
-	var cur_room: String = GameState.pet_room if GameState else "room_bedroom"
+	var cur_room: String = assigned_room if assigned_room != "" else "room_bedroom"
 	var is_working: bool = (TimerEngine and TimerEngine.status == TimerEngine.TimerStatus.RUNNING and TimerEngine.current_phase == TimerEngine.TimerPhase.WORK)
 	
 	# Decide next action after a few seconds of idle
@@ -548,13 +583,20 @@ func _process_autonomous_room_roaming(delta: float) -> void:
 		
 	_reset_roam_timer()
 	
-	var profile: Dictionary = _get_time_profile()
-	var cur_room: String = GameState.pet_room if GameState else "room_bedroom"
-	var neighbors: Array = HOUSE_TOPOLOGY.get(cur_room, [])
+	var cur_room: String = assigned_room if assigned_room != "" else (GameState.active_view_room if GameState else "room_bedroom")
+	var raw_neighbors: Array = HOUSE_TOPOLOGY.get(cur_room, [])
 	
-	if neighbors.size() == 0 or current_state == State.TYPE or current_state == State.EXITING_ROOM:
+	# Only roam into rooms that the player has actually unlocked in the Shop!
+	var neighbors: Array = []
+	for n in raw_neighbors:
+		if GameState and GameState.is_room_unlocked(str(n)):
+			neighbors.append(str(n))
+	
+	if neighbors.is_empty() or current_state == State.TYPE or current_state == State.EXITING_ROOM:
 		return
 		
+	var profile: Dictionary = _get_time_profile()
+	
 	# Night Roaming Logic: High tendency to seek Bedroom
 	if profile.is_night:
 		if cur_room == "room_bedroom":
@@ -570,8 +612,8 @@ func _process_autonomous_room_roaming(delta: float) -> void:
 			_start_room_transition_walk(cur_room, best_room)
 			return
 
-	# Daytime Roaming Logic: 45% chance to roam to neighbor
-	if randf() <= 0.45:
+	# Daytime Roaming Logic: 35% chance to roam to an unlocked neighbor
+	if randf() <= 0.35:
 		var next_room: String = neighbors[randi() % neighbors.size()]
 		_start_room_transition_walk(cur_room, next_room)
 
@@ -582,7 +624,7 @@ func _start_room_transition_walk(from_room: String, to_room: String) -> void:
 	_pending_target_room = to_room
 	
 	# Show departure thought if visible
-	if GameState and GameState.is_pet_in_current_view() and thought_bubble and not thought_bubble._is_showing:
+	if thought_bubble and not thought_bubble._is_showing:
 		match to_room:
 			"room_kitchen": thought_bubble.show_thought("Heading to the kitchen! 🥐", 2.5)
 			"room_greenhouse": thought_bubble.show_thought("Visiting the plants! 🌿", 2.5)
@@ -595,9 +637,9 @@ func _start_room_transition_walk(from_room: String, to_room: String) -> void:
 	walk_to(exit_pos_x, State.EXITING_ROOM, floor_y)
 
 func _on_object_state_changed(key: String, val: Variant) -> void:
-	if not GameState or not GameState.is_pet_in_current_view():
+	if not GameState or assigned_room != GameState.active_view_room:
 		return
-	var cur_room: String = GameState.pet_room
+	var cur_room: String = assigned_room
 	
 	# ==========================================================================
 	# 📺 STATE IDEMPOTENCY & TOGGLE-OFF HANDLING
@@ -671,42 +713,23 @@ func _on_object_state_changed(key: String, val: Variant) -> void:
 			walk_to(134.0, State.STUDY, 92.0)
 
 func _execute_room_transition_fade(next_room: String) -> void:
-	if not GameState:
+	if not GameState or not GameState.is_room_unlocked(next_room):
+		current_state = State.IDLE
 		return
 		
-	var from_room: String = GameState.pet_room
-	var is_in_view: bool = GameState.is_pet_in_current_view()
-	
-	if is_in_view:
-		# Play exit fade tween
-		var tween: Tween = create_tween()
-		tween.tween_property(self, "modulate:a", 0.0, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-		tween.tween_callback(func():
-			GameState.set_pet_room(next_room)
-			_position_at_entry_door(from_room, next_room)
-			_update_visibility_from_room_state()
-		)
-	else:
-		GameState.set_pet_room(next_room)
-		_position_at_entry_door(from_room, next_room)
-		_update_visibility_from_room_state()
-
-func _position_at_entry_door(from_room: String, to_room: String) -> void:
-	var entry_map: Dictionary = ROOM_ENTRIES.get(to_room, {})
-	var spawn_x: float = entry_map.get(from_room, (min_x + max_x) * 0.5)
-	position.x = clampf(spawn_x, min_x, max_x)
-	target_x = position.x
-	current_target_y = floor_y
-	post_target_y = floor_y
-	position.y = floor_y
-	current_state = State.IDLE
-	
-	if GameState and GameState.is_pet_in_current_view():
-		modulate.a = 0.0
-		var in_tween: Tween = create_tween()
-		in_tween.tween_property(self, "modulate:a", 1.0, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	else:
-		modulate.a = 1.0
+	# Update this pet's individual location in active_pets roster
+	assigned_room = next_room
+	for p in GameState.active_pets:
+		if p.get("id", "") == pet_id:
+			p["room"] = next_room
+			break
+			
+	# Fade out and free this pet from the current room view
+	var tween: Tween = create_tween()
+	tween.tween_property(self, "modulate:a", 0.0, 0.30).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tween.tween_callback(func():
+		queue_free()
+	)
 
 # ==============================================================================
 # ⏱️ EVENT BUS HANDLERS
@@ -884,15 +907,10 @@ func _on_energy_changed(new_energy: float, _max: float, _is_buffed: bool) -> voi
 			thought_bubble.show_random_thought("low_energy", 3.0)
 
 func _on_pet_called(_target_room: String) -> void:
-	current_state = State.IDLE
-	visible = true
-	modulate = Color(1.0, 1.0, 1.0, 1.0)
-	position.x = clampf((min_x + max_x) * 0.5, min_x + 10.0, max_x - 10.0)
-	target_x = position.x
-	current_target_y = floor_y
-	post_target_y = floor_y
-	position.y = floor_y
-	_update_visibility_from_room_state()
+	# RoomManager/GameState already updated active_pets rooms and will respawn us.
+	# If we're still alive in the scene, just play a greeting bounce.
+	if not is_inside_tree():
+		return
 	_play_summon_bounce()
 
 func _play_summon_bounce() -> void:
@@ -925,7 +943,8 @@ func _on_room_changed(_room_id: String) -> void:
 		current_state = State.IDLE
 
 func _update_visibility_from_room_state() -> void:
-	var is_in_view: bool = GameState.is_pet_in_current_view() if GameState else true
+	# Each pet uses its OWN assigned_room to determine visibility, not the global pet_room
+	var is_in_view: bool = (assigned_room == GameState.active_view_room) if GameState else true
 	visible = is_in_view
 	if is_in_view:
 		modulate.a = 1.0
@@ -934,26 +953,52 @@ func _update_visibility_from_room_state() -> void:
 		click_area.monitorable = is_in_view
 
 func _on_click_area_input_event(_viewport: Node, event: InputEvent, _shape_idx: int) -> void:
-	if event is InputEventMouseButton:
-		var mouse_event: InputEventMouseButton = event as InputEventMouseButton
-		if mouse_event.button_index == MOUSE_BUTTON_LEFT and mouse_event.pressed:
-			_perform_pet_action()
-
-func _unhandled_input(event: InputEvent) -> void:
-	if not visible or not is_inside_tree():
+	if not visible:
 		return
 	if event is InputEventMouseButton:
 		var mouse_event: InputEventMouseButton = event as InputEventMouseButton
 		if mouse_event.button_index == MOUSE_BUTTON_LEFT and mouse_event.pressed:
-			var local_pos: Vector2 = to_local(get_global_mouse_position())
-			if Rect2(-24, -36, 48, 44).has_point(local_pos):
-				_perform_pet_action()
-				get_viewport().set_input_as_handled()
+			_perform_pet_action()
+			get_viewport().set_input_as_handled()
 
 func _perform_pet_action() -> void:
 	if GameState:
 		GameState.add_joy(5.0)
-	EventBus.pet_interacted.emit("pet")
+		
+	_pet_click_count += 1
+	_pet_spam_timer = 2.5
+	
+	# 1. Annoyed Reaction if Spam Petted (4+ rapid clicks)
+	if _pet_click_count >= 4:
+		_pet_click_count = 0
+		if thought_bubble:
+			thought_bubble.show_random_thought("annoyed", 3.0)
+		if renderer:
+			renderer._spawn_particle("anger")
+		return
+		
+	# Play cute purr/chirp sound
+	if AudioManager:
+		AudioManager.play_sfx("chirp")
+			
+	# 2. In-Place Petting (If resting on furniture, watching TV, sleeping, or typing)
+	var in_furniture: bool = (current_state == State.WATCH_TV or current_state == State.TYPE or current_state == State.NAP or current_state == State.TUCKED_IN or current_state == State.WARM_PAWS or current_state == State.STUDY or current_state == State.WINDOW_GAZE)
+	if in_furniture:
+		if thought_bubble:
+			thought_bubble.show_random_thought("petted", 2.0)
+		if renderer:
+			renderer._spawn_particle("heart")
+		return
+		
+	# 3. Regular Standing Petting Bounce
+	if current_state != State.PETTED:
+		_previous_state = current_state
+	current_state = State.PETTED
+	state_timer = 0.0
+	if thought_bubble:
+		thought_bubble.show_random_thought("petted", 2.5)
+	if renderer:
+		renderer._spawn_particle("heart")
 
 func _process_periodic_thoughts() -> void:
 	if _periodic_thought_timer >= 25.0:

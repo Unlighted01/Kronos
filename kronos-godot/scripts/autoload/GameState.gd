@@ -322,6 +322,88 @@ const ITEM_DEFINITIONS: Dictionary = {
 		"target_room_name": "Conservatory",
 		"price": 360,
 		"description": "Hanging blown-glass lantern casting fairy light motes."
+	},
+	# Rooms / Real Estate
+	"room_livingroom": {
+		"id": "room_livingroom",
+		"name": "Living Room",
+		"icon": "🛋️",
+		"category": "room",
+		"price": 250,
+		"unlock_level": 2,
+		"description": "Spacious lounge with cozy fireplace, TV, vinyl turntable, and warm sofa."
+	},
+	"room_library": {
+		"id": "room_library",
+		"name": "Attic Library",
+		"icon": "📚",
+		"category": "room",
+		"price": 500,
+		"unlock_level": 4,
+		"description": "Old-world attic under wooden rafters with antique bookshelves, globe, and telescope."
+	},
+	"room_kitchen": {
+		"id": "room_kitchen",
+		"name": "Bakery Kitchen",
+		"icon": "🍳",
+		"category": "room",
+		"price": 750,
+		"unlock_level": 6,
+		"description": "Warm country kitchen with copper stove, espresso station, and pastry cloche."
+	},
+	"room_greenhouse": {
+		"id": "room_greenhouse",
+		"name": "Conservatory",
+		"icon": "🌿",
+		"category": "room",
+		"price": 1000,
+		"unlock_level": 8,
+		"description": "Sun-drenched botanical solarium with blooming flora and flutter of butterflies."
+	},
+	# Adoptable Pets
+	"pet_cat": {
+		"id": "pet_cat",
+		"name": "Calico Cat",
+		"default_name": "Mochi",
+		"icon": "🐱",
+		"category": "pet",
+		"species": "cat",
+		"price": 300,
+		"unlock_level": 2,
+		"description": "Cozy sleepy kitty with cute twitchy ears, box naps, and coffee sips."
+	},
+	"pet_bunny": {
+		"id": "pet_bunny",
+		"name": "Fluffy Bunny",
+		"default_name": "Boba",
+		"icon": "🐰",
+		"category": "pet",
+		"species": "bunny",
+		"price": 600,
+		"unlock_level": 4,
+		"description": "Snowy white rabbit with floppy ears, hopping walk, and carrot snacks."
+	},
+	"pet_penguin": {
+		"id": "pet_penguin",
+		"name": "Chubby Penguin",
+		"default_name": "Pippin",
+		"icon": "🐧",
+		"category": "pet",
+		"species": "penguin",
+		"price": 900,
+		"unlock_level": 6,
+		"description": "Adorably round tuxedo penguin in a red scarf with a cute waddle."
+	},
+	"pet_fox": {
+		"id": "pet_fox",
+		"name": "Red Fox",
+		"default_name": "Kitsune",
+		"icon": "🦊",
+		"category": "pet",
+		"species": "fox",
+		"price": 1200,
+		"unlock_level": 8,
+		"description": "Vibrant amber fox with a huge fluffy brush tail and curious leaps."
 	}
 }
 
@@ -329,19 +411,27 @@ const ITEM_DEFINITIONS: Dictionary = {
 # 📊 STATE VARIABLES
 # ==============================================================================
 var pet_name: String = "Kronos"
+var pet_species: String = "shiba"
 var level: int = 1
 var exp: int = 0
-var coins: int = 100 # Starting wallet balance
+var coins: int = 0
 var energy: float = 80.0
 var joy: float = 80.0
 var streak: int = 0
 var equipped_cosmetic: String = "" # Active head/neck accessory
 var equipped_cosmetics: Dictionary = {} # Multi-slot support: {"head": "cosmetic_crown", "face": "cosmetic_shades", "neck": "cosmetic_bow"}
 var active_view_room: String = "room_bedroom" # Default bedroom environment
-var pet_room: String = "room_bedroom" # Where the pet companion is currently located
+var pet_room: String = "room_bedroom" # Where the main pet is located
 var active_room: String = "room_bedroom" # Backwards compatibility alias for active_view_room
 var inventory: Array[Dictionary] = [] # Array of {"item_id": String, "quantity": int, "metadata": Dictionary}
 var placed_decor: Dictionary = {} # {"decor_bonsai": true, "decor_boombox": true}
+
+# Unlocked Progression Real Estate & Household Pets
+var unlocked_rooms: Array[String] = ["room_bedroom"]
+var unlocked_pets: Array[String] = ["pet_shiba"]
+var active_pets: Array[Dictionary] = [
+	{"id": "pet_shiba", "name": "Kronos", "species": "shiba", "room": "room_bedroom"}
+]
 
 # House Lighting & Interactive Object States
 var room_lights: Dictionary = {
@@ -367,6 +457,9 @@ var audio_settings: Dictionary = {
 	"timer_notifs_enabled": true,
 	"pet_nudges_enabled": true
 }
+
+# Passive presence accumulator
+var _passive_presence_accumulator: float = 0.0
 
 # Micro-Tasks & Daily Quests State
 var tasks: Array[Dictionary] = []
@@ -432,6 +525,15 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	_check_morning_light_shutoff()
 	_check_midnight_rollover(delta)
+	
+	# Generous Passive Presence EXP (+1 EXP / 15s) and Coins (+1 Coin / 30s)
+	_passive_presence_accumulator += delta
+	if _passive_presence_accumulator >= 15.0:
+		_passive_presence_accumulator = 0.0
+		add_exp(1)
+		# Add 1 passive coin every 30s
+		if int(Time.get_unix_time_from_system()) % 30 == 0:
+			add_coins(1, "passive_presence")
 
 ## Automatically checks at midnight if the calendar day rolled over
 func _check_midnight_rollover(delta: float) -> void:
@@ -453,6 +555,121 @@ func _check_morning_light_shutoff() -> void:
 	_last_checked_hour = cur_hour
 
 # ==============================================================================
+# 🏠 ROOM REAL ESTATE & MULTI-PET HOUSEHOLD API
+# ==============================================================================
+## Maximum allowed pets roaming in the household based on player Level
+func get_max_pet_slots() -> int:
+	if level >= 10: return 5
+	if level >= 7: return 4
+	if level >= 5: return 3
+	if level >= 3: return 2
+	return 1
+
+func is_room_unlocked(r_id: String) -> bool:
+	if r_id == "room_bedroom":
+		return true
+	return unlocked_rooms.has(r_id)
+
+func buy_room(r_id: String) -> bool:
+	if is_room_unlocked(r_id):
+		return false
+	var def = ITEM_DEFINITIONS.get(r_id, null)
+	if not def:
+		return false
+	var price: int = int(def.get("price", 0))
+	var req_lvl: int = int(def.get("unlock_level", 1))
+	if level < req_lvl or coins < price:
+		return false
+		
+	coins -= price
+	unlocked_rooms.append(r_id)
+	EventBus.coins_changed.emit(coins, -price, "room_unlock")
+	EventBus.room_unlocked.emit(r_id)
+	if AudioManager:
+		AudioManager.play_sfx("chime")
+	if DatabaseManager:
+		DatabaseManager.save_game()
+	return true
+
+func is_pet_unlocked(p_id: String) -> bool:
+	if p_id == "pet_shiba":
+		return true
+	return unlocked_pets.has(p_id)
+
+func adopt_pet(p_id: String, as_household: bool, custom_name: String = "") -> bool:
+	var def = ITEM_DEFINITIONS.get(p_id, null)
+	if not def:
+		return false
+	var price: int = int(def.get("price", 0))
+	# If already unlocked, it's free to switch or add!
+	if unlocked_pets.has(p_id):
+		price = 0
+		
+	var req_lvl: int = int(def.get("unlock_level", 1))
+	if level < req_lvl or coins < price:
+		return false
+		
+	coins -= price
+	if not unlocked_pets.has(p_id):
+		unlocked_pets.append(p_id)
+		
+	var final_name: String = custom_name if custom_name != "" else def.get("default_name", "Companion")
+	var spec: String = def.get("species", "shiba")
+	var p_data: Dictionary = {
+		"id": p_id,
+		"name": final_name,
+		"species": spec,
+		"room": active_view_room
+	}
+	
+	if as_household and active_pets.size() < get_max_pet_slots():
+		active_pets.append(p_data)
+	else:
+		# Replace main companion
+		pet_species = spec
+		pet_name = final_name
+		if not active_pets.is_empty():
+			active_pets[0] = p_data
+		else:
+			active_pets.append(p_data)
+			
+	EventBus.coins_changed.emit(coins, -price, "pet_adoption")
+	EventBus.pet_adopted.emit(p_data, as_household)
+	EventBus.pet_list_changed.emit(active_pets)
+	
+	# Trigger celebratory delivery box in room!
+	EventBus.pet_delivery_box_spawned.emit(p_data, Vector2(120.0, 115.0))
+	
+	if DatabaseManager:
+		DatabaseManager.save_game()
+	return true
+
+func reset_to_clean_slate() -> void:
+	coins = 0
+	level = 1
+	exp = 0
+	energy = 80.0
+	joy = 80.0
+	streak = 0
+	pet_name = "Kronos"
+	pet_species = "shiba"
+	active_view_room = "room_bedroom"
+	pet_room = "room_bedroom"
+	unlocked_rooms = ["room_bedroom"]
+	unlocked_pets = ["pet_shiba"]
+	active_pets = [
+		{"id": "pet_shiba", "name": "Kronos", "species": "shiba", "room": "room_bedroom"}
+	]
+	inventory.clear()
+	placed_decor.clear()
+	check_and_generate_daily_quests()
+	_emit_all_stats()
+	EventBus.pet_list_changed.emit(active_pets)
+	EventBus.room_changed.emit(active_view_room)
+	if DatabaseManager:
+		DatabaseManager.save_game()
+
+# ==============================================================================
 # 💡 HOUSE LIGHTING & OBJECT INTERACTION API
 # ==============================================================================
 ## Toggles the light state of a specific room, emitting room_light_toggled
@@ -466,14 +683,61 @@ func toggle_room_light(room_id: String) -> bool:
 func is_room_light_on(room_id: String) -> bool:
 	return room_lights.get(room_id, false)
 
-## Sets interactive object state (e.g. bed open/closed, window open/closed)
-func set_object_state(key: String, val: Variant) -> void:
-	object_states[key] = val
-	EventBus.object_state_changed.emit(key, val)
+## Sets the state of an interactive room object
+func set_object_state(object_id: String, state_value: Variant) -> void:
+	object_states[object_id] = state_value
+	EventBus.object_state_changed.emit(object_id, state_value)
 
-## Retrieves interactive object state
-func get_object_state(key: String, default_val: Variant = null) -> Variant:
-	return object_states.get(key, default_val)
+## Returns the current state of an interactive room object
+func get_object_state(object_id: String, default_value: Variant = false) -> Variant:
+	return object_states.get(object_id, default_value)
+
+# ==============================================================================
+# 📈 PROGRESSION, STATS & EXPERIENCE
+# ==============================================================================
+## Calculates the required EXP to reach the next level
+func get_exp_required_for_level(lvl: int) -> int:
+	return BASE_EXP_PER_LEVEL * lvl
+
+## Adds coins to balance
+func add_coins(amount: int, reason: String = "generic") -> void:
+	if amount == 0:
+		return
+	coins = maxi(0, coins + amount)
+	EventBus.coins_changed.emit(coins, amount, reason)
+
+## Spends coins if sufficient balance exists
+func spend_coins(amount: int, reason: String = "generic") -> bool:
+	if amount <= 0:
+		return true
+	if coins < amount:
+		return false
+	coins -= amount
+	EventBus.coins_changed.emit(coins, -amount, reason)
+	return true
+
+## Adds EXP and handles cascading level ups and pet slot unlocks
+func add_exp(amount: int) -> void:
+	if amount <= 0:
+		return
+	exp += amount
+	
+	var old_slots: int = get_max_pet_slots()
+	while true:
+		var req_exp: int = get_exp_required_for_level(level)
+		if exp >= req_exp:
+			exp -= req_exp
+			level += 1
+			EventBus.level_up.emit(level)
+			var new_slots: int = get_max_pet_slots()
+			if new_slots > old_slots:
+				old_slots = new_slots
+				EventBus.max_pets_changed.emit(new_slots)
+		else:
+			break
+			
+	var current_req: int = get_exp_required_for_level(level)
+	EventBus.exp_changed.emit(exp, current_req, level)
 
 ## Returns the current real-world season ("spring", "summer", "autumn", "winter")
 func get_current_season() -> String:
@@ -487,51 +751,9 @@ func get_current_season() -> String:
 	else:
 		return "winter"
 
-# ==============================================================================
-# ⚡ STAT MODIFIERS & HELPERS
-# ==============================================================================
 ## Returns whether the pet has enough energy to qualify for the focus speed buff (+50% coin earning speed)
 func is_energy_buffed() -> bool:
 	return energy >= ENERGY_BUFF_THRESHOLD
-
-## Returns the EXP required to reach the next level
-func get_exp_required_for_level(target_level: int) -> int:
-	return target_level * BASE_EXP_PER_LEVEL
-
-## Adds coins with tracking and event emission
-func add_coins(amount: int, reason: String = "") -> void:
-	if amount <= 0:
-		return
-	coins += amount
-	EventBus.coins_changed.emit(coins, amount, reason)
-
-## Spends coins if balance is sufficient, returning true if successful
-func spend_coins(amount: int, reason: String = "") -> bool:
-	if amount <= 0:
-		return true
-	if coins < amount:
-		return false
-	coins -= amount
-	EventBus.coins_changed.emit(coins, -amount, reason)
-	return true
-
-## Adds EXP and handles cascading level ups
-func add_exp(amount: int) -> void:
-	if amount <= 0:
-		return
-	exp += amount
-	
-	while true:
-		var req_exp: int = get_exp_required_for_level(level)
-		if exp >= req_exp:
-			exp -= req_exp
-			level += 1
-			EventBus.level_up.emit(level)
-		else:
-			break
-			
-	var current_req: int = get_exp_required_for_level(level)
-	EventBus.exp_changed.emit(exp, current_req, level)
 
 ## Sets pet energy clamped between 0 and 100
 func set_energy(value: float) -> void:
@@ -697,6 +919,8 @@ func set_view_room(room_id: String) -> void:
 		return
 	active_view_room = room_id
 	active_room = room_id
+	if DatabaseManager:
+		DatabaseManager.save_game()
 	EventBus.room_changed.emit(active_view_room)
 
 ## Sets the room where the pet is currently located
@@ -706,9 +930,12 @@ func set_pet_room(room_id: String) -> void:
 	pet_room = room_id
 	EventBus.pet_room_changed.emit(pet_room)
 
-## Summons the pet to the user's current view room
+## Summons ALL pets to the user's current view room
 func call_pet_to_view() -> void:
 	pet_room = active_view_room
+	# Bring every companion back to the current view room
+	for p in active_pets:
+		p["room"] = active_view_room
 	EventBus.pet_room_changed.emit(pet_room)
 	EventBus.pet_called.emit(active_view_room)
 
@@ -941,12 +1168,16 @@ func _connect_quest_listeners() -> void:
 func serialize() -> Dictionary:
 	return {
 		"pet_name": pet_name,
+		"pet_species": pet_species,
 		"level": level,
 		"exp": exp,
 		"coins": coins,
 		"energy": energy,
 		"joy": joy,
 		"streak": streak,
+		"unlocked_rooms": unlocked_rooms,
+		"unlocked_pets": unlocked_pets,
+		"active_pets": active_pets,
 		"equipped_cosmetic": equipped_cosmetic,
 		"equipped_cosmetics": equipped_cosmetics,
 		"active_room": active_view_room,
@@ -967,12 +1198,39 @@ func serialize() -> Dictionary:
 ## Loads state from a Dictionary
 func deserialize(data: Dictionary) -> void:
 	pet_name = data.get("pet_name", "Kronos")
+	pet_species = data.get("pet_species", "shiba")
 	level = data.get("level", 1)
 	exp = data.get("exp", 0)
-	coins = data.get("coins", 100)
+	coins = data.get("coins", 0)
 	energy = data.get("energy", 80.0)
 	joy = data.get("joy", 80.0)
 	streak = data.get("streak", 0)
+	
+	var raw_rooms = data.get("unlocked_rooms", ["room_bedroom"])
+	unlocked_rooms.clear()
+	if raw_rooms is Array:
+		for r in raw_rooms:
+			unlocked_rooms.append(str(r))
+	if not unlocked_rooms.has("room_bedroom"):
+		unlocked_rooms.append("room_bedroom")
+		
+	var raw_pets = data.get("unlocked_pets", ["pet_shiba"])
+	unlocked_pets.clear()
+	if raw_pets is Array:
+		for p in raw_pets:
+			unlocked_pets.append(str(p))
+	if not unlocked_pets.has("pet_shiba"):
+		unlocked_pets.append("pet_shiba")
+		
+	var raw_active_pets = data.get("active_pets", [])
+	active_pets.clear()
+	if raw_active_pets is Array and raw_active_pets.size() > 0:
+		for ap in raw_active_pets:
+			if ap is Dictionary:
+				active_pets.append(ap)
+	else:
+		active_pets.append({"id": "pet_shiba", "name": pet_name, "species": pet_species, "room": "room_bedroom"})
+		
 	equipped_cosmetic = data.get("equipped_cosmetic", "")
 	equipped_cosmetics = data.get("equipped_cosmetics", {})
 	active_view_room = data.get("active_view_room", data.get("active_room", "room_bedroom"))
@@ -1027,6 +1285,7 @@ func deserialize(data: Dictionary) -> void:
 	check_and_generate_daily_quests()
 				
 	_emit_all_stats()
+	EventBus.pet_list_changed.emit(active_pets)
 
 ## Sets an individual audio setting and applies volume changes
 func set_audio_setting(key: String, val: Variant) -> void:

@@ -10,9 +10,9 @@ signal hub_closed()
 # 🎛️ UI REFERENCES
 # ==============================================================================
 @onready var close_btn: Button = $Panel/VBox/Header/CloseButton
-@onready var play_snack_btn: Button = $Panel/VBox/GamesVBox/SnackCatchRow/PlayButton
-@onready var play_plant_btn: Button = $Panel/VBox/GamesVBox/PlantBloomRow/PlayButton
-@onready var play_memory_btn: Button = $Panel/VBox/GamesVBox/MemoryMatchRow/PlayButton
+@onready var play_snack_btn: Button = $Panel/VBox/GamesVBox/SnackCatchRow/HBox/PlayButton
+@onready var play_plant_btn: Button = $Panel/VBox/GamesVBox/PlantBloomRow/HBox/PlayButton
+@onready var play_memory_btn: Button = $Panel/VBox/GamesVBox/MemoryMatchRow/HBox/PlayButton
 
 # ==============================================================================
 # ⚙️ LIFECYCLE
@@ -34,6 +34,8 @@ func _launch_game(scene_path: String) -> void:
 	var scene = load(scene_path)
 	if scene:
 		var game_instance: Control = scene.instantiate()
+		game_instance.position = Vector2.ZERO
+		game_instance.size = Vector2(236, 140)
 		game_instance.custom_minimum_size = Vector2(236, 140)
 		game_instance.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		var p = get_parent()

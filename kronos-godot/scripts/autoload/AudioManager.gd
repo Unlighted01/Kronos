@@ -393,12 +393,13 @@ func _synth_pet_chirp() -> AudioStreamWAV:
 	bytes.resize(num_samples * 2)
 	
 	for i in range(num_samples):
-		var t: float = float(i) / duration
-		var vibrato: float = sin(t * 30.0) * 40.0
-		var freq: float = 650.0 + sin(t * PI) * 550.0 + vibrato
-		var env: float = sin(t * PI)
+		var t: float = float(i) / SAMPLE_RATE          # seconds in [0, 0.18]
+		var t_norm: float = t / duration                # normalised [0, 1]
+		var vibrato: float = sin(t_norm * 30.0) * 40.0
+		var freq: float = 650.0 + sin(t_norm * PI) * 550.0 + vibrato
+		var env: float = sin(t_norm * PI)              # smooth bell envelope
 		
-		var sample_val: float = sin(float(i) / SAMPLE_RATE * freq * TAU) * env * 0.85
+		var sample_val: float = sin(t * freq * TAU) * env * 0.85
 		var sample_int: int = clampi(int(sample_val * 32767.0), -32768, 32767)
 		bytes.encode_s16(i * 2, sample_int)
 		

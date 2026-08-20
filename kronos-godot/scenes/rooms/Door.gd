@@ -118,6 +118,12 @@ func _draw() -> void:
 	draw_rect(Rect2(handle_x, y + 24, 2, 4), COL_HANDLE_BRASS)
 	draw_rect(Rect2(handle_x - 1, y + 25, 4, 2), COL_HANDLE_BRASS)
 	
+	# Draw Padlock if Target Room is Locked in Shop
+	if GameState and not GameState.is_room_unlocked(target_room):
+		draw_rect(Rect2(-3, y + 8, 6, 6), Color(0.95, 0.75, 0.20)) # Brass body
+		draw_rect(Rect2(-2, y + 5, 4, 3), Color(0.35, 0.40, 0.45), false, 1.0) # Shackle
+		draw_rect(Rect2(-1, y + 10, 2, 2), Color(0.20, 0.15, 0.10)) # Keyhole
+	
 	# Hover glow outline
 	if _is_hovered:
 		draw_rect(Rect2(x - 3, y - 3, dw + 6, dh + 6), COL_HOVER_BORDER, false, 1.0)

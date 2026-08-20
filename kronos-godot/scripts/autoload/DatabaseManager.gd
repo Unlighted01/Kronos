@@ -103,6 +103,15 @@ func load_game() -> bool:
 		
 	return _try_load_backup()
 
+## Wipes save file and backup from disk and resets GameState to a clean Lv. 1 test profile
+func wipe_save_and_reset() -> void:
+	if FileAccess.file_exists(SAVE_PATH):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(SAVE_PATH))
+	if FileAccess.file_exists(BACKUP_SAVE_PATH):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(BACKUP_SAVE_PATH))
+	if GameState:
+		GameState.reset_to_clean_slate()
+
 func _try_load_backup() -> bool:
 	if not FileAccess.file_exists(BACKUP_SAVE_PATH):
 		EventBus.load_completed.emit(false)

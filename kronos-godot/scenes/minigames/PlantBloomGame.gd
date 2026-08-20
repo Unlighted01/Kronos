@@ -19,7 +19,7 @@ const POT_COLORS: Array[Color] = [
 const POT_ICONS: Array[String] = ["🌹", "🌻", "🪻", "🌸"]
 const POT_NOTES: Array[float] = [261.63, 329.63, 392.00, 523.25] # C4, E4, G4, C5
 
-enum GameState { INTRO, PLAYING_SEQUENCE, PLAYER_INPUT, ROUND_CLEAR, GAME_OVER, VICTORY }
+enum MinigameState { INTRO, PLAYING_SEQUENCE, PLAYER_INPUT, ROUND_CLEAR, GAME_OVER, VICTORY }
 
 # ==============================================================================
 # 📊 STATE
@@ -27,7 +27,7 @@ enum GameState { INTRO, PLAYING_SEQUENCE, PLAYER_INPUT, ROUND_CLEAR, GAME_OVER, 
 var current_round: int = 0 # 0, 1, 2
 var sequence: Array[int] = []
 var player_step: int = 0
-var current_state: GameState = GameState.INTRO
+var current_state: MinigameState = MinigameState.INTRO
 
 var _anim_timer: float = 0.0
 var _seq_index: int = 0
@@ -98,7 +98,7 @@ func start_round(round_idx: int) -> void:
 		status_label.text = "👂 Listen to the melody..."
 		status_label.modulate = Color(0.96, 0.62, 0.04)
 		
-	current_state = GameState.PLAYING_SEQUENCE
+	current_state = MinigameState.PLAYING_SEQUENCE
 	_seq_index = 0
 	_anim_timer = 0.6
 	queue_redraw()
@@ -112,7 +112,7 @@ func _process(delta: float) -> void:
 			queue_redraw()
 			
 	# 2. Sequence Playback Machine
-	if current_state == GameState.PLAYING_SEQUENCE:
+	if current_state == MinigameState.PLAYING_SEQUENCE:
 		_anim_timer -= delta
 		if _anim_timer <= 0.0:
 			if _seq_index < sequence.size():
@@ -122,7 +122,7 @@ func _process(delta: float) -> void:
 				_anim_timer = 0.55
 			else:
 				# Sequence finished -> hand over to player
-				current_state = GameState.PLAYER_INPUT
+				current_state = MinigameState.PLAYER_INPUT
 				if status_label:
 					status_label.text = "💧 Water the pots in order!"
 					status_label.modulate = Color(0.31, 0.82, 0.91)
@@ -146,7 +146,7 @@ func _process(delta: float) -> void:
 	queue_redraw()
 
 func _unhandled_input(event: InputEvent) -> void:
-	if current_state != GameState.PLAYER_INPUT:
+	if current_state != MinigameState.PLAYER_INPUT:
 		return
 		
 	if event is InputEventKey and event.pressed:
@@ -164,7 +164,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 
 func _gui_input(event: InputEvent) -> void:
-	if current_state != GameState.PLAYER_INPUT:
+	if current_state != MinigameState.PLAYER_INPUT:
 		return
 		
 	if event is InputEventMouseButton:
@@ -232,7 +232,7 @@ func _spawn_water_splash(pot_id: int) -> void:
 		})
 
 func _on_round_completed() -> void:
-	current_state = GameState.ROUND_CLEAR
+	current_state = MinigameState.ROUND_CLEAR
 	_bloomed_pots[current_round] = true
 	
 	if current_round + 1 < ROUND_LENGTHS.size():
@@ -247,7 +247,7 @@ func _on_round_completed() -> void:
 		_trigger_victory()
 
 func _on_wrong_note() -> void:
-	current_state = GameState.GAME_OVER
+	current_state = MinigameState.GAME_OVER
 	if status_label:
 		status_label.text = "❌ Oops! Wrong pot."
 		status_label.modulate = Color(0.9, 0.35, 0.35)
@@ -260,7 +260,7 @@ func _on_wrong_note() -> void:
 	)
 
 func _trigger_victory() -> void:
-	current_state = GameState.VICTORY
+	current_state = MinigameState.VICTORY
 	for i in range(4):
 		_bloomed_pots[i] = true
 		
@@ -335,7 +335,7 @@ func _draw() -> void:
 		var p_col: Color = POT_COLORS[i]
 		
 		# Pot drop shadow
-		draw_ellipse(Vector2(px + pot_w / 2, pot_y + pot_h + 2), Vector2(18, 4), Color(0, 0, 0, 0.3))
+		draw_custom_ellipse(Vector2(px + pot_w / 2, pot_y + pot_h + 2), Vector2(18, 4), Color(0, 0, 0, 0.3))
 		
 		# Glowing Aura if active
 		if is_active:
@@ -372,7 +372,7 @@ func _draw() -> void:
 		col.a = p["alpha"]
 		draw_circle(Vector2(p["x"], p["y"]), 2.0, col)
 
-func draw_ellipse(center: Vector2, radii: Vector2, color: Color) -> void:
+func draw_custom_ellipse(center: Vector2, radii: Vector2, color: Color) -> void:
 	var points: PackedVector2Array = PackedVector2Array()
 	for a in range(16):
 		var rad: float = (float(a) / 16.0) * TAU

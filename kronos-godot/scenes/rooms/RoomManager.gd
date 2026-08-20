@@ -3,7 +3,7 @@ class_name RoomManager
 
 ## Room Manager Singleton & Viewport Controller for Kronos.
 ## Seamlessly manages active room switching (Bedroom, Living Room, Library, Kitchen, Greenhouse),
-## coordinates smooth fade transitions, and anchors the PetCompanion within each environment.
+## coordinates smooth fade transitions, handles locked room feedback, and manages the multi-pet household.
 
 # ==============================================================================
 # 📦 ROOM SCENE REGISTRY
@@ -17,6 +17,7 @@ const ROOM_SCENES: Dictionary = {
 }
 
 const PET_SCENE: PackedScene = preload("res://scenes/pet/PetCompanion.tscn")
+const DELIVERY_BOX_SCENE: PackedScene = preload("res://scenes/pet/PetDeliveryBox.tscn")
 
 # ==============================================================================
 # 🎛️ NODE REFERENCES
@@ -31,7 +32,7 @@ const PET_SCENE: PackedScene = preload("res://scenes/pet/PetCompanion.tscn")
 # ==============================================================================
 var current_room_node: BaseRoom = null
 var current_room_id: String = ""
-var pet_companion: PetBrain = null
+var spawned_pets: Array[PetBrain] = []
 var is_transitioning: bool = false
 
 # ==============================================================================
@@ -51,36 +52,28 @@ func _ready() -> void:
 	EventBus.room_changed.connect(_on_room_changed)
 	EventBus.pet_room_changed.connect(_on_pet_room_changed)
 	EventBus.pet_called.connect(_on_pet_called)
-	
-	# Instantiate pet companion first
-	_spawn_pet_companion()
+	EventBus.pet_list_changed.connect(_on_pet_list_changed)
+	EventBus.pet_delivery_box_spawned.connect(_on_pet_delivery_box_spawned)
 	
 	# Load initial room from GameState
 	var init_room = GameState.active_view_room if (GameState and GameState.active_view_room != "") else "room_bedroom"
-	if GameState:
-		# Sync pet to view room on startup if unassigned
-		if GameState.pet_room == "" or GameState.pet_room == null:
-			GameState.pet_room = init_room
 	_load_room_instant(init_room)
-	_update_pet_visibility_and_anchors()
-
-func _spawn_pet_companion() -> void:
-	if pet_companion != null:
-		return
-		
-	pet_companion = PET_SCENE.instantiate() as PetBrain
-	pet_companion.position = Vector2(120.0, 115.0)
-	pet_companion.modulate = Color(1.0, 1.0, 1.0, 1.0)
-	pet_companion.visible = true
-	if pet_layer:
-		pet_layer.add_child(pet_companion)
-	else:
-		add_child(pet_companion)
+	_sync_pets_for_current_room()
 
 # ==============================================================================
 # 🚪 ROOM SWITCHING & TRANSITIONS
 # ==============================================================================
 func _on_room_change_requested(target_room: String) -> void:
+	if GameState and not GameState.is_room_unlocked(target_room):
+		var def = GameState.ITEM_DEFINITIONS.get(target_room, null)
+		var r_name: String = def.get("name", "Room") if def else target_room
+		var req_lvl: int = int(def.get("unlock_level", 1)) if def else 1
+		var price: int = int(def.get("price", 0)) if def else 0
+		_show_room_badge("🔒 %s (Shop Lv. %d, %d G)" % [r_name, req_lvl, price])
+		if AudioManager:
+			AudioManager.play_sfx("thud")
+		return
+		
 	switch_to_room(target_room)
 
 ## Switches to target room with smooth fade transition
@@ -127,9 +120,7 @@ func _perform_room_swap(target_room_id: String) -> void:
 	if GameState:
 		GameState.set_view_room(target_room_id)
 		
-	_update_pet_visibility_and_anchors()
-		
-	# Update UI Badge
+	_sync_pets_for_current_room()
 	_show_room_badge(current_room_node.room_name)
 
 func _load_room_instant(room_id: String) -> void:
@@ -141,7 +132,7 @@ func _load_room_instant(room_id: String) -> void:
 	room_container.add_child(current_room_node)
 	current_room_id = room_id
 	
-	_update_pet_visibility_and_anchors()
+	_sync_pets_for_current_room()
 	_show_room_badge(current_room_node.room_name)
 
 func _show_room_badge(r_name: String) -> void:
@@ -159,45 +150,84 @@ func _show_room_badge(r_name: String) -> void:
 	tween.tween_callback(func(): room_title_badge.visible = false)
 
 # ==============================================================================
-# 🐾 PET VISIBILITY & LOCATION HANDLING
+# 🐾 MULTI-PET HOUSEHOLD LOCATION & SPAWNING
 # ==============================================================================
-func _update_pet_visibility_and_anchors() -> void:
-	var is_pet_here: bool = (GameState.pet_room == current_room_id) if GameState else true
+func _sync_pets_for_current_room() -> void:
+	# Clean up previous spawned pets
+	for p in spawned_pets:
+		if is_instance_valid(p):
+			p.queue_free()
+	spawned_pets.clear()
 	
-	if pet_companion:
-		pet_companion.visible = is_pet_here
-		if pet_companion.click_area:
-			pet_companion.click_area.monitoring = is_pet_here
-			pet_companion.click_area.monitorable = is_pet_here
+	if not GameState or not pet_layer or not current_room_node:
+		return
+		
+	var anchors = current_room_node.get_navigation_anchors()
+	var room_pets: Array[Dictionary] = []
+	
+	for pet_info in GameState.active_pets:
+		var p_room: String = pet_info.get("room", "room_bedroom")
+		# If pet has no room or matches view room, spawn here
+		if p_room == current_room_id or p_room == "":
+			room_pets.append(pet_info)
 			
-		if is_pet_here and current_room_node:
-			var anchors = current_room_node.get_navigation_anchors()
-			pet_companion.set_room_anchors(
-				anchors.get("min_x", 35.0),
-				anchors.get("max_x", 205.0),
-				anchors.get("desk_x", 75.0),
-				anchors.get("nap_x", 175.0),
-				anchors.get("drink_x", 120.0),
-				anchors.get("floor_y", 115.0)
-			)
+	# If no pets are explicitly in this room and active_pets has 1 pet, put them here
+	if room_pets.is_empty() and GameState.active_pets.size() == 1:
+		room_pets.append(GameState.active_pets[0])
+		
+	# Spawn each pet companion with slightly offset starting X positions
+	for i in range(room_pets.size()):
+		var p_info: Dictionary = room_pets[i]
+		var pet_inst: PetBrain = PET_SCENE.instantiate() as PetBrain
+		pet_inst.pet_index = i
+		var start_x: float = clampf(70.0 + float(i) * 32.0, anchors.get("min_x", 35.0), anchors.get("max_x", 205.0))
+		pet_inst.position = Vector2(start_x, anchors.get("floor_y", 115.0))
+		pet_layer.add_child(pet_inst)
+		pet_inst.setup_pet(p_info)
+		pet_inst.set_room_anchors(
+			anchors.get("min_x", 35.0),
+			anchors.get("max_x", 205.0),
+			anchors.get("desk_x", 75.0),
+			anchors.get("nap_x", 175.0),
+			anchors.get("drink_x", 120.0),
+			anchors.get("floor_y", 115.0)
+		)
+		spawned_pets.append(pet_inst)
+
+func _on_pet_delivery_box_spawned(p_data: Dictionary, spawn_pos: Vector2) -> void:
+	if not pet_layer:
+		return
+	var box_inst = DELIVERY_BOX_SCENE.instantiate()
+	pet_layer.add_child(box_inst)
+	if box_inst.has_method("setup"):
+		box_inst.setup(p_data, spawn_pos.x, spawn_pos.y)
+	if box_inst.has_signal("unboxing_finished"):
+		box_inst.unboxing_finished.connect(func(unboxed_data):
+			_sync_pets_for_current_room()
+			# Make the newly unboxed pet do a celebratory victory bounce!
+			for p in spawned_pets:
+				if is_instance_valid(p) and p.pet_id == unboxed_data.get("id", ""):
+					p.trigger_victory()
+					break
+		)
 
 func _on_room_changed(room_id: String) -> void:
 	if room_id != current_room_id and not is_transitioning:
 		switch_to_room(room_id)
 	else:
-		_update_pet_visibility_and_anchors()
+		_sync_pets_for_current_room()
 
 func _on_pet_room_changed(_new_pet_room: String) -> void:
-	_update_pet_visibility_and_anchors()
+	# Primary pet moved rooms — sync the view
+	pass
 
 func _on_pet_called(_target_room: String) -> void:
-	_update_pet_visibility_and_anchors()
+	# GameState already updated all active_pets[].room to the current view room.
+	# Respawn them all here with a greeting bounce.
+	_sync_pets_for_current_room()
+	for p in spawned_pets:
+		if is_instance_valid(p):
+			p._play_summon_bounce()
 
-func _get_room_display_name(r_id: String) -> String:
-	match r_id:
-		"room_bedroom": return "Study Bedroom"
-		"room_livingroom": return "Living Room Lounge"
-		"room_library": return "Attic Library"
-		"room_kitchen": return "Bakery Kitchen"
-		"room_greenhouse": return "Conservatory"
-		_: return r_id.replace("room_", "").capitalize()
+func _on_pet_list_changed(_active_pets: Array) -> void:
+	_sync_pets_for_current_room()

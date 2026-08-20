@@ -101,6 +101,9 @@ signal cosmetic_unequipped(slot: String)
 ## Emitted when a room decoration is placed or stowed
 signal decor_placed(item_id: String, room_id: String, is_placed: bool)
 
+## Emitted when a room is unlocked in the Shop
+signal room_unlocked(room_id: String)
+
 ## Emitted when active room / biome changes
 signal room_changed(room_id: String)
 
@@ -112,6 +115,18 @@ signal pet_room_changed(new_pet_room: String)
 
 ## Emitted when pet is summoned to view room
 signal pet_called(target_room: String)
+
+## Emitted when a new pet is adopted
+signal pet_adopted(pet_data: Dictionary, as_household: bool)
+
+## Emitted when a pet delivery parcel box is spawned in the room
+signal pet_delivery_box_spawned(pet_data: Dictionary, spawn_pos: Vector2)
+
+## Emitted when maximum household pet slot capacity increases via level
+signal max_pets_changed(new_max: int)
+
+## Emitted when the household active pets list changes
+signal pet_list_changed(active_pets: Array)
 
 ## Emitted when a room's light switch is toggled
 signal room_light_toggled(room_id: String, is_on: bool)

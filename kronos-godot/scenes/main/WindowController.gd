@@ -129,6 +129,14 @@ func _connect_signals() -> void:
 	if call_pet_btn:
 		call_pet_btn.pressed.connect(_on_call_pet_pressed)
 		
+	# Phase Tab Buttons
+	if work_tab_btn:
+		work_tab_btn.pressed.connect(func(): TimerEngine.switch_to_phase_by_name("work"))
+	if short_break_tab_btn:
+		short_break_tab_btn.pressed.connect(func(): TimerEngine.switch_to_phase_by_name("short_break"))
+	if long_break_tab_btn:
+		long_break_tab_btn.pressed.connect(func(): TimerEngine.switch_to_phase_by_name("long_break"))
+
 	# Action Controls
 	if play_pause_btn:
 		play_pause_btn.pressed.connect(func(): TimerEngine.toggle_timer())
