@@ -48,7 +48,9 @@ const SCALE_LABELS: Array[String] = ["1x", "1.25x", "1.5x"]
 @onready var active_task_label: Label = $MainContainer/MiddlePanel/VBox/TimerDock/DockVBox/ActiveTaskLabel
 @onready var timer_label: Label = $MainContainer/MiddlePanel/VBox/TimerDock/DockVBox/TimerLabel
 @onready var play_pause_btn: Button = $MainContainer/MiddlePanel/VBox/TimerDock/DockVBox/ActionControls/PlayPauseButton
+@onready var minigame_btn: Button = $MainContainer/MiddlePanel/VBox/TimerDock/DockVBox/ActionControls/MinigameButton
 @onready var reset_btn: Button = $MainContainer/MiddlePanel/VBox/TimerDock/DockVBox/ActionControls/ResetButton
+@onready var pet_slot: Control = $MainContainer/MiddlePanel/VBox/PetSlot
 
 # ==============================================================================
 # 📊 INTERNAL STATE
@@ -130,6 +132,8 @@ func _connect_signals() -> void:
 	# Action Controls
 	if play_pause_btn:
 		play_pause_btn.pressed.connect(func(): TimerEngine.toggle_timer())
+	if minigame_btn:
+		minigame_btn.pressed.connect(_on_minigame_pressed)
 	if reset_btn:
 		reset_btn.pressed.connect(func(): TimerEngine.stop_timer())
 
@@ -469,3 +473,17 @@ func _on_window_pin_toggled(pinned: bool) -> void:
 	if pin_btn:
 		pin_btn.modulate = Color(1.0, 0.84, 0.0, 1.0) if is_pinned else Color(1.0, 1.0, 1.0, 0.6)
 		pin_btn.text = "📌" if is_pinned else "📍"
+
+func _on_minigame_pressed() -> void:
+	if not pet_slot:
+		return
+	if pet_slot.has_node("SnackCatchGame"):
+		var existing = pet_slot.get_node("SnackCatchGame")
+		existing.queue_free()
+		return
+		
+	var scene = load("res://scenes/minigames/SnackCatchGame.tscn")
+	if scene:
+		var game_instance: Control = scene.instantiate()
+		game_instance.name = "SnackCatchGame"
+		pet_slot.add_child(game_instance)

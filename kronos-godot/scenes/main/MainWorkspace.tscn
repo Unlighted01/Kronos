@@ -295,14 +295,20 @@ theme_override_constants/separation = 3
 alignment = 1
 
 [node name="PlayPauseButton" type="Button" parent="MainContainer/MiddlePanel/VBox/TimerDock/DockVBox/ActionControls"]
-custom_minimum_size = Vector2(70, 22)
+custom_minimum_size = Vector2(60, 22)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 8
 text = "▶ Start"
 
+[node name="MinigameButton" type="Button" parent="MainContainer/MiddlePanel/VBox/TimerDock/DockVBox/ActionControls"]
+custom_minimum_size = Vector2(24, 22)
+layout_mode = 2
+theme_override_font_sizes/font_size = 8
+text = "🎮"
+
 [node name="ResetButton" type="Button" parent="MainContainer/MiddlePanel/VBox/TimerDock/DockVBox/ActionControls"]
-custom_minimum_size = Vector2(46, 22)
+custom_minimum_size = Vector2(40, 22)
 layout_mode = 2
 theme_override_font_sizes/font_size = 8
 text = "↺ Reset"
