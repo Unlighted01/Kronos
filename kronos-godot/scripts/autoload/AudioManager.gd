@@ -78,7 +78,7 @@ func _connect_event_bus() -> void:
 	EventBus.room_changed.connect(_on_room_changed)
 
 # ==============================================================================
-# ⏰ CONTINUOUS ALARM LOOP
+# ⏰ TRANSITION ALARM FANFARE
 # ==============================================================================
 func start_alarm() -> void:
 	if not _alarm_player:
@@ -99,10 +99,8 @@ func start_alarm() -> void:
 	if is_muted:
 		return
 		
-	# Loop continuous Kalimba fanfare until acknowledged
-	stream.loop_mode = AudioStreamWAV.LOOP_FORWARD
-	stream.loop_begin = 0
-	stream.loop_end = stream.data.size() / 2
+	# Play pleasant 3.5s Kalimba chord fanfare cleanly without infinite loop
+	stream.loop_mode = AudioStreamWAV.LOOP_DISABLED
 	
 	_alarm_player.stream = stream
 	_alarm_player.volume_db = linear_to_db(clampf(master_vol * sfx_vol, 0.001, 1.0))
