@@ -477,13 +477,14 @@ func _on_window_pin_toggled(pinned: bool) -> void:
 func _on_minigame_pressed() -> void:
 	if not pet_slot:
 		return
-	if pet_slot.has_node("SnackCatchGame"):
-		var existing = pet_slot.get_node("SnackCatchGame")
-		existing.queue_free()
-		return
+	# If any minigame modal is open, close it
+	for m_name in ["MinigameHub", "SnackCatchGame", "PlantBloomGame", "MemoryMatchGame"]:
+		if pet_slot.has_node(m_name):
+			pet_slot.get_node(m_name).queue_free()
+			return
 		
-	var scene = load("res://scenes/minigames/SnackCatchGame.tscn")
+	var scene = load("res://scenes/minigames/MinigameHub.tscn")
 	if scene:
-		var game_instance: Control = scene.instantiate()
-		game_instance.name = "SnackCatchGame"
-		pet_slot.add_child(game_instance)
+		var hub_instance: Control = scene.instantiate()
+		hub_instance.name = "MinigameHub"
+		pet_slot.add_child(hub_instance)

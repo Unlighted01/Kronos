@@ -1,0 +1,172 @@
+[gd_scene load_steps=3 format=3 uid="uid://h1u2b3a4r5c6a"]
+
+[ext_resource type="Script" path="res://scenes/minigames/MinigameHub.gd" id="1_mhub"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hub"]
+bg_color = Color(0.0627451, 0.0901961, 0.156863, 0.97)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.313726, 0.823529, 0.909804, 0.8)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 6
+
+[node name="MinigameHub" type="Control"]
+z_index = 20
+custom_minimum_size = Vector2(236, 140)
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_mhub")
+
+[node name="Panel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_hub")
+
+[node name="VBox" type="VBoxContainer" parent="Panel"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Header" type="HBoxContainer" parent="Panel/VBox"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Panel/VBox/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.960784, 0.619608, 0.0431373, 1)
+theme_override_font_sizes/font_size = 9
+text = "🕹️ BREAK-TIME ARCADE"
+horizontal_alignment = 1
+
+[node name="CloseButton" type="Button" parent="Panel/VBox/Header"]
+custom_minimum_size = Vector2(20, 18)
+layout_mode = 2
+theme_override_font_sizes/font_size = 8
+text = "✕"
+
+[node name="GamesVBox" type="VBoxContainer" parent="Panel/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 3
+
+[node name="SnackCatchRow" type="PanelContainer" parent="Panel/VBox/GamesVBox"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+
+[node name="HBox" type="HBoxContainer" parent="Panel/VBox/GamesVBox/SnackCatchRow"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Icon" type="Label" parent="Panel/VBox/GamesVBox/SnackCatchRow/HBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "🥐"
+
+[node name="InfoVBox" type="VBoxContainer" parent="Panel/VBox/GamesVBox/SnackCatchRow/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 0
+alignment = 1
+
+[node name="Name" type="Label" parent="Panel/VBox/GamesVBox/SnackCatchRow/HBox/InfoVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 8
+text = "Snack Catch (Sprint)"
+
+[node name="Desc" type="Label" parent="Panel/VBox/GamesVBox/SnackCatchRow/HBox/InfoVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
+theme_override_font_sizes/font_size = 6
+text = "Catch falling croissants & boba"
+
+[node name="PlayButton" type="Button" parent="Panel/VBox/GamesVBox/SnackCatchRow/HBox"]
+custom_minimum_size = Vector2(46, 20)
+layout_mode = 2
+theme_override_font_sizes/font_size = 7
+text = "▶ PLAY"
+
+[node name="PlantBloomRow" type="PanelContainer" parent="Panel/VBox/GamesVBox"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+
+[node name="HBox" type="HBoxContainer" parent="Panel/VBox/GamesVBox/PlantBloomRow"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Icon" type="Label" parent="Panel/VBox/GamesVBox/PlantBloomRow/HBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "🌿"
+
+[node name="InfoVBox" type="VBoxContainer" parent="Panel/VBox/GamesVBox/PlantBloomRow/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 0
+alignment = 1
+
+[node name="Name" type="Label" parent="Panel/VBox/GamesVBox/PlantBloomRow/HBox/InfoVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 8
+text = "Plant Bloom (Melody)"
+
+[node name="Desc" type="Label" parent="Panel/VBox/GamesVBox/PlantBloomRow/HBox/InfoVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
+theme_override_font_sizes/font_size = 6
+text = "Follow musical watering sequence"
+
+[node name="PlayButton" type="Button" parent="Panel/VBox/GamesVBox/PlantBloomRow/HBox"]
+custom_minimum_size = Vector2(46, 20)
+layout_mode = 2
+theme_override_font_sizes/font_size = 7
+text = "▶ PLAY"
+
+[node name="MemoryMatchRow" type="PanelContainer" parent="Panel/VBox/GamesVBox"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+
+[node name="HBox" type="HBoxContainer" parent="Panel/VBox/GamesVBox/MemoryMatchRow"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Icon" type="Label" parent="Panel/VBox/GamesVBox/MemoryMatchRow/HBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "🃏"
+
+[node name="InfoVBox" type="VBoxContainer" parent="Panel/VBox/GamesVBox/MemoryMatchRow/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 0
+alignment = 1
+
+[node name="Name" type="Label" parent="Panel/VBox/GamesVBox/MemoryMatchRow/HBox/InfoVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 8
+text = "Memory Match (Attic)"
+
+[node name="Desc" type="Label" parent="Panel/VBox/GamesVBox/MemoryMatchRow/HBox/InfoVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
+theme_override_font_sizes/font_size = 6
+text = "Flip & match all 4 card pairs"
+
+[node name="PlayButton" type="Button" parent="Panel/VBox/GamesVBox/MemoryMatchRow/HBox"]
+custom_minimum_size = Vector2(46, 20)
+layout_mode = 2
+theme_override_font_sizes/font_size = 7
+text = "▶ PLAY"
