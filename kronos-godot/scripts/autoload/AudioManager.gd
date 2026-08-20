@@ -240,8 +240,9 @@ func _get_ambience_key_for_room(room_id: String) -> String:
 # ==============================================================================
 # 📡 EVENT LISTENERS
 # ==============================================================================
-func _on_coins_changed(_new_coins: int, delta: int, _reason: String = "") -> void:
-	if delta > 0:
+func _on_coins_changed(_new_coins: int, delta: int, reason: String = "") -> void:
+	# Only play chime for deliberate reward payouts (quests, minigames, jackpots), NOT silent continuous focus/passive ticks
+	if delta > 0 and reason != "continuous_focus" and reason != "passive_presence" and reason != "init":
 		play_sfx("coin")
 
 func _on_session_completed(_type: String, _coins: int, _xp: int, _streak: int) -> void:
