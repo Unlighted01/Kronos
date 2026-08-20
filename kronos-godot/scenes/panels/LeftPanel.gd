@@ -372,9 +372,6 @@ func _populate_quests_tab() -> void:
 		
 	for child in quests_list.get_children():
 		child.queue_free()
-		
-	# Ensure daily quests are up to date
-	GameState.check_and_generate_daily_quests()
 	
 	# Daily Reset Banner
 	var banner: PanelContainer = PanelContainer.new()

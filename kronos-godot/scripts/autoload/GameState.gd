@@ -418,6 +418,7 @@ const QUEST_TEMPLATES: Array[Dictionary] = [
 ]
 
 var _last_checked_hour: int = -1
+var _midnight_check_accumulator: float = 0.0
 
 # ==============================================================================
 # ⚙️ LIFECYCLE
@@ -428,8 +429,18 @@ func _ready() -> void:
 	_connect_quest_listeners()
 	_emit_all_stats()
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	_check_morning_light_shutoff()
+	_check_midnight_rollover(delta)
+
+## Automatically checks at midnight if the calendar day rolled over
+func _check_midnight_rollover(delta: float) -> void:
+	_midnight_check_accumulator += delta
+	if _midnight_check_accumulator >= 15.0:
+		_midnight_check_accumulator = 0.0
+		var today_str: String = Time.get_date_string_from_system()
+		if quest_generation_date != "" and quest_generation_date != today_str:
+			check_and_generate_daily_quests()
 
 ## Automatically shuts off all house lights when real-world time crosses into morning (06:00)
 func _check_morning_light_shutoff() -> void:
@@ -838,31 +849,35 @@ func get_active_task_title() -> String:
 # ==============================================================================
 # 📜 DAILY PET QUESTS API
 # ==============================================================================
-## Checks date and generates fresh daily quests if needed
+## Checks date and generates fresh daily quests ONLY when crossing midnight (00:00) into a new calendar day
 func check_and_generate_daily_quests() -> void:
 	var today_str: String = Time.get_date_string_from_system()
 	
-	if quest_generation_date != today_str or daily_quests.is_empty():
-		quest_generation_date = today_str
-		daily_quests.clear()
+	# If quests already exist for today's date, do NOT reset them!
+	if quest_generation_date == today_str and not daily_quests.is_empty():
+		return
 		
-		for tpl in QUEST_TEMPLATES:
-			var q: Dictionary = {
-				"id": tpl["id"],
-				"title": tpl["title"],
-				"description": tpl["description"],
-				"icon": tpl["icon"],
-				"target_type": tpl["target_type"],
-				"target_count": tpl["target_count"],
-				"current_count": 0,
-				"reward_coins": tpl["reward_coins"],
-				"reward_exp": tpl["reward_exp"],
-				"claimed": false
-			}
-			daily_quests.append(q)
-			
-		if DatabaseManager:
-			DatabaseManager.save_game()
+	quest_generation_date = today_str
+	daily_quests.clear()
+	
+	for tpl in QUEST_TEMPLATES:
+		var q: Dictionary = {
+			"id": tpl["id"],
+			"title": tpl["title"],
+			"description": tpl["description"],
+			"icon": tpl["icon"],
+			"target_type": tpl["target_type"],
+			"target_count": tpl["target_count"],
+			"current_count": 0,
+			"reward_coins": tpl["reward_coins"],
+			"reward_exp": tpl["reward_exp"],
+			"claimed": false
+		}
+		daily_quests.append(q)
+		
+	EventBus.quests_updated.emit()
+	if DatabaseManager:
+		DatabaseManager.save_game()
 
 ## Advances progress for any active quest matching the target_type
 func progress_quest(target_type: String, amount: int = 1) -> void:
