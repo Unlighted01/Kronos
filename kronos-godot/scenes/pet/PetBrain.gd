@@ -129,8 +129,7 @@ var _pending_target_room: String = ""
 # ⚙️ LIFECYCLE
 # ==============================================================================
 func _ready() -> void:
-	randomize() # Seed RNG so each pet behaves differently
-	
+	# Removed local randomize() to prevent identical RNG seeds when spawning multiple pets simultaneously
 	# Only initialize position if we don't have one set by RoomManager
 	if position.x == 0:
 		position.x = 120.0
@@ -539,6 +538,13 @@ func _process_petted_state(_delta: float) -> void:
 		current_state = _previous_state
 		if current_state == State.WALK_TO_TARGET or current_state == State.WANDER or current_state == State.EXITING_ROOM:
 			current_state = State.IDLE
+
+## Forces the pet into a celebratory victory bounce
+func trigger_victory() -> void:
+	current_state = State.VICTORY
+	state_timer = 0.0
+	if thought_bubble:
+		thought_bubble.show_thought("heart", 2.5)
 
 func _process_victory_state(_delta: float) -> void:
 	velocity.x = 0.0
@@ -964,6 +970,9 @@ func _on_click_area_input_event(_viewport: Node, event: InputEvent, _shape_idx: 
 func _perform_pet_action() -> void:
 	if GameState:
 		GameState.add_joy(5.0)
+		
+	if EventBus:
+		EventBus.pet_interacted.emit("pet")
 		
 	_pet_click_count += 1
 	_pet_spam_timer = 2.5

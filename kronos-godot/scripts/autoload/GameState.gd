@@ -412,9 +412,9 @@ const ITEM_DEFINITIONS: Dictionary = {
 # ==============================================================================
 var pet_name: String = "Kronos"
 var pet_species: String = "shiba"
-var level: int = 1
+var level: int = 10
 var exp: int = 0
-var coins: int = 0
+var coins: int = 9999
 var energy: float = 80.0
 var joy: float = 80.0
 var streak: int = 0
@@ -517,6 +517,7 @@ var _midnight_check_accumulator: float = 0.0
 # ⚙️ LIFECYCLE
 # ==============================================================================
 func _ready() -> void:
+	randomize()
 	_last_checked_hour = Time.get_time_dict_from_system().get("hour", 12)
 	check_and_generate_daily_quests()
 	_connect_quest_listeners()
@@ -645,8 +646,8 @@ func adopt_pet(p_id: String, as_household: bool, custom_name: String = "") -> bo
 	return true
 
 func reset_to_clean_slate() -> void:
-	coins = 0
-	level = 1
+	coins = 9999
+	level = 10
 	exp = 0
 	energy = 80.0
 	joy = 80.0
@@ -1199,9 +1200,9 @@ func serialize() -> Dictionary:
 func deserialize(data: Dictionary) -> void:
 	pet_name = data.get("pet_name", "Kronos")
 	pet_species = data.get("pet_species", "shiba")
-	level = data.get("level", 1)
+	level = data.get("level", 10)
 	exp = data.get("exp", 0)
-	coins = data.get("coins", 0)
+	coins = data.get("coins", 9999)
 	energy = data.get("energy", 80.0)
 	joy = data.get("joy", 80.0)
 	streak = data.get("streak", 0)

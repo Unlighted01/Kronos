@@ -197,6 +197,12 @@ func _sync_pets_for_current_room() -> void:
 func _on_pet_delivery_box_spawned(p_data: Dictionary, spawn_pos: Vector2) -> void:
 	if not pet_layer:
 		return
+		
+	# Hide the newly spawned pet so it doesn't clip through the closed box!
+	for p in spawned_pets:
+		if is_instance_valid(p) and p.pet_id == p_data.get("id", ""):
+			p.visible = false
+			
 	var box_inst = DELIVERY_BOX_SCENE.instantiate()
 	pet_layer.add_child(box_inst)
 	if box_inst.has_method("setup"):
@@ -204,9 +210,10 @@ func _on_pet_delivery_box_spawned(p_data: Dictionary, spawn_pos: Vector2) -> voi
 	if box_inst.has_signal("unboxing_finished"):
 		box_inst.unboxing_finished.connect(func(unboxed_data):
 			_sync_pets_for_current_room()
-			# Make the newly unboxed pet do a celebratory victory bounce!
+			# Make the newly unboxed pet visible and do a celebratory bounce!
 			for p in spawned_pets:
 				if is_instance_valid(p) and p.pet_id == unboxed_data.get("id", ""):
+					p.visible = true
 					p.trigger_victory()
 					break
 		)

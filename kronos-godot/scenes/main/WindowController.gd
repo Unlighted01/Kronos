@@ -129,13 +129,13 @@ func _connect_signals() -> void:
 	if call_pet_btn:
 		call_pet_btn.pressed.connect(_on_call_pet_pressed)
 		
-	# Phase Tab Buttons
+	# Phase Tab Buttons (Disabled manual switching to prevent bypassing focus requirements)
 	if work_tab_btn:
-		work_tab_btn.pressed.connect(func(): TimerEngine.switch_to_phase_by_name("work"))
+		pass # work_tab_btn.pressed.connect(func(): TimerEngine.switch_to_phase_by_name("work"))
 	if short_break_tab_btn:
-		short_break_tab_btn.pressed.connect(func(): TimerEngine.switch_to_phase_by_name("short_break"))
+		pass # short_break_tab_btn.pressed.connect(func(): TimerEngine.switch_to_phase_by_name("short_break"))
 	if long_break_tab_btn:
-		long_break_tab_btn.pressed.connect(func(): TimerEngine.switch_to_phase_by_name("long_break"))
+		pass # long_break_tab_btn.pressed.connect(func(): TimerEngine.switch_to_phase_by_name("long_break"))
 
 	# Action Controls
 	if play_pause_btn:
@@ -143,7 +143,12 @@ func _connect_signals() -> void:
 	if minigame_btn:
 		minigame_btn.pressed.connect(_on_minigame_pressed)
 	if reset_btn:
-		reset_btn.pressed.connect(func(): TimerEngine.stop_timer())
+		reset_btn.pressed.connect(func():
+			if TimerEngine.current_mode == TimerEngine.TimerMode.FLOWMODORO and TimerEngine.current_phase == TimerEngine.TimerPhase.WORK:
+				TimerEngine.finish_flowmodoro_session()
+			else:
+				TimerEngine.stop_timer()
+		)
 
 func _connect_event_bus() -> void:
 	EventBus.timer_tick.connect(_on_timer_tick)
@@ -460,14 +465,22 @@ func _update_play_pause_button_text() -> void:
 		play_pause_btn.text = "⏸ Pause"
 		play_pause_btn.modulate = Color(1.0, 0.7, 0.2, 1.0)
 	elif TimerEngine.status == TimerEngine.TimerStatus.PAUSED:
-		play_pause_btn.text = "▶ Resume"
+		play_pause_btn.text = "▶  Resume"
 		play_pause_btn.modulate = Color(0.4, 0.8, 1.0, 1.0)
 	else:
 		if TimerEngine.current_phase == TimerEngine.TimerPhase.WORK:
-			play_pause_btn.text = "▶ Start Focus"
+			play_pause_btn.text = "▶  Start Focus"
 		else:
-			play_pause_btn.text = "▶ Start Break"
+			play_pause_btn.text = "▶  Start Break"
 		play_pause_btn.modulate = Color(0.35, 0.75, 1.0, 1.0)
+		
+	if reset_btn:
+		if TimerEngine.current_mode == TimerEngine.TimerMode.FLOWMODORO and TimerEngine.current_phase == TimerEngine.TimerPhase.WORK:
+			reset_btn.text = "Finish & Break"
+			reset_btn.modulate = Color(0.3, 1.0, 0.5)
+		else:
+			reset_btn.text = "Stop"
+			reset_btn.modulate = Color(1.0, 1.0, 1.0)
 
 func _on_timer_state_changed(_is_running: bool, _is_paused: bool) -> void:
 	_update_play_pause_button_text()

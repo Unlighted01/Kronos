@@ -66,6 +66,7 @@ class_name RightPanel
 @onready var work_time_input: LineEdit = $VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/TimerCard/VBox/Grid/WorkVBox/WorkTimeInput
 @onready var break_time_input: LineEdit = $VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/TimerCard/VBox/Grid/BreakVBox/BreakTimeInput
 @onready var cycle_input: LineEdit = $VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/TimerCard/VBox/Grid/CycleVBox/CycleInput
+@onready var mode_toggle_btn: OptionButton = $VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/TimerCard/VBox/ModeRow/ModeToggleBtn
 @onready var apply_timer_btn: Button = $VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/TimerCard/VBox/ApplyTimerBtn
 @onready var manual_save_btn: Button = $VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/SaveCard/VBox/ManualSaveBtn
 @onready var save_status_label: Label = $VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/SaveCard/VBox/SaveStatusLabel
@@ -81,6 +82,9 @@ var _editing_dtr_unix: int = 0
 # ⚙️ LIFECYCLE
 # ==============================================================================
 func _ready() -> void:
+	if TimerEngine and mode_toggle_btn:
+		mode_toggle_btn.selected = TimerEngine.current_mode
+		
 	_connect_ui_signals()
 	_connect_event_bus()
 	
@@ -778,6 +782,9 @@ func _on_apply_timers_pressed() -> void:
 	
 	if cycles > 0:
 		TimerEngine.pomodoro_cycle_goal = cycles
+		
+	if mode_toggle_btn:
+		TimerEngine.current_mode = mode_toggle_btn.selected as TimerEngine.TimerMode
 		
 	TimerEngine.set_custom_durations(w_sec, b_sec)
 	

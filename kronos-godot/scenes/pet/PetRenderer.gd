@@ -414,17 +414,36 @@ func _draw_nap_anim() -> void:
 	_draw_pixel_rect(Rect2(-11, -8 - breath, 22, 9 + breath), fur_main)
 	_draw_pixel_rect(Rect2(-5, -6 - breath, 12, 7 + breath), fur_cream)
 	
-	# Curled Tail wrapped over body
-	_draw_pixel_rect(Rect2(-12, -6, 4, 5), fur_main)
-	_draw_pixel_rect(Rect2(-10, -7, 3, 3), fur_cream)
+	# Tail
+	match species:
+		"bunny":
+			_draw_pixel_rect(Rect2(-13, -5, 4, 4), Color(0.98, 0.98, 1.0))
+		"penguin":
+			_draw_pixel_rect(Rect2(-12, -4, 3, 3), Color(0.08, 0.10, 0.16))
+		"fox":
+			_draw_pixel_rect(Rect2(-14, -7, 6, 6), fur_main)
+			_draw_pixel_rect(Rect2(-13, -9, 4, 4), fur_cream)
+		_:
+			_draw_pixel_rect(Rect2(-12, -6, 4, 5), fur_main)
+			_draw_pixel_rect(Rect2(-10, -7, 3, 3), fur_cream)
 	
 	# Sleeping head tucked down
 	_draw_pixel_rect(Rect2(3, -9, 9, 8), fur_main)
 	_draw_pixel_rect(Rect2(5, -6, 7, 5), fur_cream)
 	
 	# Ear tucked
-	_draw_pixel_rect(Rect2(4, -12, 3, 3), fur_main)
-	_draw_pixel_rect(Rect2(5, -11, 2, 2), COL_EAR_PINK)
+	match species:
+		"bunny":
+			_draw_pixel_rect(Rect2(4, -14, 3, 8), fur_main)
+			_draw_pixel_rect(Rect2(5, -13, 1, 6), Color(0.96, 0.72, 0.80))
+		"penguin":
+			pass
+		"fox":
+			_draw_pixel_rect(Rect2(4, -13, 3, 4), fur_main)
+			_draw_pixel_rect(Rect2(4, -13, 3, 1), Color(0.12, 0.16, 0.24))
+		_:
+			_draw_pixel_rect(Rect2(4, -12, 3, 3), fur_main)
+			_draw_pixel_rect(Rect2(5, -11, 2, 2), COL_EAR_PINK)
 	
 	# Sleeping Closed Eye (Crescent arc: 3 pixels)
 	_draw_pixel_rect(Rect2(6, -6, 3, 1), COL_DARK_EYE)

@@ -22,10 +22,10 @@ run/low_processor_mode=true
 
 [autoload]
 
+DatabaseManager="*res://scripts/autoload/DatabaseManager.gd"
 EventBus="*res://scripts/autoload/EventBus.gd"
 GameState="*res://scripts/autoload/GameState.gd"
 TimerEngine="*res://scripts/autoload/TimerEngine.gd"
-DatabaseManager="*res://scripts/autoload/DatabaseManager.gd"
 AudioManager="*res://scripts/autoload/AudioManager.gd"
 NotificationManager="*res://scripts/autoload/NotificationManager.gd"
 

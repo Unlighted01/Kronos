@@ -7,6 +7,7 @@ extends Node
 # ==============================================================================
 enum TimerPhase { WORK, SHORT_BREAK, LONG_BREAK }
 enum TimerStatus { STOPPED, RUNNING, PAUSED, ALARMING }
+enum TimerMode { POMODORO, FLOWMODORO }
 
 const PHASE_WORK_KEY: String = "work"
 const PHASE_SHORT_BREAK_KEY: String = "short_break"
@@ -29,6 +30,7 @@ const BREAK_RECOVERY_RATE: float = 1.0 / 30.0 # 1 energy point per 30s of break
 # 📊 ENGINE STATE
 # ==============================================================================
 var current_phase: TimerPhase = TimerPhase.WORK
+var current_mode: TimerMode = TimerMode.POMODORO
 var status: TimerStatus = TimerStatus.STOPPED
 
 var work_duration: float = DEFAULT_WORK_SECONDS
@@ -67,6 +69,12 @@ func _process(delta: float) -> void:
 			if GameState:
 				GameState.add_coins(passive_coins, "passive_presence")
 				EventBus.focus_coin_earned.emit(passive_coins, false)
+		return
+		
+	if current_mode == TimerMode.FLOWMODORO and current_phase == TimerPhase.WORK:
+		# Flowmodoro Work Phase counts UP indefinitely!
+		_process_work_tick(delta)
+		EventBus.timer_tick.emit(focus_seconds_elapsed, 0.0, get_phase_string())
 		return
 		
 	time_left -= delta
@@ -161,6 +169,31 @@ func _on_phase_finished_naturally() -> void:
 # ==============================================================================
 # 🎮 CONTROLS & API
 # ==============================================================================
+## Finishes a Flowmodoro session, dynamically calculates break time, and switches to break!
+func finish_flowmodoro_session() -> void:
+	if current_mode != TimerMode.FLOWMODORO or current_phase != TimerPhase.WORK or status == TimerStatus.STOPPED:
+		return
+		
+	var earned_break: float = maxf(5.0 * 60.0, focus_seconds_elapsed / 5.0) # 5:1 ratio, min 5 minutes
+	short_break_duration = earned_break
+	
+	# Payout jackpot based on how long they focused
+	var minutes_focused: float = focus_seconds_elapsed / 60.0
+	var jackpot_multiplier: float = minutes_focused / 25.0
+	var jackpot_coins: int = int(round(BASE_JACKPOT_COINS * jackpot_multiplier))
+	var jackpot_exp: int = int(round(BASE_JACKPOT_EXP * jackpot_multiplier))
+	
+	GameState.increment_streak()
+	GameState.add_coins(jackpot_coins, "jackpot_flowmodoro")
+	GameState.add_exp(jackpot_exp)
+	_log_dtr_session("completed_flow", jackpot_coins, jackpot_exp)
+	
+	EventBus.session_completed.emit("work", jackpot_coins, jackpot_exp, GameState.streak)
+	
+	status = TimerStatus.STOPPED
+	_switch_to_phase(TimerPhase.SHORT_BREAK)
+	start_timer()
+
 ## Acknowledges a finished focus sprint, silences the continuous alarm, and immediately starts the break timer!
 func acknowledge_alarm() -> void:
 	if AudioManager:
