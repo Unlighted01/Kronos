@@ -107,10 +107,13 @@ kronos/
 ### Prerequisites
 * [Godot Engine 4.3+ (or 4.4 / 4.7)](https://godotengine.org/download/) — Standard (GDScript) version.
 
-### 🎮 Playing the Game (For Testers / Users)
-1. Download the latest release `.zip` from the GitHub Releases page or your provided build folder (e.g., `release/Kronos-v1.0-Windows/`).
-2. Extract the folder to a location on your computer.
-3. Double-click the **`Kronos.exe`** file to launch the game directly! You do NOT need to install Godot to play the exported release version.
+### 🎮 How to Play (No Installation Required!)
+
+Kronos is a portable desktop widget. You do **not** need to install Godot or any other software to play it.
+
+1. **Download:** Go to the [**Releases Page**](https://github.com/Unlighted01/Kronos/releases) and download the latest `.zip` file.
+2. **Extract:** Right-click the `.zip` file and select **"Extract All..."** (save it anywhere, like your Desktop).
+3. **Play:** Open the folder and double-click **`Kronos.exe`**!
 
 ### 💻 Development (For Contributors)
 
