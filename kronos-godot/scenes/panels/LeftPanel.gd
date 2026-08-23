@@ -314,8 +314,19 @@ func _create_shop_card(item: Dictionary) -> Control:
 						AudioManager.play_sfx("click")
 					EventBus.room_change_requested.emit(item_id)
 				)
+			elif category == "pet":
+				var can_remove: bool = GameState.active_pets.size() > 1
+				buy_btn.text = "➖ Return to Bag" if can_remove else "🏡 Main Pet"
+				buy_btn.disabled = not can_remove
+				buy_btn.modulate = Color(0.85, 0.40, 0.40) if can_remove else Color(0.6, 0.6, 0.6, 0.8)
+				if can_remove:
+					buy_btn.pressed.connect(func():
+						if AudioManager:
+							AudioManager.play_sfx("click")
+						GameState.remove_pet(item_id)
+					)
 			else:
-				buy_btn.text = "✓ IN HOUSE" if category == "pet" else "✓ OWNED"
+				buy_btn.text = "✓ OWNED"
 				buy_btn.disabled = true
 				buy_btn.modulate = Color(0.6, 0.6, 0.6, 0.8)
 		elif category == "room" and not prereq_met:

@@ -646,6 +646,28 @@ func adopt_pet(p_id: String, as_household: bool, custom_name: String = "") -> bo
 		DatabaseManager.save_game()
 	return true
 
+func remove_pet(p_id: String) -> bool:
+	if active_pets.size() <= 1:
+		return false # Cannot remove last pet
+		
+	var removed = false
+	for i in range(active_pets.size()):
+		if active_pets[i].get("id", "") == p_id:
+			active_pets.remove_at(i)
+			removed = true
+			break
+			
+	if removed:
+		# Update legacy main companion reference if we removed the first pet
+		pet_species = active_pets[0].get("species", "shiba")
+		pet_name = active_pets[0].get("name", "Companion")
+		
+		EventBus.pet_list_changed.emit(active_pets)
+		if DatabaseManager:
+			DatabaseManager.save_game()
+			
+	return removed
+
 func reset_to_clean_slate() -> void:
 	coins = 0
 	level = 1
