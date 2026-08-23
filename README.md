@@ -107,7 +107,12 @@ kronos/
 ### Prerequisites
 * [Godot Engine 4.3+ (or 4.4 / 4.7)](https://godotengine.org/download/) — Standard (GDScript) version.
 
-### Running the Project
+### 🎮 Playing the Game (For Testers / Users)
+1. Download the latest release `.zip` from the GitHub Releases page or your provided build folder (e.g., `release/Kronos-v1.0-Windows/`).
+2. Extract the folder to a location on your computer.
+3. Double-click the **`Kronos.exe`** file to launch the game directly! You do NOT need to install Godot to play the exported release version.
+
+### 💻 Development (For Contributors)
 
 1. Open **Godot Engine**.
 2. Click **Import** and select the [`kronos-godot/project.godot`](file:///c:/Users/netne/Kronos/Kronos%20Project/kronos-godot/project.godot) file.
