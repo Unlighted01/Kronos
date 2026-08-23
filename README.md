@@ -10,7 +10,7 @@
 
 <br />
 
-**Kronos** is a lightweight, frameless desktop productivity widget for deep-work focus and retro game enthusiasts. It blends a **Pomodoro focus timer** and **Daily Time Record (DTR) tracker** with an autonomous **2D pixel-art companion**, interactive multi-room house, and local item economy.
+**Kronos** is a lightweight, frameless desktop productivity widget designed for deep-work focus and active learning. It blends a flexible **Flowmodoro Engine**, an **Active Recall Flashcard System**, and a **Daily Time Record (DTR) tracker** with an autonomous **2D pixel-art companion**, interactive multi-room house, and local item economy.
 
 Built with **Godot Engine 4 (Forward+ / GL Compatibility)** in `kronos-godot/`.
 
@@ -66,8 +66,10 @@ A frameless, transparent desktop widget that collapses and expands smoothly:
 
 ---
 
-### ⏱️ 4. Pomodoro Timer & Daily Time Records (DTR)
-* **Configurable Intervals**: Focus (25m), Short Break (5m), and Long Rest (15m) phases with retro sound chimes.
+### ⏱️ 4. Flowmodoro Engine & Active Recall Flashcards
+* **Flowmodoro vs Pomodoro**: Choose between rigid 25-minute Pomodoro sprints or flexible Flowmodoro count-up sessions that dynamically calculate your break time based on your focus duration.
+* **Active Recall Study Deck**: Create and review flashcards during breaks. Self-grade your answers to earn Knowledge Points (KP), tying your pet's progression directly to real-world learning.
+* **Configurable Intervals**: Retro sound chimes alert you when phases transition.
 * **Economy & EXP System**: Completing focus sessions rewards Coins and Pet EXP to level up your companion.
 * **Local Data Persistence**: Saves pet stats, inventory items, and session history locally in user data storage.
 * **CSV Export**: 1-click export of focus history for daily time recording and productivity tracking.
