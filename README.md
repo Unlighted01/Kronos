@@ -21,7 +21,12 @@ Built with **Godot Engine 4 (Forward+ / GL Compatibility)** in `kronos-godot/`.
 ## ✨ Key Features
 
 ### 🐾 1. Interactive 2D Pixel Pet & Tamagotchi Companion
-* **Expressive Pixel Art Sprites**: Cat companion with animated tail wagging, ear twitches, blinking eyes, and blush cheeks.
+* **Multi-Species Household**: Unlock and adopt unique pixel-art companions, each with their own distinct identity, animations, and behaviors:
+  * 🐕 **Shiba Inu**: Energetic quadruped with tail wags, golden fur, and loyal desk focus.
+  * 🐧 **Chubby Penguin**: Round, bipedal tuxedo penguin with a cute waddle and a red scarf.
+  * 🐰 **Snowy Bunny**: Floppy-eared rabbit with hopping walk cycles and carrot snacks.
+  * 🦊 **Red Fox**: Vibrant amber fox with a huge fluffy brush tail and curious leaps.
+  * 🐈 **Cat**: Classic companion with animated tail wagging, ear twitches, blinking eyes, and blush cheeks.
 * **Autonomous Room Wandering**: Companion independently roams connected rooms based on house topology or stays with you during focus sessions.
 * **Instant Summon HUD**: Call your companion to your current room anytime with a single click.
 * **Non-Repetitive AI Behavior Engine**: Procedurally cycles through realistic focus and break states:
