@@ -105,9 +105,9 @@ kronos/
 ## 🚀 Getting Started
 
 ### Prerequisites
-* [Godot Engine 4.3+ (or 4.4 / 4.7)](https://godotengine.org/download/) — Standard (GDScript) version.
+* [Godot Engine 4.3+ (or 4.4 / 4.7)](https://godotengine.org/download/) — Standard (GDScript) version. (For development/Contributors!)
 
-### 🎮 How to Play (No Installation Required!)
+### 🎮 How to Play (No Installation Required! For Testers!)
 
 Kronos is a portable desktop widget. You do **not** need to install Godot or any other software to play it.
 
