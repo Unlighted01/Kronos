@@ -263,32 +263,7 @@ func _process_idle_state(_delta: float) -> void:
 		
 		# 1. Work is MANDATORY when timer is running — pets spread out, unique animations
 		if is_working:
-			_work_patience_timer = 0.0
-			_work_patience_duration = randf_range(120.0, 240.0)
-			if thought_bubble and visible:
-				thought_bubble.show_random_thought("work_join", 3.0)
-			# Species-specific work positions and states — spread far apart
-			var work_x: float
-			var work_state: State = State.TYPE
-			match species:
-				"penguin":
-					work_x = 120.0 + float(pet_index) * 30.0
-					work_state = State.TYPE # Clipboard writing
-				"bunny":
-					work_x = 50.0 + float(pet_index) * 30.0
-					work_state = State.TYPE # Paper sorting
-				"fox":
-					work_x = 140.0 + float(pet_index) * 30.0
-					work_state = State.STUDY # Scroll study
-				"cat":
-					work_x = 100.0 + float(pet_index) * 30.0
-					work_state = State.IDLE # Supervising
-				_:
-					# Shiba gets the desk (primary position)
-					work_x = 72.0 + float(pet_index) * 35.0
-					work_state = State.TYPE
-			work_x = clampf(work_x, min_x + 5.0, max_x - 5.0)
-			walk_to(work_x, work_state, floor_y)
+			_join_work_session()
 			return
 			
 		# 2. Context-Aware Room Prop Behaviors
@@ -772,15 +747,7 @@ func _on_timer_state_changed(is_running: bool, is_paused: bool) -> void:
 		if TimerEngine.current_phase == TimerEngine.TimerPhase.WORK:
 			var cur_room: String = GameState.pet_room if GameState else "room_bedroom"
 			if cur_room == "room_bedroom":
-				if randf() < 0.85:
-					_work_patience_timer = 0.0
-					_work_patience_duration = randf_range(120.0, 240.0)
-					if thought_bubble and visible:
-						thought_bubble.show_random_thought("work_join", 3.0)
-					walk_to(72.0, State.TYPE, floor_y)
-				else:
-					if thought_bubble and visible:
-						thought_bubble.show_thought("You got this! 💻✨", 3.0)
+				_join_work_session()
 			else:
 				if thought_bubble and visible:
 					thought_bubble.show_thought("Focus mode started! 🚀", 3.0)
@@ -796,12 +763,8 @@ func _on_timer_state_changed(is_running: bool, is_paused: bool) -> void:
 func _on_phase_changed(new_phase: String, _duration: float) -> void:
 	if new_phase == "work":
 		var cur_room: String = GameState.pet_room if GameState else "room_bedroom"
-		if cur_room == "room_bedroom" and randf() < 0.85:
-			_work_patience_timer = 0.0
-			_work_patience_duration = randf_range(120.0, 240.0)
-			if thought_bubble and visible:
-				thought_bubble.show_random_thought("work_join", 3.0)
-			walk_to(72.0, State.TYPE, floor_y)
+		if cur_room == "room_bedroom":
+			_join_work_session()
 	else:
 		_start_break_behavior()
 
@@ -829,12 +792,40 @@ func _start_break_behavior() -> void:
 	var cur_room = GameState.pet_room if GameState else "room_bedroom"
 	if roll < 0.5:
 		if thought_bubble and visible:
-			thought_bubble.show_random_thought("go_to_sleep", 3.0)
-		walk_to(nap_x, State.NAP, 86.0 if cur_room == "room_bedroom" else floor_y)
+			thought_bubble.show_random_thought("stretch_wander", 3.0)
+		walk_to(randf_range(min_x, max_x), State.IDLE, floor_y)
 	else:
 		if thought_bubble and visible:
-			thought_bubble.show_random_thought("drink", 3.0)
-		walk_to(drink_x, State.DRINK, floor_y)
+			thought_bubble.show_random_thought("napping", 3.0)
+		walk_to(nap_x, State.NAP, floor_y)
+
+func _join_work_session() -> void:
+	_work_patience_timer = 0.0
+	_work_patience_duration = randf_range(120.0, 240.0)
+	if thought_bubble and visible:
+		thought_bubble.show_random_thought("work_join", 3.0)
+		
+	var work_x: float
+	var work_state: State = State.TYPE
+	match species:
+		"penguin":
+			work_x = 120.0 + float(pet_index) * 30.0
+			work_state = State.TYPE
+		"bunny":
+			work_x = 50.0 + float(pet_index) * 30.0
+			work_state = State.TYPE
+		"fox":
+			work_x = 140.0 + float(pet_index) * 30.0
+			work_state = State.STUDY
+		"cat":
+			work_x = 100.0 + float(pet_index) * 30.0
+			work_state = State.IDLE
+		_:
+			work_x = 72.0 + float(pet_index) * 35.0
+			work_state = State.TYPE
+			
+	work_x = clampf(work_x, min_x + 5.0, max_x - 5.0)
+	walk_to(work_x, work_state, floor_y)
 
 func _on_pet_interacted(interaction_type: String) -> void:
 	if interaction_type == "pet":
