@@ -12,6 +12,7 @@ class_name ThoughtBubble
 var _tween: Tween
 var _hide_timer: float = 0.0
 var _is_showing: bool = false
+var species: String = "shiba"
 
 # ==============================================================================
 # 💭 CONTEXT-BOUND THOUGHT POOLS
@@ -24,11 +25,35 @@ const THOUGHTS_WORK_START: Array[String] = [
 	"Leveling up today!"
 ]
 
-const THOUGHTS_WORK_JOIN: Array[String] = [
+const THOUGHTS_WORK_JOIN_SHIBA: Array[String] = [
 	"Let's work together! 💻",
 	"I'll help you code! ✨",
 	"Joining focus mode! 🐾",
 	"Coding buddy on duty! 🚀"
+]
+const THOUGHTS_WORK_JOIN_PENGUIN: Array[String] = [
+	"Taking notes! 📋",
+	"I'll organize the data! ✨",
+	"Clipboard ready! 🐧",
+	"Note-taking buddy! 🚀"
+]
+const THOUGHTS_WORK_JOIN_BUNNY: Array[String] = [
+	"Sorting the files! 📑",
+	"I'll organize everything! ✨",
+	"Paper sorting time! 🐰",
+	"Filing buddy on duty! 🚀"
+]
+const THOUGHTS_WORK_JOIN_FOX: Array[String] = [
+	"Studying the scrolls! 📜",
+	"I'll research this! ✨",
+	"Deep study mode! 🦊",
+	"Research buddy on duty! 🚀"
+]
+const THOUGHTS_WORK_JOIN_CAT: Array[String] = [
+	"Supervising you~ 👀",
+	"I'll watch from here! ✨",
+	"Quality control! 🐱",
+	"Manager on duty~ 🚀"
 ]
 
 const THOUGHTS_WORKING: Array[String] = [
@@ -39,26 +64,102 @@ const THOUGHTS_WORKING: Array[String] = [
 	"Almost there!"
 ]
 
-const THOUGHTS_GO_TO_SLEEP: Array[String] = [
+const THOUGHTS_GO_TO_SLEEP_SHIBA: Array[String] = [
 	"Zzz... cozy nap time 💤",
 	"Power nap incoming~",
 	"Curling up for a bit ✨",
 	"Paws need a rest 💤"
 ]
+const THOUGHTS_GO_TO_SLEEP_PENGUIN: Array[String] = [
+	"Zzz... cozy nap time 💤",
+	"Huddle nap incoming~",
+	"Tucking in for a bit ✨",
+	"Flippers need a rest 💤"
+]
+const THOUGHTS_GO_TO_SLEEP_BUNNY: Array[String] = [
+	"Zzz... cozy nap time 💤",
+	"Bunny loaf incoming~",
+	"Folding my ears down ✨",
+	"Ears need a rest 💤"
+]
+const THOUGHTS_GO_TO_SLEEP_FOX: Array[String] = [
+	"Zzz... cozy nap time 💤",
+	"Tail-wrap nap incoming~",
+	"Curling up tight ✨",
+	"Tail needs a rest 💤"
+]
+const THOUGHTS_GO_TO_SLEEP_CAT: Array[String] = [
+	"Time for a catnap~ 💤",
+	"Power nap incoming~",
+	"Curling into a ball ✨",
+	"Catnap o'clock 💤"
+]
 
-const THOUGHTS_NAPPING: Array[String] = [
+const THOUGHTS_NAPPING_SHIBA: Array[String] = [
 	"Zzz... 💭",
 	"*dreaming of treats* 🥐",
 	"Zzz... 💤",
 	"*soft snores* ✨",
 	"Zzz... 🌙"
 ]
+const THOUGHTS_NAPPING_PENGUIN: Array[String] = [
+	"Zzz... 💭",
+	"*dreaming of fish* 🐟",
+	"Zzz... 💤",
+	"*soft peeps* ✨",
+	"Zzz... 🌙"
+]
+const THOUGHTS_NAPPING_BUNNY: Array[String] = [
+	"Zzz... 💭",
+	"*dreaming of carrots* 🥕",
+	"Zzz... 💤",
+	"*nose twitches in sleep* ✨",
+	"Zzz... 🌙"
+]
+const THOUGHTS_NAPPING_FOX: Array[String] = [
+	"Zzz... 💭",
+	"*dreaming of berries* 🫐",
+	"Zzz... 💤",
+	"*tail twitches in sleep* ✨",
+	"Zzz... 🌙"
+]
+const THOUGHTS_NAPPING_CAT: Array[String] = [
+	"Zzz... 💭",
+	"*dreaming of yarn* 🧶",
+	"Zzz... 💤",
+	"*soft purring* ✨",
+	"Zzz... 🌙"
+]
 
-const THOUGHTS_STRETCH_WANDER: Array[String] = [
+const THOUGHTS_STRETCH_WANDER_SHIBA: Array[String] = [
 	"Time to stretch my paws! 🐾",
 	"Going for a little walk~",
 	"Standing up to stretch! ✨",
 	"Just taking a stroll~ 🐾"
+]
+const THOUGHTS_STRETCH_WANDER_PENGUIN: Array[String] = [
+	"Time for a waddle! 🐧",
+	"Going for a little slide~",
+	"Stretching my flippers! ✨",
+	"Just waddling around~ 🐧"
+]
+const THOUGHTS_STRETCH_WANDER_BUNNY: Array[String] = [
+	"Time for a hop! 🐰",
+	"Going for a little bounce~",
+	"Stretching my ears! ✨",
+	"Just hopping around~ 🐰"
+]
+const THOUGHTS_STRETCH_WANDER_FOX: Array[String] = [
+	"Time to prowl! 🦊",
+	"Going for a little trot~",
+	"Stretching out! ✨",
+	"Just scouting around~ 🦊"
+]
+const THOUGHTS_STRETCH_WANDER_CAT: Array[String] = [
+	"Time to slink around~ 🐱",
+	"Going for a little prowl~",
+	"Stretching my claws! ✨",
+	"Just exploring~ 🐱"
 ]
 
 const THOUGHTS_DRINK: Array[String] = [
@@ -68,11 +169,35 @@ const THOUGHTS_DRINK: Array[String] = [
 	"Grabbing a beverage ✨"
 ]
 
-const THOUGHTS_IDLE: Array[String] = [
+const THOUGHTS_IDLE_SHIBA: Array[String] = [
 	"Sniffing around~ 🐾",
 	"What a peaceful day ✨",
 	"Looking around the room 🌿",
 	"Exploring the house! 🐾"
+]
+const THOUGHTS_IDLE_PENGUIN: Array[String] = [
+	"Waddling around~ 🐧",
+	"What a peaceful day ✨",
+	"Surveying the room 🌿",
+	"Exploring the house! 🐧"
+]
+const THOUGHTS_IDLE_BUNNY: Array[String] = [
+	"Hopping around~ 🐰",
+	"What a peaceful day ✨",
+	"Ears perked up! 🌿",
+	"Exploring the house! 🐰"
+]
+const THOUGHTS_IDLE_FOX: Array[String] = [
+	"Prowling around~ 🦊",
+	"What a peaceful day ✨",
+	"Ears rotating! 🌿",
+	"Scouting the house! 🦊"
+]
+const THOUGHTS_IDLE_CAT: Array[String] = [
+	"Slinking around~ 🐱",
+	"What a peaceful day ✨",
+	"Watching everything 🌿",
+	"Patrolling my domain! 🐱"
 ]
 
 const THOUGHTS_STREAK: Array[String] = [
@@ -82,12 +207,44 @@ const THOUGHTS_STREAK: Array[String] = [
 	"Focus champion! 🏆"
 ]
 
-const THOUGHTS_PETTED: Array[String] = [
+const THOUGHTS_PETTED_SHIBA: Array[String] = [
 	"Woof! ❤️",
 	"*happy shiba noises*",
 	"Best human ever! 🥰",
 	"So cozy! ✨",
 	"Tail wagging fast!"
+]
+
+const THOUGHTS_PETTED_PENGUIN: Array[String] = [
+	"Noot noot! ❤️",
+	"*happy waddle*",
+	"Best human ever! 🥰",
+	"So warm! ✨",
+	"Flipper flap!"
+]
+
+const THOUGHTS_PETTED_BUNNY: Array[String] = [
+	"*nose wiggle* ❤️",
+	"*binky jump!*",
+	"Best human ever! 🥰",
+	"So soft! ✨",
+	"Thump thump!"
+]
+
+const THOUGHTS_PETTED_FOX: Array[String] = [
+	"*yip yip!* ❤️",
+	"*sly happy grin*",
+	"Best human ever! 🥰",
+	"So cozy! ✨",
+	"Brush tail swish!"
+]
+
+const THOUGHTS_PETTED_CAT: Array[String] = [
+	"*purrr~* ❤️",
+	"*happy kneading*",
+	"Best human ever! 🥰",
+	"So warm~ ✨",
+	"Mrrrow~! ✨"
 ]
 
 const THOUGHTS_LOW_ENERGY: Array[String] = [
@@ -248,37 +405,86 @@ func hide_thought() -> void:
 	_tween.chain().tween_callback(func(): visible = false)
 
 ## Helper to show random thought from a category
+func _get_species_pool(base_category: String) -> Array[String]:
+	var suffix: String = "_SHIBA"
+	match species:
+		"penguin": suffix = "_PENGUIN"
+		"bunny": suffix = "_BUNNY"
+		"fox": suffix = "_FOX"
+		"cat": suffix = "_CAT"
+	
+	# Try species-specific pool first, fall back to generic
+	match base_category + suffix:
+		# Petted
+		"petted_SHIBA": return THOUGHTS_PETTED_SHIBA
+		"petted_PENGUIN": return THOUGHTS_PETTED_PENGUIN
+		"petted_BUNNY": return THOUGHTS_PETTED_BUNNY
+		"petted_FOX": return THOUGHTS_PETTED_FOX
+		"petted_CAT": return THOUGHTS_PETTED_CAT
+		# Stretch/Wander
+		"stretch_wander_SHIBA": return THOUGHTS_STRETCH_WANDER_SHIBA
+		"stretch_wander_PENGUIN": return THOUGHTS_STRETCH_WANDER_PENGUIN
+		"stretch_wander_BUNNY": return THOUGHTS_STRETCH_WANDER_BUNNY
+		"stretch_wander_FOX": return THOUGHTS_STRETCH_WANDER_FOX
+		"stretch_wander_CAT": return THOUGHTS_STRETCH_WANDER_CAT
+		# Go to sleep
+		"go_to_sleep_SHIBA": return THOUGHTS_GO_TO_SLEEP_SHIBA
+		"go_to_sleep_PENGUIN": return THOUGHTS_GO_TO_SLEEP_PENGUIN
+		"go_to_sleep_BUNNY": return THOUGHTS_GO_TO_SLEEP_BUNNY
+		"go_to_sleep_FOX": return THOUGHTS_GO_TO_SLEEP_FOX
+		"go_to_sleep_CAT": return THOUGHTS_GO_TO_SLEEP_CAT
+		# Work join
+		"work_join_SHIBA": return THOUGHTS_WORK_JOIN_SHIBA
+		"work_join_PENGUIN": return THOUGHTS_WORK_JOIN_PENGUIN
+		"work_join_BUNNY": return THOUGHTS_WORK_JOIN_BUNNY
+		"work_join_FOX": return THOUGHTS_WORK_JOIN_FOX
+		"work_join_CAT": return THOUGHTS_WORK_JOIN_CAT
+		# Napping
+		"napping_SHIBA": return THOUGHTS_NAPPING_SHIBA
+		"napping_PENGUIN": return THOUGHTS_NAPPING_PENGUIN
+		"napping_BUNNY": return THOUGHTS_NAPPING_BUNNY
+		"napping_FOX": return THOUGHTS_NAPPING_FOX
+		"napping_CAT": return THOUGHTS_NAPPING_CAT
+		# Idle
+		"idle_SHIBA": return THOUGHTS_IDLE_SHIBA
+		"idle_PENGUIN": return THOUGHTS_IDLE_PENGUIN
+		"idle_BUNNY": return THOUGHTS_IDLE_BUNNY
+		"idle_FOX": return THOUGHTS_IDLE_FOX
+		"idle_CAT": return THOUGHTS_IDLE_CAT
+	return []
+
 func show_random_thought(category: String, duration: float = 3.5) -> void:
 	var pool: Array[String] = []
-	match category:
-		"work_start": pool = THOUGHTS_WORK_START
-		"work_join": pool = THOUGHTS_WORK_JOIN
-		"working": pool = THOUGHTS_WORKING
-		"go_to_sleep": pool = THOUGHTS_GO_TO_SLEEP
-		"napping": pool = THOUGHTS_NAPPING
-		"stretch_wander": pool = THOUGHTS_STRETCH_WANDER
-		"drink": pool = THOUGHTS_DRINK
-		"idle": pool = THOUGHTS_IDLE
-		"streak": pool = THOUGHTS_STREAK
-		"petted": pool = THOUGHTS_PETTED
-		"annoyed": pool = THOUGHTS_ANNOYED
-		"startled": pool = THOUGHTS_STARTLED
-		"low_energy": pool = THOUGHTS_LOW_ENERGY
-		"night": pool = THOUGHTS_NIGHT
-		"bedroom_tucked": pool = THOUGHTS_BEDROOM_TUCKED
-		"window_gaze": pool = THOUGHTS_WINDOW_GAZE
-		"watch_tv": pool = THOUGHTS_WATCH_TV
-		"warm_paws": pool = THOUGHTS_WARM_PAWS
-		"attic_study": pool = THOUGHTS_ATTIC_STUDY
-		"attic_armchair": pool = THOUGHTS_ATTIC_ARMCHAIR
-		"kitchen_stove": pool = THOUGHTS_KITCHEN_STOVE
-		"kitchen_oven": pool = THOUGHTS_KITCHEN_OVEN
-		"kitchen_coffee": pool = THOUGHTS_KITCHEN_COFFEE
-		"kitchen_chopping": pool = THOUGHTS_KITCHEN_CHOPPING
-		"greenhouse": pool = THOUGHTS_GREENHOUSE
-		"greenhouse": pool = THOUGHTS_GREENHOUSE
-		_: pool = THOUGHTS_IDLE
-		
+	
+	# Try species-specific pool first for categories that have them
+	var species_categories: Array[String] = ["petted", "stretch_wander", "go_to_sleep", "work_join", "napping", "idle"]
+	if category in species_categories:
+		pool = _get_species_pool(category)
+	
+	# Fall back to generic pools
+	if pool.is_empty():
+		match category:
+			"work_start": pool = THOUGHTS_WORK_START
+			"working": pool = THOUGHTS_WORKING
+			"streak": pool = THOUGHTS_STREAK
+			"annoyed": pool = THOUGHTS_ANNOYED
+			"startled": pool = THOUGHTS_STARTLED
+			"low_energy": pool = THOUGHTS_LOW_ENERGY
+			"night": pool = THOUGHTS_NIGHT
+			"bedroom_tucked": pool = THOUGHTS_BEDROOM_TUCKED
+			"window_gaze": pool = THOUGHTS_WINDOW_GAZE
+			"watch_tv": pool = THOUGHTS_WATCH_TV
+			"warm_paws": pool = THOUGHTS_WARM_PAWS
+			"attic_study": pool = THOUGHTS_ATTIC_STUDY
+			"attic_armchair": pool = THOUGHTS_ATTIC_ARMCHAIR
+			"kitchen_stove": pool = THOUGHTS_KITCHEN_STOVE
+			"kitchen_oven": pool = THOUGHTS_KITCHEN_OVEN
+			"kitchen_coffee": pool = THOUGHTS_KITCHEN_COFFEE
+			"kitchen_chopping": pool = THOUGHTS_KITCHEN_CHOPPING
+			"greenhouse": pool = THOUGHTS_GREENHOUSE
+			_: pool = THOUGHTS_IDLE_SHIBA
+	
 	if pool.size() > 0:
 		var text: String = pool[randi() % pool.size()]
 		show_thought(text, duration)
+

@@ -103,6 +103,8 @@ func setup_pet(data: Dictionary) -> void:
 	if renderer:
 		renderer.species = species
 		renderer.queue_redraw()
+	if thought_bubble:
+		thought_bubble.species = species
 	# Re-evaluate visibility now that assigned_room is correctly set
 	_update_visibility_from_room_state()
 
@@ -259,13 +261,34 @@ func _process_idle_state(_delta: float) -> void:
 	if state_timer >= randf_range(4.0, 8.0):
 		state_timer = 0.0
 		
-		# 1. Check for Work Opportunity in current room
-		if is_working and cur_room == "room_bedroom" and randf() < 0.40:
+		# 1. Work is MANDATORY when timer is running — pets spread out, unique animations
+		if is_working:
 			_work_patience_timer = 0.0
 			_work_patience_duration = randf_range(120.0, 240.0)
 			if thought_bubble and visible:
 				thought_bubble.show_random_thought("work_join", 3.0)
-			walk_to(72.0, State.TYPE, floor_y)
+			# Species-specific work positions and states — spread far apart
+			var work_x: float
+			var work_state: State = State.TYPE
+			match species:
+				"penguin":
+					work_x = 120.0 + float(pet_index) * 30.0
+					work_state = State.TYPE # Clipboard writing
+				"bunny":
+					work_x = 50.0 + float(pet_index) * 30.0
+					work_state = State.TYPE # Paper sorting
+				"fox":
+					work_x = 140.0 + float(pet_index) * 30.0
+					work_state = State.STUDY # Scroll study
+				"cat":
+					work_x = 100.0 + float(pet_index) * 30.0
+					work_state = State.IDLE # Supervising
+				_:
+					# Shiba gets the desk (primary position)
+					work_x = 72.0 + float(pet_index) * 35.0
+					work_state = State.TYPE
+			work_x = clampf(work_x, min_x + 5.0, max_x - 5.0)
+			walk_to(work_x, work_state, floor_y)
 			return
 			
 		# 2. Context-Aware Room Prop Behaviors
