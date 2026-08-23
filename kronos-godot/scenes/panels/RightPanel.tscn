@@ -112,6 +112,29 @@ custom_minimum_size = Vector2(0, 8)
 layout_mode = 2
 show_percentage = false
 
+[node name="KpCard" type="PanelContainer" parent="VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox"]
+layout_mode = 2
+
+[node name="HBox" type="HBoxContainer" parent="VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox/KpCard"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="KpTitle" type="Label" parent="VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox/KpCard/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.7, 0.95, 1)
+theme_override_font_sizes/font_size = 8
+text = "KNOWLEDGE POINTS (KP)"
+
+[node name="Spacer" type="Control" parent="VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox/KpCard/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="KpLabel" type="Label" parent="VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox/KpCard/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.8, 1.0, 1)
+theme_override_font_sizes/font_size = 8
+text = "0 KP"
+
 [node name="EnergyCard" type="PanelContainer" parent="VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox"]
 layout_mode = 2
 

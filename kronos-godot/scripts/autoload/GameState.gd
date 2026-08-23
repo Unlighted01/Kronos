@@ -415,6 +415,7 @@ var pet_species: String = "shiba"
 var level: int = 10
 var exp: int = 0
 var coins: int = 9999
+var knowledge_points: int = 0
 var energy: float = 80.0
 var joy: float = 80.0
 var streak: int = 0
@@ -706,6 +707,13 @@ func add_coins(amount: int, reason: String = "generic") -> void:
 		return
 	coins = maxi(0, coins + amount)
 	EventBus.coins_changed.emit(coins, amount, reason)
+
+## Adds Knowledge Points (KP) from flashcards / active recall
+func add_knowledge_points(amount: int, reason: String = "active_recall") -> void:
+	if amount == 0:
+		return
+	knowledge_points = maxi(0, knowledge_points + amount)
+	EventBus.knowledge_points_changed.emit(knowledge_points, amount, reason)
 
 ## Spends coins if sufficient balance exists
 func spend_coins(amount: int, reason: String = "generic") -> bool:
@@ -1173,6 +1181,7 @@ func serialize() -> Dictionary:
 		"level": level,
 		"exp": exp,
 		"coins": coins,
+		"knowledge_points": knowledge_points,
 		"energy": energy,
 		"joy": joy,
 		"streak": streak,
@@ -1203,6 +1212,7 @@ func deserialize(data: Dictionary) -> void:
 	level = data.get("level", 10)
 	exp = data.get("exp", 0)
 	coins = data.get("coins", 9999)
+	knowledge_points = data.get("knowledge_points", 0)
 	energy = data.get("energy", 80.0)
 	joy = data.get("joy", 80.0)
 	streak = data.get("streak", 0)

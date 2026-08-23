@@ -17,6 +17,7 @@ class_name RightPanel
 @onready var vitals_coins_badge: Label = $VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox/HeaderCard/HBox/CoinsBadge
 @onready var exp_label: Label = $VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox/ExpCard/VBox/HBox/ExpLabel
 @onready var exp_bar: ProgressBar = $VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox/ExpCard/VBox/ExpBar
+@onready var kp_label: Label = $VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox/KpCard/HBox/KpLabel
 @onready var energy_val_label: Label = $VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox/EnergyCard/VBox/HBox/EnergyValLabel
 @onready var energy_buff_badge: Label = $VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox/EnergyCard/VBox/HBox/BuffBadge
 @onready var energy_bar: ProgressBar = $VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox/EnergyCard/VBox/EnergyBar
@@ -161,6 +162,7 @@ func _connect_event_bus() -> void:
 	EventBus.energy_changed.connect(_on_energy_changed)
 	EventBus.joy_changed.connect(_on_joy_changed)
 	EventBus.coins_changed.connect(_on_coins_changed)
+	EventBus.knowledge_points_changed.connect(_on_kp_changed)
 	EventBus.streak_changed.connect(_on_streak_changed)
 	EventBus.inventory_changed.connect(_on_inventory_changed)
 	EventBus.item_used.connect(_on_item_used)
@@ -196,6 +198,10 @@ func _refresh_vitals_tab() -> void:
 	if exp_bar:
 		exp_bar.max_value = float(req_exp)
 		exp_bar.value = float(GameState.exp)
+		
+	# Knowledge Points
+	if kp_label:
+		kp_label.text = "%d KP" % GameState.knowledge_points
 		
 	# Energy Bar & Buff Badge
 	var is_buffed: bool = GameState.is_energy_buffed()
@@ -627,6 +633,9 @@ func _on_joy_changed(_cur: float, _max: float) -> void:
 	_refresh_vitals_tab()
 
 func _on_coins_changed(_balance: int, _delta: int, _reason: String) -> void:
+	_refresh_vitals_tab()
+
+func _on_kp_changed(_balance: int, _delta: int, _reason: String) -> void:
 	_refresh_vitals_tab()
 
 func _on_streak_changed(_streak: int) -> void:

@@ -13,6 +13,7 @@ signal hub_closed()
 @onready var play_snack_btn: Button = $Panel/VBox/GamesVBox/SnackCatchRow/HBox/PlayButton
 @onready var play_plant_btn: Button = $Panel/VBox/GamesVBox/PlantBloomRow/HBox/PlayButton
 @onready var play_memory_btn: Button = $Panel/VBox/GamesVBox/MemoryMatchRow/HBox/PlayButton
+@onready var play_flashcard_btn: Button = $Panel/VBox/GamesVBox/FlashcardRow/HBox/PlayButton
 
 # ==============================================================================
 # ⚙️ LIFECYCLE
@@ -26,6 +27,8 @@ func _ready() -> void:
 		play_plant_btn.pressed.connect(func(): _launch_game("res://scenes/minigames/PlantBloomGame.tscn"))
 	if play_memory_btn:
 		play_memory_btn.pressed.connect(func(): _launch_game("res://scenes/minigames/MemoryMatchGame.tscn"))
+	if play_flashcard_btn:
+		play_flashcard_btn.pressed.connect(func(): _launch_game("res://scenes/minigames/FlashcardEngine.tscn"))
 
 func _launch_game(scene_path: String) -> void:
 	if AudioManager:

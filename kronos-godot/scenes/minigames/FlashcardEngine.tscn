@@ -1,0 +1,139 @@
+[gd_scene load_steps=3 format=3 uid="uid://cx4y6a2b8e9f1"]
+
+[ext_resource type="Script" path="res://scenes/minigames/FlashcardEngine.gd" id="1_flash"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hub"]
+bg_color = Color(0.0627451, 0.0901961, 0.156863, 0.97)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.313726, 0.823529, 0.909804, 0.8)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card"]
+bg_color = Color(0.125, 0.165, 0.255, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.4, 0.5, 0.6, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[node name="FlashcardEngine" type="Control"]
+z_index = 20
+custom_minimum_size = Vector2(236, 140)
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_flash")
+
+[node name="Panel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_hub")
+
+[node name="VBox" type="VBoxContainer" parent="Panel"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Header" type="HBoxContainer" parent="Panel/VBox"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Panel/VBox/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.960784, 0.619608, 0.0431373, 1)
+theme_override_font_sizes/font_size = 9
+text = "📚 ACTIVE RECALL"
+horizontal_alignment = 0
+
+[node name="ProgressLabel" type="Label" parent="Panel/VBox/Header"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.8, 1, 1)
+theme_override_font_sizes/font_size = 8
+text = "1 / 4"
+horizontal_alignment = 2
+
+[node name="CloseButton" type="Button" parent="Panel/VBox/Header"]
+custom_minimum_size = Vector2(20, 18)
+layout_mode = 2
+theme_override_font_sizes/font_size = 8
+text = "✕"
+
+[node name="CardArea" type="PanelContainer" parent="Panel/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="VBox" type="VBoxContainer" parent="Panel/VBox/CardArea"]
+layout_mode = 2
+alignment = 1
+
+[node name="QuestionLabel" type="Label" parent="Panel/VBox/CardArea/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 9
+text = "Question here?"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="HSeparator" type="HSeparator" parent="Panel/VBox/CardArea/VBox"]
+layout_mode = 2
+
+[node name="AnswerLabel" type="Label" parent="Panel/VBox/CardArea/VBox"]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.9, 0.7, 1)
+theme_override_font_sizes/font_size = 8
+text = "Answer here!"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="RevealButton" type="Button" parent="Panel/VBox"]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+theme_override_font_sizes/font_size = 9
+text = "Show Answer"
+
+[node name="GradingHBox" type="HBoxContainer" parent="Panel/VBox"]
+visible = false
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 10
+
+[node name="HardButton" type="Button" parent="Panel/VBox/GradingHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.5, 0.5, 1)
+theme_override_font_sizes/font_size = 8
+text = "Hard (1 KP)"
+
+[node name="GoodButton" type="Button" parent="Panel/VBox/GradingHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.6, 0.8, 1, 1)
+theme_override_font_sizes/font_size = 8
+text = "Good (3 KP)"
+
+[node name="EasyButton" type="Button" parent="Panel/VBox/GradingHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.5, 1, 0.5, 1)
+theme_override_font_sizes/font_size = 8
+text = "Easy (5 KP)"
