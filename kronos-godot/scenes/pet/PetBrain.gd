@@ -969,8 +969,8 @@ func _update_visibility_from_room_state() -> void:
 	if is_in_view:
 		modulate.a = 1.0
 	if click_area:
-		click_area.monitoring = is_in_view
-		click_area.monitorable = is_in_view
+		click_area.set_deferred("monitoring", is_in_view)
+		click_area.set_deferred("monitorable", is_in_view)
 
 func _on_click_area_input_event(_viewport: Node, event: InputEvent, _shape_idx: int) -> void:
 	if not visible:

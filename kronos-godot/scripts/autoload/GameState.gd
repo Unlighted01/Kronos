@@ -412,9 +412,9 @@ const ITEM_DEFINITIONS: Dictionary = {
 # ==============================================================================
 var pet_name: String = "Kronos"
 var pet_species: String = "shiba"
-var level: int = 10
+var level: int = 1
 var exp: int = 0
-var coins: int = 9999
+var coins: int = 0
 var knowledge_points: int = 0
 var energy: float = 80.0
 var joy: float = 80.0
@@ -647,8 +647,8 @@ func adopt_pet(p_id: String, as_household: bool, custom_name: String = "") -> bo
 	return true
 
 func reset_to_clean_slate() -> void:
-	coins = 9999
-	level = 10
+	coins = 0
+	level = 1
 	exp = 0
 	energy = 80.0
 	joy = 80.0

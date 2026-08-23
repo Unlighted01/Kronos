@@ -129,7 +129,15 @@ func _refresh_coins_badge() -> void:
 # ==============================================================================
 # 🛍️ SHOP CATALOG POPULATION
 # ==============================================================================
+var _is_shop_dirty: bool = false
+
 func _populate_all_shop_tabs() -> void:
+	if not _is_shop_dirty:
+		_is_shop_dirty = true
+		call_deferred("_do_populate_all_shop_tabs")
+
+func _do_populate_all_shop_tabs() -> void:
+	_is_shop_dirty = false
 	_refresh_active_tab()
 
 func _populate_category_list(container: VBoxContainer, category: String) -> void:
@@ -272,7 +280,6 @@ func _create_shop_card(item: Dictionary) -> Control:
 			if AudioManager:
 				AudioManager.play_sfx("click")
 			GameState.adopt_pet(item_id, false)
-			_populate_all_shop_tabs()
 		)
 		btn_hbox.add_child(switch_btn)
 		
@@ -288,7 +295,6 @@ func _create_shop_card(item: Dictionary) -> Control:
 			if AudioManager:
 				AudioManager.play_sfx("click")
 			GameState.adopt_pet(item_id, true)
-			_populate_all_shop_tabs()
 		)
 		btn_hbox.add_child(add_btn)
 		vbox.add_child(btn_hbox)
@@ -346,11 +352,9 @@ func _on_buy_item_clicked(item: Dictionary) -> void:
 		GameState.buy_room(item_id)
 		EventBus.room_change_requested.emit(item_id) # Teleport directly to newly unlocked room!
 		_refresh_coins_badge()
-		_populate_all_shop_tabs()
 	elif category == "pet":
 		GameState.adopt_pet(item_id, false)
 		_refresh_coins_badge()
-		_populate_all_shop_tabs()
 	else:
 		if GameState.spend_coins(item_price, "shop_buy_" + item_id):
 			GameState.add_item(item_id, 1, item)
@@ -358,7 +362,6 @@ func _on_buy_item_clicked(item: Dictionary) -> void:
 				GameState.place_decor(item_id)
 				
 			_refresh_coins_badge()
-			_populate_all_shop_tabs()
 			
 			if DatabaseManager:
 				DatabaseManager.save_game()
