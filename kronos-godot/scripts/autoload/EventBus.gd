@@ -74,6 +74,9 @@ signal stats_updated(stats: Dictionary)
 ## Emitted when Knowledge Points (KP) balance changes
 signal knowledge_points_changed(new_balance: int, amount_delta: int, reason: String)
 
+## Emitted when flashcards are added, edited, or deleted in the deck
+signal flashcards_updated()
+
 ## Emitted when focus streak changes
 signal streak_changed(current_streak: int)
 

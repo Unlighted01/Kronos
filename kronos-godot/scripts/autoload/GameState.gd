@@ -488,6 +488,34 @@ var active_task_id: String = ""
 var daily_quests: Array[Dictionary] = []
 var quest_generation_date: String = ""
 
+# Flashcard Study Deck State
+var flashcard_deck: Array[Dictionary] = [
+	{
+		"id": "card_1",
+		"q": "What does UI stand for?",
+		"a": "User Interface",
+		"subject": "General Tech"
+	},
+	{
+		"id": "card_2",
+		"q": "What is the main programming language used in Godot?",
+		"a": "GDScript",
+		"subject": "Godot"
+	},
+	{
+		"id": "card_3",
+		"q": "What does API stand for?",
+		"a": "Application Programming Interface",
+		"subject": "General Tech"
+	},
+	{
+		"id": "card_4",
+		"q": "What is 'Active Recall'?",
+		"a": "Retrieving information from memory without looking at the answer.",
+		"subject": "Study Methods"
+	}
+]
+
 const QUEST_TEMPLATES: Array[Dictionary] = [
 	{
 		"id": "quest_focus",
@@ -1213,6 +1241,43 @@ func _connect_quest_listeners() -> void:
 	)
 
 # ==============================================================================
+# 📚 FLASHCARD STUDY DECK MANAGEMENT
+# ==============================================================================
+## Adds a new flashcard to the deck
+func add_flashcard(question: String, answer: String, subject: String = "General") -> String:
+	var q_trimmed: String = question.strip_edges()
+	var a_trimmed: String = answer.strip_edges()
+	if q_trimmed == "" or a_trimmed == "":
+		return ""
+	var card_id: String = "card_" + str(Time.get_unix_time_from_system()) + "_" + str(randi() % 1000)
+	var card: Dictionary = {
+		"id": card_id,
+		"q": q_trimmed,
+		"a": a_trimmed,
+		"subject": subject.strip_edges() if subject.strip_edges() != "" else "General"
+	}
+	flashcard_deck.append(card)
+	EventBus.flashcards_updated.emit()
+	if DatabaseManager:
+		DatabaseManager.save_game()
+	return card_id
+
+## Deletes a flashcard by id
+func delete_flashcard(card_id: String) -> bool:
+	for i in range(flashcard_deck.size()):
+		if flashcard_deck[i].get("id", "") == card_id:
+			flashcard_deck.remove_at(i)
+			EventBus.flashcards_updated.emit()
+			if DatabaseManager:
+				DatabaseManager.save_game()
+			return true
+	return false
+
+## Returns current list of flashcards
+func get_flashcards() -> Array[Dictionary]:
+	return flashcard_deck
+
+# ==============================================================================
 # 💾 SERIALIZATION / DATA EXPORT
 # ==============================================================================
 ## Exports complete game state to a Dictionary
@@ -1244,6 +1309,7 @@ func serialize() -> Dictionary:
 		"active_task_id": active_task_id,
 		"daily_quests": daily_quests,
 		"quest_generation_date": quest_generation_date,
+		"flashcard_deck": flashcard_deck,
 		"last_saved_unix": Time.get_unix_time_from_system()
 	}
 
@@ -1251,13 +1317,20 @@ func serialize() -> Dictionary:
 func deserialize(data: Dictionary) -> void:
 	pet_name = data.get("pet_name", "Kronos")
 	pet_species = data.get("pet_species", "shiba")
-	level = data.get("level", 10)
+	level = data.get("level", 1)
 	exp = data.get("exp", 0)
-	coins = data.get("coins", 9999)
+	coins = data.get("coins", 0)
 	knowledge_points = data.get("knowledge_points", 0)
 	energy = data.get("energy", 80.0)
 	joy = data.get("joy", 80.0)
 	streak = data.get("streak", 0)
+	
+	var raw_deck = data.get("flashcard_deck", null)
+	if raw_deck is Array and not raw_deck.is_empty():
+		flashcard_deck.clear()
+		for c in raw_deck:
+			if c is Dictionary:
+				flashcard_deck.append(c)
 	
 	var raw_rooms = data.get("unlocked_rooms", ["room_bedroom"])
 	unlocked_rooms.clear()

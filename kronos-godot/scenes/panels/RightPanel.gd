@@ -59,6 +59,15 @@ class_name RightPanel
 @onready var timer_notif_btn: Button = $VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/AudioCard/VBox/NotifsRow/TimerNotifBtn
 @onready var pet_nudge_btn: Button = $VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/AudioCard/VBox/NotifsRow/PetNudgeBtn
 
+# Study Deck References
+@onready var deck_count_badge: Label = $VBox/TabContainer/DECK/ScrollContainer/DeckVBox/HeaderCard/HBox/CountBadge
+@onready var deck_kp_badge: Label = $VBox/TabContainer/DECK/ScrollContainer/DeckVBox/HeaderCard/HBox/KpBadge
+@onready var deck_q_input: LineEdit = $VBox/TabContainer/DECK/ScrollContainer/DeckVBox/AddCardPanel/VBox/QuestionInput
+@onready var deck_a_input: LineEdit = $VBox/TabContainer/DECK/ScrollContainer/DeckVBox/AddCardPanel/VBox/AnswerInput
+@onready var deck_subject_input: LineEdit = $VBox/TabContainer/DECK/ScrollContainer/DeckVBox/AddCardPanel/VBox/SubjectInput
+@onready var deck_add_btn: Button = $VBox/TabContainer/DECK/ScrollContainer/DeckVBox/AddCardPanel/VBox/AddBtn
+@onready var deck_cards_list_vbox: VBoxContainer = $VBox/TabContainer/DECK/ScrollContainer/DeckVBox/CardsListVBox
+
 # Config Tab UI references
 @onready var scale_1x_btn: Button = $VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/ScaleCard/VBox/HBox/Scale1xBtn
 @onready var scale_125x_btn: Button = $VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/ScaleCard/VBox/HBox/Scale125xBtn
@@ -86,6 +95,9 @@ func _ready() -> void:
 	if TimerEngine and mode_toggle_btn:
 		mode_toggle_btn.selected = TimerEngine.current_mode
 		
+	if tab_container:
+		tab_container.tab_changed.connect(_on_tab_changed)
+		
 	_connect_ui_signals()
 	_connect_event_bus()
 	
@@ -93,6 +105,7 @@ func _ready() -> void:
 	_refresh_vitals_tab()
 	_refresh_bag_tab()
 	_refresh_dtr_tab()
+	_refresh_deck_tab()
 	_refresh_config_ui()
 
 func _connect_ui_signals() -> void:
@@ -155,6 +168,9 @@ func _connect_ui_signals() -> void:
 		dtr_delete_btn.pressed.connect(_on_dtr_modal_delete)
 	if dtr_cancel_btn:
 		dtr_cancel_btn.pressed.connect(func(): dtr_modal.hide())
+		
+	if deck_add_btn:
+		deck_add_btn.pressed.connect(_on_add_card_pressed)
 
 func _connect_event_bus() -> void:
 	EventBus.exp_changed.connect(_on_exp_changed)
@@ -177,6 +193,17 @@ func _connect_event_bus() -> void:
 	EventBus.window_scale_changed.connect(_on_window_scale_changed)
 	EventBus.window_pin_toggled.connect(_on_window_pin_toggled)
 	EventBus.save_completed.connect(_on_save_completed)
+	EventBus.flashcards_updated.connect(_refresh_deck_tab)
+
+func _on_tab_changed(tab_idx: int) -> void:
+	if not title_label:
+		return
+	match tab_idx:
+		0: title_label.text = "◈ VITALS"
+		1: title_label.text = "◈ INVENTORY BAG"
+		2: title_label.text = "◈ DAILY TIME RECORD"
+		3: title_label.text = "◈ STUDY DECK"
+		4: title_label.text = "◈ SETTINGS"
 
 # ==============================================================================
 # 📊 TAB 1: VITALS
@@ -825,6 +852,104 @@ func _on_save_completed(success: bool, timestamp: String) -> void:
 	if save_status_label and timestamp != "":
 		save_status_label.text = "Saved: %s" % timestamp.split("T")[-1]
 		save_status_label.modulate = Color(0.58, 0.64, 0.72)
+
+# ==============================================================================
+# 📚 TAB 4: STUDY DECK LOGIC
+# ==============================================================================
+func _refresh_deck_tab() -> void:
+	if not GameState or not deck_cards_list_vbox:
+		return
+		
+	var cards: Array[Dictionary] = GameState.get_flashcards()
+	if deck_count_badge:
+		deck_count_badge.text = "%d CARDS" % cards.size()
+	if deck_kp_badge:
+		deck_kp_badge.text = "⭐ %d KP" % GameState.knowledge_points
+		
+	for child in deck_cards_list_vbox.get_children():
+		child.queue_free()
+		
+	if cards.is_empty():
+		var empty_lbl: Label = Label.new()
+		empty_lbl.text = "No cards in deck.\nAdd questions below!"
+		empty_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		empty_lbl.theme_type_variation = "HeaderSmall"
+		empty_lbl.modulate = Color(0.58, 0.64, 0.72)
+		deck_cards_list_vbox.add_child(empty_lbl)
+		return
+		
+	for card in cards:
+		var card_id: String = card.get("id", "")
+		var q: String = card.get("q", "")
+		var a: String = card.get("a", "")
+		var subj: String = card.get("subject", "General")
+		
+		var card_panel: PanelContainer = PanelContainer.new()
+		var card_vbox: VBoxContainer = VBoxContainer.new()
+		card_vbox.add_theme_constant_override("separation", 2)
+		
+		# Top Row: Subject Tag + Delete Button
+		var top_hbox: HBoxContainer = HBoxContainer.new()
+		var subj_lbl: Label = Label.new()
+		subj_lbl.text = "🏷️ " + subj.to_upper()
+		subj_lbl.theme_type_variation = "HeaderSmall"
+		subj_lbl.modulate = Color(0.38, 0.77, 0.99)
+		top_hbox.add_child(subj_lbl)
+		
+		var spacer: Control = Control.new()
+		spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		top_hbox.add_child(spacer)
+		
+		var del_btn: Button = Button.new()
+		del_btn.text = "✕"
+		del_btn.custom_minimum_size = Vector2(16, 16)
+		del_btn.pressed.connect(func():
+			if AudioManager:
+				AudioManager.play_sfx("click")
+			GameState.delete_flashcard(card_id)
+		)
+		top_hbox.add_child(del_btn)
+		card_vbox.add_child(top_hbox)
+		
+		# Question
+		var q_lbl: Label = Label.new()
+		q_lbl.text = "Q: " + q
+		q_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		card_vbox.add_child(q_lbl)
+		
+		# Answer (Subdued / Accent)
+		var a_lbl: Label = Label.new()
+		a_lbl.text = "A: " + a
+		a_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		a_lbl.modulate = Color(0.75, 0.85, 0.75)
+		card_vbox.add_child(a_lbl)
+		
+		card_panel.add_child(card_vbox)
+		deck_cards_list_vbox.add_child(card_panel)
+
+func _on_add_card_pressed() -> void:
+	if not GameState or not deck_q_input or not deck_a_input:
+		return
+		
+	var q: String = deck_q_input.text.strip_edges()
+	var a: String = deck_a_input.text.strip_edges()
+	var subj: String = deck_subject_input.text.strip_edges() if deck_subject_input else "General"
+	
+	if q == "" or a == "":
+		if NotificationManager:
+			NotificationManager.show_toast("Question & Answer required!", NotificationManager.ToastType.WARNING)
+		return
+		
+	var new_id: String = GameState.add_flashcard(q, a, subj)
+	if new_id != "":
+		deck_q_input.text = ""
+		deck_a_input.text = ""
+		if deck_subject_input:
+			deck_subject_input.text = ""
+		if AudioManager:
+			AudioManager.play_sfx("click")
+		if NotificationManager:
+			NotificationManager.show_toast("Flashcard Added! 📚✨", NotificationManager.ToastType.SUCCESS)
 
 func _find_window_controller() -> WindowController:
 	var cur: Node = get_parent()

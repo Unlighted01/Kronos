@@ -330,10 +330,89 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 4
 
-[node name="CONFIG" type="Control" parent="VBox/TabContainer"]
+[node name="DECK" type="Control" parent="VBox/TabContainer"]
 visible = false
 layout_mode = 2
 metadata/_tab_index = 3
+
+[node name="ScrollContainer" type="ScrollContainer" parent="VBox/TabContainer/DECK"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+horizontal_scroll_mode = 0
+
+[node name="DeckVBox" type="VBoxContainer" parent="VBox/TabContainer/DECK/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 6
+
+[node name="HeaderCard" type="PanelContainer" parent="VBox/TabContainer/DECK/ScrollContainer/DeckVBox"]
+layout_mode = 2
+
+[node name="HBox" type="HBoxContainer" parent="VBox/TabContainer/DECK/ScrollContainer/DeckVBox/HeaderCard"]
+layout_mode = 2
+
+[node name="CountBadge" type="Label" parent="VBox/TabContainer/DECK/ScrollContainer/DeckVBox/HeaderCard/HBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 8
+text = "4 CARDS"
+
+[node name="Spacer" type="Control" parent="VBox/TabContainer/DECK/ScrollContainer/DeckVBox/HeaderCard/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="KpBadge" type="Label" parent="VBox/TabContainer/DECK/ScrollContainer/DeckVBox/HeaderCard/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.380392, 0.768627, 0.988235, 1)
+theme_override_font_sizes/font_size = 8
+text = "⭐ 0 KP"
+
+[node name="AddCardPanel" type="PanelContainer" parent="VBox/TabContainer/DECK/ScrollContainer/DeckVBox"]
+layout_mode = 2
+
+[node name="VBox" type="VBoxContainer" parent="VBox/TabContainer/DECK/ScrollContainer/DeckVBox/AddCardPanel"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="TitleLabel" type="Label" parent="VBox/TabContainer/DECK/ScrollContainer/DeckVBox/AddCardPanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.580392, 0.639216, 0.721569, 1)
+theme_override_font_sizes/font_size = 7
+text = "+ NEW FLASHCARD"
+
+[node name="QuestionInput" type="LineEdit" parent="VBox/TabContainer/DECK/ScrollContainer/DeckVBox/AddCardPanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 8
+placeholder_text = "Question / Front..."
+
+[node name="AnswerInput" type="LineEdit" parent="VBox/TabContainer/DECK/ScrollContainer/DeckVBox/AddCardPanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 8
+placeholder_text = "Answer / Back..."
+
+[node name="SubjectInput" type="LineEdit" parent="VBox/TabContainer/DECK/ScrollContainer/DeckVBox/AddCardPanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 8
+placeholder_text = "Subject / Tag (e.g. Code, Lore)"
+
+[node name="AddBtn" type="Button" parent="VBox/TabContainer/DECK/ScrollContainer/DeckVBox/AddCardPanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 8
+text = "+ ADD TO DECK"
+
+[node name="CardsListVBox" type="VBoxContainer" parent="VBox/TabContainer/DECK/ScrollContainer/DeckVBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="CONFIG" type="Control" parent="VBox/TabContainer"]
+visible = false
+layout_mode = 2
+metadata/_tab_index = 4
 
 [node name="ScrollContainer" type="ScrollContainer" parent="VBox/TabContainer/CONFIG"]
 layout_mode = 1

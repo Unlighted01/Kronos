@@ -44,7 +44,15 @@ func _ready() -> void:
 	_start_session()
 
 func _start_session() -> void:
-	cards_to_review = deck.duplicate()
+	if GameState:
+		var saved_deck = GameState.get_flashcards()
+		if not saved_deck.is_empty():
+			cards_to_review = saved_deck.duplicate()
+		else:
+			cards_to_review = deck.duplicate()
+	else:
+		cards_to_review = deck.duplicate()
+		
 	cards_to_review.shuffle()
 	current_card_index = 0
 	_show_current_card()
