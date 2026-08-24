@@ -447,26 +447,16 @@ theme_override_constants/separation = 4
 layout_mode = 2
 theme_override_colors/font_color = Color(0.580392, 0.639216, 0.721569, 1)
 theme_override_font_sizes/font_size = 8
-text = "WINDOW SCALE"
-
-[node name="HBox" type="HBoxContainer" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/ScaleCard/VBox"]
+[node name="ScaleDropdown" type="OptionButton" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/ScaleCard/VBox"]
 layout_mode = 2
-theme_override_constants/separation = 4
-
-[node name="Scale1xBtn" type="Button" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/ScaleCard/VBox/HBox"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "1X"
-
-[node name="Scale125xBtn" type="Button" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/ScaleCard/VBox/HBox"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "1.25X"
-
-[node name="Scale15xBtn" type="Button" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/ScaleCard/VBox/HBox"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "1.5X"
+item_count = 3
+selected = 0
+popup/item_0/text = "1.25x (Default)"
+popup/item_0/id = 0
+popup/item_1/text = "1.5x (Large)"
+popup/item_1/id = 1
+popup/item_2/text = "2x (2K / 4K Crisp)"
+popup/item_2/id = 2
 
 [node name="PinCard" type="PanelContainer" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox"]
 layout_mode = 2

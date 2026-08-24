@@ -13,8 +13,8 @@ const BASE_LEFT_WIDTH: int = 235
 const BASE_RIGHT_WIDTH: int = 200
 const BASE_HEIGHT: int = 320
 
-const SCALE_PRESETS: Array[float] = [1.0, 1.25, 1.5]
-const SCALE_LABELS: Array[String] = ["1x", "1.25x", "1.5x"]
+const SCALE_PRESETS: Array[float] = [1.25, 1.5, 2.0]
+const SCALE_LABELS: Array[String] = ["1.25x", "1.5x", "2x"]
 
 # ==============================================================================
 # 🎛️ NODE REFERENCES
@@ -55,7 +55,7 @@ const SCALE_LABELS: Array[String] = ["1x", "1.25x", "1.5x"]
 # ==============================================================================
 # 📊 INTERNAL STATE
 # ==============================================================================
-var current_scale_index: int = 0 # 0 -> 1.0x, 1 -> 1.25x, 2 -> 1.5x
+var current_scale_index: int = 0 # 0 -> 1.25x (Default), 1 -> 1.5x, 2 -> 2.0x
 var is_pinned: bool = false
 var is_position_locked: bool = false
 var is_left_open: bool = false

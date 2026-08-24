@@ -150,6 +150,7 @@ node_modules/
 dist/
 dist-electron/
 release/
+!release/Kronos-v1.0-Windows.zip
 
 # Documentation (local only)
 docs/

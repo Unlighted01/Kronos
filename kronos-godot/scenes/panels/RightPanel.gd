@@ -70,9 +70,7 @@ class_name RightPanel
 @onready var deck_cards_list_vbox: VBoxContainer = $VBox/TabContainer/DECK/ScrollContainer/DeckVBox/CardsListVBox
 
 # Config Tab UI references
-@onready var scale_1x_btn: Button = $VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/ScaleCard/VBox/HBox/Scale1xBtn
-@onready var scale_125x_btn: Button = $VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/ScaleCard/VBox/HBox/Scale125xBtn
-@onready var scale_15x_btn: Button = $VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/ScaleCard/VBox/HBox/Scale15xBtn
+@onready var scale_dropdown: OptionButton = $VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/ScaleCard/VBox/ScaleDropdown
 @onready var pin_btn: Button = $VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/PinCard/VBox/PinButton
 @onready var work_time_input: LineEdit = $VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/TimerCard/VBox/Grid/WorkVBox/WorkTimeInput
 @onready var break_time_input: LineEdit = $VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/TimerCard/VBox/Grid/BreakVBox/BreakTimeInput
@@ -86,7 +84,7 @@ class_name RightPanel
 # 📊 INTERNAL STATE
 # ==============================================================================
 var _is_today_filter: bool = true
-var _current_scale_preset: float = 1.0
+var _current_scale_preset: float = 1.25
 var _editing_dtr_unix: int = 0
 
 # ==============================================================================
@@ -147,12 +145,8 @@ func _connect_ui_signals() -> void:
 	if pet_nudge_btn:
 		pet_nudge_btn.pressed.connect(_on_pet_nudges_toggled)
 
-	if scale_1x_btn:
-		scale_1x_btn.pressed.connect(func(): _apply_scale(1.0))
-	if scale_125x_btn:
-		scale_125x_btn.pressed.connect(func(): _apply_scale(1.25))
-	if scale_15x_btn:
-		scale_15x_btn.pressed.connect(func(): _apply_scale(1.5))
+	if scale_dropdown:
+		scale_dropdown.item_selected.connect(_on_scale_dropdown_selected)
 		
 	if pin_btn:
 		pin_btn.pressed.connect(_on_pin_toggle_pressed)
@@ -768,13 +762,20 @@ func _on_pet_nudges_toggled() -> void:
 		var cur: bool = GameState.audio_settings.get("pet_nudges_enabled", true)
 		GameState.set_audio_setting("pet_nudges_enabled", not cur)
 
+func _on_scale_dropdown_selected(index: int) -> void:
+	var scales: Array[float] = [1.25, 1.5, 2.0]
+	if index >= 0 and index < scales.size():
+		_apply_scale(scales[index])
+
 func _update_scale_buttons_highlight(active_scale: float) -> void:
-	if scale_1x_btn:
-		scale_1x_btn.modulate = Color(0.31, 0.82, 0.91) if is_equal_approx(active_scale, 1.0) else Color(1.0, 1.0, 1.0)
-	if scale_125x_btn:
-		scale_125x_btn.modulate = Color(0.31, 0.82, 0.91) if is_equal_approx(active_scale, 1.25) else Color(1.0, 1.0, 1.0)
-	if scale_15x_btn:
-		scale_15x_btn.modulate = Color(0.31, 0.82, 0.91) if is_equal_approx(active_scale, 1.5) else Color(1.0, 1.0, 1.0)
+	if not scale_dropdown:
+		return
+	if is_equal_approx(active_scale, 1.25):
+		scale_dropdown.selected = 0
+	elif is_equal_approx(active_scale, 1.5):
+		scale_dropdown.selected = 1
+	elif is_equal_approx(active_scale, 2.0):
+		scale_dropdown.selected = 2
 
 func _apply_scale(target_scale: float) -> void:
 	_current_scale_preset = target_scale
@@ -784,9 +785,9 @@ func _apply_scale(target_scale: float) -> void:
 	var wc: WindowController = _find_window_controller()
 	if wc:
 		var scale_idx: int = 0
-		if is_equal_approx(target_scale, 1.25):
+		if is_equal_approx(target_scale, 1.5):
 			scale_idx = 1
-		elif is_equal_approx(target_scale, 1.5):
+		elif is_equal_approx(target_scale, 2.0):
 			scale_idx = 2
 		wc.current_scale_index = scale_idx
 		wc._update_layout()
