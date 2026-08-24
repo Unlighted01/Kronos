@@ -196,6 +196,564 @@ const UNIVERSAL_BEHAVIORS: Array[Dictionary] = [
 	}
 ]
 
+const BEDROOM_BEHAVIORS: Array[Dictionary] = [
+	# Common
+	{
+		"id": "bedroom_stargaze",
+		"rarity": "common",
+		"target": "drink", # 490.0, Lethe waterfall & starry sky
+		"primary": {
+			"anim": PetRenderer.AnimState.WINDOW_GAZE,
+			"duration": 3.5,
+			"thought": "Gazing at the moon & stars... 🌙✨",
+			"particle": "heart"
+		},
+		"reaction": null
+	},
+	{
+		"id": "bedroom_bed_nap",
+		"rarity": "common",
+		"target": "nap", # 220.0, Daybed
+		"primary": {
+			"anim": PetRenderer.AnimState.NAP,
+			"duration": 5.0,
+			"thought": "Curled up on the soft quilt~ 🛏️💤",
+			"particle": "zzz"
+		},
+		"reaction": null
+	},
+	# Uncommon
+	{
+		"id": "bedroom_wind_clock",
+		"rarity": "uncommon",
+		"target": "desk", # 100.0, Altar
+		"primary": {
+			"anim": PetRenderer.AnimState.STUDY,
+			"duration": 3.2,
+			"thought": "Inspecting the swinging pendulum 🕰️",
+			"particle": "star"
+		},
+		"reaction": null
+	},
+	{
+		"id": "bedroom_chase_firefly",
+		"rarity": "uncommon",
+		"target": "random_floor",
+		"primary": {
+			"anim": PetRenderer.AnimState.CHEF_SNIFF,
+			"duration": 2.5,
+			"thought": "Chasing a stray dream moth! 💡🐾",
+			"particle": "star"
+		},
+		"reaction": {
+			"anim": PetRenderer.AnimState.IDLE,
+			"duration": 2.0,
+			"thought": "Almost caught it! ✨🐾",
+			"particle": "heart",
+			"tween": "happy_hop"
+		}
+	},
+	{
+		"id": "bedroom_meditate",
+		"rarity": "uncommon",
+		"target": "desk",
+		"primary": {
+			"anim": PetRenderer.AnimState.IDLE,
+			"duration": 4.0,
+			"thought": "Quiet meditation under the marble pillar 🏛️",
+			"particle": "heart"
+		},
+		"reaction": null
+	},
+	# Rare
+	{
+		"id": "bedroom_shadow_startle",
+		"rarity": "rare",
+		"target": "random_floor",
+		"primary": {
+			"anim": PetRenderer.AnimState.WINDOW_GAZE,
+			"duration": 2.0,
+			"thought": "Wait... did that shadow move? 👀",
+			"particle": null
+		},
+		"reaction": {
+			"anim": PetRenderer.AnimState.IDLE,
+			"duration": 2.2,
+			"thought": "Yikes! Just my own shadow! 💨",
+			"particle": "exclamation",
+			"tween": "startle_hop"
+		}
+	},
+	{
+		"id": "bedroom_sleepy_wobble",
+		"rarity": "rare",
+		"target": "in_place",
+		"primary": {
+			"anim": PetRenderer.AnimState.IDLE,
+			"duration": 3.0,
+			"thought": "Nodding off while standing... 🥱",
+			"particle": "zzz"
+		},
+		"reaction": {
+			"anim": PetRenderer.AnimState.IDLE,
+			"duration": 2.2,
+			"thought": "Whoa! Caught myself! 😳",
+			"particle": "exclamation",
+			"tween": "wobble"
+		}
+	}
+]
+
+const LIVINGROOM_BEHAVIORS: Array[Dictionary] = [
+	# Common
+	{
+		"id": "livingroom_hearth_nap",
+		"rarity": "common",
+		"target": "nap", # 200.0, Hearth fire
+		"primary": {
+			"anim": PetRenderer.AnimState.WARM_PAWS,
+			"duration": 5.0,
+			"thought": "Toasting paws by Hestia's eternal flame 🔥🐾",
+			"particle": "zzz"
+		},
+		"reaction": null
+	},
+	{
+		"id": "livingroom_couch_stretch",
+		"rarity": "common",
+		"target": "desk", # 450.0, Feasting table / couch
+		"primary": {
+			"anim": PetRenderer.AnimState.IDLE,
+			"duration": 3.5,
+			"thought": "Big luxurious stretch across the plush couch~ 🛋️✨",
+			"particle": "heart"
+		},
+		"reaction": null
+	},
+	# Uncommon
+	{
+		"id": "livingroom_bat_embers",
+		"rarity": "uncommon",
+		"target": "nap", # 200.0, Near hearth
+		"primary": {
+			"anim": PetRenderer.AnimState.CHEF_SNIFF,
+			"duration": 2.5,
+			"thought": "Batting at the floating golden sparks! ✨🐾",
+			"particle": "star"
+		},
+		"reaction": {
+			"anim": PetRenderer.AnimState.IDLE,
+			"duration": 2.0,
+			"thought": "Caught a warm spark! ⭐",
+			"particle": "star",
+			"tween": "happy_hop"
+		}
+	},
+	{
+		"id": "livingroom_curl_cushion",
+		"rarity": "uncommon",
+		"target": "desk",
+		"primary": {
+			"anim": PetRenderer.AnimState.NAP,
+			"duration": 4.5,
+			"thought": "Burrowing into the soft velvet cushions... 🛋️💤",
+			"particle": "zzz"
+		},
+		"reaction": null
+	},
+	{
+		"id": "livingroom_mesmerized_flames",
+		"rarity": "uncommon",
+		"target": "nap",
+		"primary": {
+			"anim": PetRenderer.AnimState.WINDOW_GAZE,
+			"duration": 4.0,
+			"thought": "Staring into the sacred flames, mesmerized... 🔥✨",
+			"particle": "heart"
+		},
+		"reaction": null
+	},
+	# Rare
+	{
+		"id": "livingroom_fire_yelp",
+		"rarity": "rare",
+		"target": "nap",
+		"primary": {
+			"anim": PetRenderer.AnimState.CHEF_SNIFF,
+			"duration": 2.0,
+			"thought": "Getting a little too close to the embers... 🔥",
+			"particle": null
+		},
+		"reaction": {
+			"anim": PetRenderer.AnimState.IDLE,
+			"duration": 2.2,
+			"thought": "Yip! Too toasty! Jumped back! 💨🔥",
+			"particle": "exclamation",
+			"tween": "startle_hop"
+		}
+	},
+	{
+		"id": "livingroom_cushion_rearrange",
+		"rarity": "rare",
+		"target": "desk",
+		"primary": {
+			"anim": PetRenderer.AnimState.CHEF_SNIFF,
+			"duration": 2.5,
+			"thought": "Determinedly fluffing and rearranging the cushion 🐾🛋️",
+			"particle": "star"
+		},
+		"reaction": {
+			"anim": PetRenderer.AnimState.IDLE,
+			"duration": 2.2,
+			"thought": "Aha! The perfect comfy nest! ✨🛋️",
+			"particle": "heart",
+			"tween": "happy_hop"
+		}
+	}
+]
+
+const LIBRARY_BEHAVIORS: Array[Dictionary] = [
+	# Common
+	{
+		"id": "library_read_grimoire",
+		"rarity": "common",
+		"target": "desk", # 400.0, Celestial desk
+		"primary": {
+			"anim": PetRenderer.AnimState.STUDY,
+			"duration": 4.0,
+			"thought": "Studying the ancient astrological grimoire... 📖✨",
+			"particle": "star"
+		},
+		"reaction": null
+	},
+	{
+		"id": "library_peer_telescope",
+		"rarity": "common",
+		"target": "max_x", # 650.0, Observation terrace / telescope
+		"primary": {
+			"anim": PetRenderer.AnimState.WINDOW_GAZE,
+			"duration": 4.0,
+			"thought": "Gazing deep into distant galaxies! 🔭🌌",
+			"particle": "heart"
+		},
+		"reaction": null
+	},
+	# Uncommon
+	{
+		"id": "library_knock_book",
+		"rarity": "uncommon",
+		"target": "nap", # 200.0, Book stacks
+		"primary": {
+			"anim": PetRenderer.AnimState.CHEF_SNIFF,
+			"duration": 2.0,
+			"thought": "Paw gently nudging a heavy tome... 📚",
+			"particle": null
+		},
+		"reaction": {
+			"anim": PetRenderer.AnimState.IDLE,
+			"duration": 2.2,
+			"thought": "Thud! Oops, I didn't mean to! 🐾😳",
+			"particle": "exclamation",
+			"tween": "startle_hop"
+		}
+	},
+	{
+		"id": "library_spin_globe",
+		"rarity": "uncommon",
+		"target": "drink", # 360.0, Globe
+		"primary": {
+			"anim": PetRenderer.AnimState.CHEF_SNIFF,
+			"duration": 2.5,
+			"thought": "Spinning the celestial globe! 🌍✨",
+			"particle": "star"
+		},
+		"reaction": {
+			"anim": PetRenderer.AnimState.IDLE,
+			"duration": 2.0,
+			"thought": "Wheee, round and round! ⭐",
+			"particle": "star",
+			"tween": "happy_hop"
+		}
+	},
+	{
+		"id": "library_nap_scrolls",
+		"rarity": "uncommon",
+		"target": "nap",
+		"primary": {
+			"anim": PetRenderer.AnimState.NAP,
+			"duration": 5.0,
+			"thought": "Curled up on a warm stack of scrolls~ 📚💤",
+			"particle": "zzz"
+		},
+		"reaction": null
+	},
+	# Rare
+	{
+		"id": "library_shadow_spook",
+		"rarity": "rare",
+		"target": "min_x", # 80.0, Deep between bookshelves
+		"primary": {
+			"anim": PetRenderer.AnimState.WINDOW_GAZE,
+			"duration": 2.0,
+			"thought": "A shadowy figure between the tall shelves?! 👻",
+			"particle": null
+		},
+		"reaction": {
+			"anim": PetRenderer.AnimState.IDLE,
+			"duration": 2.2,
+			"thought": "Puffed up with shock! 💨🙀",
+			"particle": "exclamation",
+			"tween": "startle_hop"
+		}
+	},
+	{
+		"id": "library_secret_page",
+		"rarity": "rare",
+		"target": "desk",
+		"primary": {
+			"anim": PetRenderer.AnimState.STUDY,
+			"duration": 2.5,
+			"thought": "Wait, this page reveals a secret constellation! 📜✨",
+			"particle": "star"
+		},
+		"reaction": {
+			"anim": PetRenderer.AnimState.IDLE,
+			"duration": 2.2,
+			"thought": "A celestial breakthrough! 🌟🏆",
+			"particle": "heart",
+			"tween": "happy_hop"
+		}
+	}
+]
+
+const GREENHOUSE_BEHAVIORS: Array[Dictionary] = [
+	# Common
+	{
+		"id": "greenhouse_chew_wheat",
+		"rarity": "common",
+		"target": "nap", # 600.0, Golden wheat field
+		"primary": {
+			"anim": PetRenderer.AnimState.CHEF_SNIFF,
+			"duration": 2.5,
+			"thought": "Nibbling on a golden wheat stalk... 🌾",
+			"particle": null
+		},
+		"reaction": {
+			"anim": PetRenderer.AnimState.IDLE,
+			"duration": 2.2,
+			"thought": "Bleh! Bitter! Spits it out and shakes head! 😝💢",
+			"particle": "anger",
+			"tween": "head_shake"
+		}
+	},
+	{
+		"id": "greenhouse_plant_seed",
+		"rarity": "common",
+		"target": "drink", # 350.0, Soil patch
+		"primary": {
+			"anim": PetRenderer.AnimState.CHEF_SNIFF,
+			"duration": 3.0,
+			"thought": "Carefully burying a tiny seed in the rich soil 🌱🐾",
+			"particle": "star"
+		},
+		"reaction": null
+	},
+	# Uncommon
+	{
+		"id": "greenhouse_chase_butterfly",
+		"rarity": "uncommon",
+		"target": "random_floor",
+		"primary": {
+			"anim": PetRenderer.AnimState.CHEF_SNIFF,
+			"duration": 2.5,
+			"thought": "Chasing a golden butterfly through the crops! 🦋✨",
+			"particle": "star"
+		},
+		"reaction": {
+			"anim": PetRenderer.AnimState.IDLE,
+			"duration": 2.0,
+			"thought": "Fluttered over my head! 🌟",
+			"particle": "star",
+			"tween": "happy_hop"
+		}
+	},
+	{
+		"id": "greenhouse_scarecrow_sit",
+		"rarity": "uncommon",
+		"target": "desk", # 100.0, Scarecrow
+		"primary": {
+			"anim": PetRenderer.AnimState.IDLE,
+			"duration": 4.0,
+			"thought": "Sitting peacefully at the scarecrow's feet 🌾🐦",
+			"particle": "heart"
+		},
+		"reaction": null
+	},
+	{
+		"id": "greenhouse_sneeze",
+		"rarity": "uncommon",
+		"target": "random_floor",
+		"primary": {
+			"anim": PetRenderer.AnimState.IDLE,
+			"duration": 2.0,
+			"thought": "Sniffling flower pollen... 🌸",
+			"particle": null
+		},
+		"reaction": {
+			"anim": PetRenderer.AnimState.IDLE,
+			"duration": 2.0,
+			"thought": "Achoo!! Big pollen sneeze! 🤧💨",
+			"particle": "exclamation",
+			"tween": "startle_hop"
+		}
+	},
+	# Rare
+	{
+		"id": "greenhouse_scarecrow_spook",
+		"rarity": "rare",
+		"target": "desk",
+		"primary": {
+			"anim": PetRenderer.AnimState.WINDOW_GAZE,
+			"duration": 2.0,
+			"thought": "Wait... did the scarecrow just blink?! 🌾👀",
+			"particle": null
+		},
+		"reaction": {
+			"anim": PetRenderer.AnimState.IDLE,
+			"duration": 2.5,
+			"thought": "Frozen in pure disbelief! 😳",
+			"particle": "exclamation",
+			"tween": "startle_hop"
+		}
+	},
+	{
+		"id": "greenhouse_eat_berry",
+		"rarity": "rare",
+		"target": "nap",
+		"primary": {
+			"anim": PetRenderer.AnimState.CHEF_SNIFF,
+			"duration": 2.0,
+			"thought": "Finding a sweet ripe sunberry! 🍓✨",
+			"particle": "star"
+		},
+		"reaction": {
+			"anim": PetRenderer.AnimState.IDLE,
+			"duration": 2.5,
+			"thought": "Delicious! So sweet and juicy! 🥰🍓",
+			"particle": "heart",
+			"tween": "happy_hop"
+		}
+	}
+]
+
+const STYX_BEHAVIORS: Array[Dictionary] = [
+	# Common
+	{
+		"id": "styx_peer_water",
+		"rarity": "common",
+		"target": "drink", # 310.0, Boat edge
+		"primary": {
+			"anim": PetRenderer.AnimState.WINDOW_GAZE,
+			"duration": 3.5,
+			"thought": "Peering cautiously into the murky River Styx... 🌊👻",
+			"particle": "heart"
+		},
+		"reaction": null
+	},
+	{
+		"id": "styx_lantern_nap",
+		"rarity": "common",
+		"target": "nap", # 250.0, Near lantern
+		"primary": {
+			"anim": PetRenderer.AnimState.NAP,
+			"duration": 5.0,
+			"thought": "Curled up under the warm spectral lantern glow 🏮💤",
+			"particle": "zzz"
+		},
+		"reaction": null
+	},
+	# Uncommon
+	{
+		"id": "styx_rattle_bars",
+		"rarity": "uncommon",
+		"target": "min_x", # 220.0, Near foreground bars
+		"primary": {
+			"anim": PetRenderer.AnimState.CHEF_SNIFF,
+			"duration": 2.5,
+			"thought": "Rattling the ancient underworld prison bars! ⛓️🐾",
+			"particle": "star"
+		},
+		"reaction": null
+	},
+	{
+		"id": "styx_watch_fog",
+		"rarity": "uncommon",
+		"target": "desk", # 280.0, Skiff center
+		"primary": {
+			"anim": PetRenderer.AnimState.WINDOW_GAZE,
+			"duration": 4.0,
+			"thought": "Watching spectral green fog drift across the water... 🌫️✨",
+			"particle": "heart"
+		},
+		"reaction": null
+	},
+	{
+		"id": "styx_chain_creak",
+		"rarity": "uncommon",
+		"target": "random_floor",
+		"primary": {
+			"anim": PetRenderer.AnimState.IDLE,
+			"duration": 2.0,
+			"thought": "Hearing a heavy chain creak in the dark... ⛓️",
+			"particle": null
+		},
+		"reaction": {
+			"anim": PetRenderer.AnimState.IDLE,
+			"duration": 2.0,
+			"thought": "Flinched! Spooky echoes! 💨👻",
+			"particle": "exclamation",
+			"tween": "startle_hop"
+		}
+	},
+	# Rare
+	{
+		"id": "styx_nearly_fall",
+		"rarity": "rare",
+		"target": "max_x", # 340.0, Prow edge
+		"primary": {
+			"anim": PetRenderer.AnimState.WINDOW_GAZE,
+			"duration": 2.0,
+			"thought": "Whoa, slipping near the edge of the boat! 🌊",
+			"particle": null
+		},
+		"reaction": {
+			"anim": PetRenderer.AnimState.IDLE,
+			"duration": 2.2,
+			"thought": "Whew! Caught my balance just in time! 😮‍💨🐾",
+			"particle": "exclamation",
+			"tween": "wobble"
+		}
+	},
+	{
+		"id": "styx_water_reflection",
+		"rarity": "rare",
+		"target": "drink",
+		"primary": {
+			"anim": PetRenderer.AnimState.CHEF_SNIFF,
+			"duration": 2.5,
+			"thought": "Confused by my own green reflection in the Styx 👻❓",
+			"particle": null
+		},
+		"reaction": {
+			"anim": PetRenderer.AnimState.IDLE,
+			"duration": 2.2,
+			"thought": "Poking at the phantom ripples! ✨🐾",
+			"particle": "heart",
+			"tween": "head_shake"
+		}
+	}
+]
+
 var _special_behavior_cooldown: float = 20.0
 var _active_sequence: Dictionary = {}
 var _sequence_stage: int = 0 # 0 = none, 1 = primary, 2 = reaction
@@ -1136,6 +1694,20 @@ func _try_start_weighted_idle_interaction() -> bool:
 				continue
 		pool.append(b)
 		
+	# Room-specific candidate pools
+	var cur_room: String = assigned_room if assigned_room != "" else "room_bedroom"
+	match cur_room:
+		"room_bedroom":
+			pool.append_array(BEDROOM_BEHAVIORS)
+		"room_livingroom":
+			pool.append_array(LIVINGROOM_BEHAVIORS)
+		"room_library":
+			pool.append_array(LIBRARY_BEHAVIORS)
+		"room_greenhouse":
+			pool.append_array(GREENHOUSE_BEHAVIORS)
+		"room_kitchen":
+			pool.append_array(STYX_BEHAVIORS)
+		
 	if pool.is_empty():
 		_special_behavior_cooldown = randf_range(25.0, 50.0)
 		return false
@@ -1170,6 +1742,8 @@ func _start_behavior_sequence(b: Dictionary) -> void:
 		"desk": target_x_pos = desk_x
 		"nap": target_x_pos = nap_x
 		"drink": target_x_pos = drink_x
+		"min_x": target_x_pos = min_x + 10.0
+		"max_x": target_x_pos = max_x - 10.0
 		"random_floor": target_x_pos = randf_range(min_x, max_x)
 		_: target_x_pos = position.x
 		
@@ -1234,6 +1808,10 @@ func _execute_reaction_stage(react: Dictionary) -> void:
 		_play_head_shake_tween()
 	elif tween_type == "startle_hop":
 		_play_startle_hop_tween()
+	elif tween_type == "happy_hop":
+		_play_happy_hop_tween()
+	elif tween_type == "wobble":
+		_play_wobble_tween()
 
 func _finish_special_sequence() -> void:
 	_cancel_active_sequence()
@@ -1275,6 +1853,14 @@ func _play_happy_hop_tween() -> void:
 	_sequence_tween = create_tween()
 	_sequence_tween.tween_property(self, "position:y", position.y - 5.0, 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	_sequence_tween.tween_property(self, "position:y", position.y, 0.12).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
+
+func _play_wobble_tween() -> void:
+	if _sequence_tween and _sequence_tween.is_valid():
+		_sequence_tween.kill()
+	_sequence_tween = create_tween()
+	_sequence_tween.tween_property(self, "rotation", 0.22, 0.6).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_sequence_tween.tween_property(self, "rotation", -0.08, 0.08).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_sequence_tween.tween_property(self, "rotation", 0.0, 0.08)
 
 func _on_coins_changed(_new_balance: int, amount_delta: int, _reason: String) -> void:
 	if amount_delta > 0 and current_state == State.IDLE and visible:
