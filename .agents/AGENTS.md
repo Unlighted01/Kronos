@@ -28,3 +28,17 @@
 3. Use `queue_redraw()` not `update()` (Godot 4 API).
 4. Use `set_deferred()` when modifying physics properties (`monitoring`, `monitorable`) during callbacks.
 5. Procedural drawing must use `_draw()` with `draw_rect`, `draw_line`, `draw_circle`, `draw_colored_polygon` — no sprite loading for room environments.
+
+## Release Workflow — "Push Release"
+
+Whenever Kian asks to **"push release" / "release version" / "push released"**:
+1. **Headless Export**: Export standalone binary via Godot 4 headless export:
+   ```powershell
+   & "C:\Users\netne\AppData\Local\Microsoft\WinGet\Packages\GodotEngine.GodotEngine_Microsoft.Winget.Source_8wekyb3d8bbwe\Godot_v4.7.1-stable_win64_console.exe" --headless --path "c:\Users\netne\Kronos\Kronos Project\kronos-godot" --export-release "Windows Desktop" "../release/Kronos-v1.0-Windows/Kronos.exe"
+   ```
+2. **Package Zip**: Compress `release\Kronos-v1.0-Windows\*` into `release\Kronos-v1.0-Windows.zip`.
+3. **Publish GitHub Release**: Create and publish the new release to GitHub Releases with the `.zip` attached:
+   ```powershell
+   gh release create "<tag>" "release\Kronos-v1.0-Windows.zip" --title "<title>" --notes "<changelog>"
+   ```
+4. Confirm URL on `github.com/Unlighted01/Kronos/releases`.
