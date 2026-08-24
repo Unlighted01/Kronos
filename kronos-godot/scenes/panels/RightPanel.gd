@@ -62,6 +62,7 @@ class_name RightPanel
 # Study Deck References
 @onready var deck_count_badge: Label = $VBox/TabContainer/DECK/ScrollContainer/DeckVBox/HeaderCard/HBox/CountBadge
 @onready var deck_kp_badge: Label = $VBox/TabContainer/DECK/ScrollContainer/DeckVBox/HeaderCard/HBox/KpBadge
+@onready var deck_start_drill_btn: Button = $VBox/TabContainer/DECK/ScrollContainer/DeckVBox/StartDrillBtn
 @onready var deck_q_input: LineEdit = $VBox/TabContainer/DECK/ScrollContainer/DeckVBox/AddCardPanel/VBox/QuestionInput
 @onready var deck_a_input: LineEdit = $VBox/TabContainer/DECK/ScrollContainer/DeckVBox/AddCardPanel/VBox/AnswerInput
 @onready var deck_subject_input: LineEdit = $VBox/TabContainer/DECK/ScrollContainer/DeckVBox/AddCardPanel/VBox/SubjectInput
@@ -168,7 +169,8 @@ func _connect_ui_signals() -> void:
 		dtr_delete_btn.pressed.connect(_on_dtr_modal_delete)
 	if dtr_cancel_btn:
 		dtr_cancel_btn.pressed.connect(func(): dtr_modal.hide())
-		
+	if deck_start_drill_btn:
+		deck_start_drill_btn.pressed.connect(_on_start_study_drill_pressed)
 	if deck_add_btn:
 		deck_add_btn.pressed.connect(_on_add_card_pressed)
 
@@ -950,6 +952,27 @@ func _on_add_card_pressed() -> void:
 			AudioManager.play_sfx("click")
 		if NotificationManager:
 			NotificationManager.show_toast("Flashcard Added! 📚✨", NotificationManager.ToastType.SUCCESS)
+
+func _on_start_study_drill_pressed() -> void:
+	if AudioManager:
+		AudioManager.play_sfx("click")
+		
+	var win_ctrl: WindowController = _find_window_controller()
+	if not win_ctrl or not win_ctrl.pet_slot:
+		return
+		
+	# Close existing modal if open
+	for m_name in ["FlashcardEngine", "MinigameHub", "SnackCatchGame", "PlantBloomGame", "MemoryMatchGame"]:
+		if win_ctrl.pet_slot.has_node(m_name):
+			win_ctrl.pet_slot.get_node(m_name).queue_free()
+			
+	var scene = load("res://scenes/minigames/FlashcardEngine.tscn")
+	if scene:
+		var flashcard_instance: Control = scene.instantiate()
+		flashcard_instance.name = "FlashcardEngine"
+		flashcard_instance.custom_minimum_size = Vector2(236, 140)
+		flashcard_instance.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		win_ctrl.pet_slot.add_child(flashcard_instance)
 
 func _find_window_controller() -> WindowController:
 	var cur: Node = get_parent()

@@ -371,6 +371,13 @@ theme_override_colors/font_color = Color(0.380392, 0.768627, 0.988235, 1)
 theme_override_font_sizes/font_size = 8
 text = "⭐ 0 KP"
 
+[node name="StartDrillBtn" type="Button" parent="VBox/TabContainer/DECK/ScrollContainer/DeckVBox"]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.31, 0.82, 0.91, 1)
+theme_override_font_sizes/font_size = 8
+text = "▶ START STUDY DRILL (ACTIVE RECALL)"
+
 [node name="AddCardPanel" type="PanelContainer" parent="VBox/TabContainer/DECK/ScrollContainer/DeckVBox"]
 layout_mode = 2
 

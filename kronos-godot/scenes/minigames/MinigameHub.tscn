@@ -170,39 +170,3 @@ custom_minimum_size = Vector2(46, 20)
 layout_mode = 2
 theme_override_font_sizes/font_size = 7
 text = "▶ PLAY"
-
-[node name="FlashcardRow" type="PanelContainer" parent="Panel/VBox/GamesVBox"]
-custom_minimum_size = Vector2(0, 30)
-layout_mode = 2
-
-[node name="HBox" type="HBoxContainer" parent="Panel/VBox/GamesVBox/FlashcardRow"]
-layout_mode = 2
-theme_override_constants/separation = 4
-
-[node name="Icon" type="Label" parent="Panel/VBox/GamesVBox/FlashcardRow/HBox"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "??"
-
-[node name="InfoVBox" type="VBoxContainer" parent="Panel/VBox/GamesVBox/FlashcardRow/HBox"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 0
-alignment = 1
-
-[node name="Name" type="Label" parent="Panel/VBox/GamesVBox/FlashcardRow/HBox/InfoVBox"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 8
-text = "Active Recall"
-
-[node name="Desc" type="Label" parent="Panel/VBox/GamesVBox/FlashcardRow/HBox/InfoVBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
-theme_override_font_sizes/font_size = 6
-text = "Earn KP by reviewing flashcards"
-
-[node name="PlayButton" type="Button" parent="Panel/VBox/GamesVBox/FlashcardRow/HBox"]
-custom_minimum_size = Vector2(46, 20)
-layout_mode = 2
-theme_override_font_sizes/font_size = 7
-text = "? PLAY"
