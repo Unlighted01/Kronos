@@ -20,36 +20,35 @@ enum State {
 	WINDOW_GAZE,
 	TUCKED_IN,
 	CHEF_SNIFF,
-	EXITING_ROOM
+	EXITING_ROOM,
+	PLAY,
+	SPECIAL_INTERACTION
 }
 
 # ==============================================================================
-# 🏠 HOUSE TOPOLOGY FOR AUTONOMOUS ROAMING
+# 🏠 HOUSE TOPOLOGY — DISABLED (Domains don't use doors)
 # ==============================================================================
-const HOUSE_TOPOLOGY: Dictionary = {
-	"room_bedroom": ["room_livingroom"],
-	"room_livingroom": ["room_bedroom", "room_library", "room_kitchen"],
-	"room_library": ["room_livingroom"],
-	"room_kitchen": ["room_livingroom", "room_greenhouse"],
-	"room_greenhouse": ["room_kitchen"]
-}
-
-# Door / Ladder coordinates for animated transitions
-const ROOM_EXITS: Dictionary = {
-	"room_bedroom": { "room_livingroom": 224.0 },
-	"room_livingroom": { "room_bedroom": 16.0, "room_library": 92.0, "room_kitchen": 226.0 },
-	"room_library": { "room_livingroom": 118.0 },
-	"room_kitchen": { "room_livingroom": 16.0, "room_greenhouse": 224.0 },
-	"room_greenhouse": { "room_kitchen": 16.0 }
-}
-
-const ROOM_ENTRIES: Dictionary = {
-	"room_bedroom": { "room_livingroom": 210.0 },
-	"room_livingroom": { "room_bedroom": 28.0, "room_library": 92.0, "room_kitchen": 212.0 },
-	"room_library": { "room_livingroom": 118.0 },
-	"room_kitchen": { "room_livingroom": 28.0, "room_greenhouse": 210.0 },
-	"room_greenhouse": { "room_kitchen": 28.0 }
-}
+# const HOUSE_TOPOLOGY: Dictionary = {
+# 	"room_bedroom": ["room_livingroom"],
+# 	"room_livingroom": ["room_bedroom", "room_library", "room_kitchen"],
+# 	"room_library": ["room_livingroom"],
+# 	"room_kitchen": ["room_livingroom", "room_greenhouse"],
+# 	"room_greenhouse": ["room_kitchen"]
+# }
+# const ROOM_EXITS: Dictionary = {
+# 	"room_bedroom": { "room_livingroom": 224.0 },
+# 	"room_livingroom": { "room_bedroom": 16.0, "room_library": 92.0, "room_kitchen": 226.0 },
+# 	"room_library": { "room_livingroom": 118.0 },
+# 	"room_kitchen": { "room_livingroom": 16.0, "room_greenhouse": 224.0 },
+# 	"room_greenhouse": { "room_kitchen": 16.0 }
+# }
+# const ROOM_ENTRIES: Dictionary = {
+# 	"room_bedroom": { "room_livingroom": 210.0 },
+# 	"room_livingroom": { "room_bedroom": 28.0, "room_library": 92.0, "room_kitchen": 212.0 },
+# 	"room_library": { "room_livingroom": 118.0 },
+# 	"room_kitchen": { "room_livingroom": 28.0, "room_greenhouse": 210.0 },
+# 	"room_greenhouse": { "room_kitchen": 28.0 }
+# }
 
 # ==============================================================================
 # 🐾 EXPORT CONFIGURATION & ROOM BOUNDS
@@ -103,8 +102,14 @@ func setup_pet(data: Dictionary) -> void:
 	if renderer:
 		renderer.species = species
 		renderer.queue_redraw()
+	if not thought_bubble:
+		thought_bubble = get_node_or_null("ThoughtBubble")
 	if thought_bubble:
 		thought_bubble.species = species
+	if not cosmetic_layer:
+		cosmetic_layer = get_node_or_null("CosmeticLayer")
+	if cosmetic_layer and cosmetic_layer.has_method("_sync_from_game_state"):
+		cosmetic_layer._sync_from_game_state()
 	# Re-evaluate visibility now that assigned_room is correctly set
 	_update_visibility_from_room_state()
 
@@ -127,6 +132,76 @@ var _roam_timer: float = 0.0
 var _next_roam_interval: float = 50.0
 var _pending_target_room: String = ""
 
+# Dynamic room floor height offset (e.g. Charon's Skiff bobbing)
+var _floor_bob_y: float = 0.0
+
+# ==============================================================================
+# 🎲 WEIGHTED-RANDOM IDLE INTERACTION SYSTEM
+# ==============================================================================
+const RARITY_WEIGHTS: Dictionary = {
+	"common": 60.0,
+	"uncommon": 30.0,
+	"rare": 10.0
+}
+
+const UNIVERSAL_BEHAVIORS: Array[Dictionary] = [
+	{
+		"id": "universal_yawn",
+		"rarity": "common",
+		"target": "in_place",
+		"primary": {
+			"anim": PetRenderer.AnimState.IDLE,
+			"duration": 3.0,
+			"thought": "*big sleepy yawn* 🥱",
+			"particle": "zzz"
+		},
+		"reaction": null
+	},
+	{
+		"id": "universal_groom",
+		"rarity": "common",
+		"target": "in_place",
+		"primary": {
+			"anim": PetRenderer.AnimState.CHEF_SNIFF,
+			"duration": 3.2,
+			"thought": "*grooming paws* 🐾✨",
+			"particle": "heart"
+		},
+		"reaction": null
+	},
+	{
+		"id": "universal_cam_gaze",
+		"rarity": "uncommon",
+		"target": "in_place",
+		"primary": {
+			"anim": PetRenderer.AnimState.WINDOW_GAZE,
+			"duration": 3.5,
+			"thought": "Looking right at you! 👀✨",
+			"particle": "heart"
+		},
+		"reaction": null
+	},
+	{
+		"id": "universal_timer_watch",
+		"rarity": "uncommon",
+		"target": "desk",
+		"condition": "timer_running",
+		"primary": {
+			"anim": PetRenderer.AnimState.STUDY,
+			"duration": 4.0,
+			"thought": "Focus sprint in progress! ⏳✨",
+			"particle": "star"
+		},
+		"reaction": null
+	}
+]
+
+var _special_behavior_cooldown: float = 20.0
+var _active_sequence: Dictionary = {}
+var _sequence_stage: int = 0 # 0 = none, 1 = primary, 2 = reaction
+var _sequence_timer: float = 0.0
+var _sequence_tween: Tween = null
+
 # ==============================================================================
 # ⚙️ LIFECYCLE
 # ==============================================================================
@@ -143,6 +218,7 @@ func _ready() -> void:
 	visible = true
 	_reset_roam_timer()
 	_work_patience_duration = randf_range(120.0, 240.0)
+	_special_behavior_cooldown = randf_range(15.0, 30.0)
 	
 	# Jitter timers so pets don't do the exact same things on the exact same frame
 	state_timer = randf_range(0.0, 3.0)
@@ -172,7 +248,13 @@ func _connect_event_bus() -> void:
 	EventBus.pet_room_changed.connect(_on_pet_room_changed)
 	EventBus.pet_called.connect(_on_pet_called)
 	EventBus.energy_changed.connect(_on_energy_changed)
+	EventBus.coins_changed.connect(_on_coins_changed)
 	EventBus.object_state_changed.connect(_on_object_state_changed)
+	if EventBus.has_signal("floor_y_offset_changed"):
+		EventBus.floor_y_offset_changed.connect(_on_floor_y_offset_changed)
+
+func _on_floor_y_offset_changed(offset: float) -> void:
+	_floor_bob_y = offset
 
 func _physics_process(delta: float) -> void:
 	state_timer += delta
@@ -219,13 +301,15 @@ func _physics_process(delta: float) -> void:
 			_process_chef_sniff_state(delta)
 		State.EXITING_ROOM:
 			_process_exiting_room_state(delta)
+		State.PLAY:
+			_process_play_state(delta)
+		State.SPECIAL_INTERACTION:
+			_process_special_interaction_state(delta)
 			
-	# Enforce room boundaries & target y level
-	position.x = clampf(position.x, min_x - 5.0, max_x + 5.0)
-	if current_state == State.WALK_TO_TARGET:
-		position.y = move_toward(position.y, floor_y, delta * 60.0)
-	else:
-		position.y = move_toward(position.y, current_target_y, delta * 60.0)
+	# Enforce room boundaries & target y level (including dynamic floor bobbing)
+	position.x = clampf(position.x, min_x, max_x)
+	var effective_y: float = (floor_y if current_state == State.WALK_TO_TARGET else current_target_y) + _floor_bob_y
+	position.y = move_toward(position.y, effective_y, delta * 60.0)
 
 # ==============================================================================
 # ⏰ DIURNAL PROFILE (REAL-TIME DAY / NIGHT)
@@ -249,7 +333,7 @@ func _reset_roam_timer() -> void:
 # ==============================================================================
 # 🔄 CONTEXTUAL STATE HANDLERS
 # ==============================================================================
-func _process_idle_state(_delta: float) -> void:
+func _process_idle_state(delta: float) -> void:
 	velocity.x = 0.0
 	_set_renderer_state(PetRenderer.AnimState.IDLE)
 	
@@ -257,20 +341,27 @@ func _process_idle_state(_delta: float) -> void:
 	var cur_room: String = assigned_room if assigned_room != "" else "room_bedroom"
 	var is_working: bool = (TimerEngine and TimerEngine.status == TimerEngine.TimerStatus.RUNNING and TimerEngine.current_phase == TimerEngine.TimerPhase.WORK)
 	
-	# Decide next action after a few seconds of idle
+	# 1. Check special weighted-random idle interaction cooldown
+	if not is_working:
+		_special_behavior_cooldown -= delta
+		if _special_behavior_cooldown <= 0.0:
+			if _try_start_weighted_idle_interaction():
+				return
+	
+	# 2. Decide standard action after a few seconds of idle
 	if state_timer >= randf_range(4.0, 8.0):
 		state_timer = 0.0
 		
-		# 1. Work is MANDATORY when timer is running — pets spread out, unique animations
+		# Work is MANDATORY when timer is running — pets spread out, unique animations
 		if is_working:
 			_join_work_session()
 			return
 			
-		# 2. Context-Aware Room Prop Behaviors
+		# Context-Aware Room Prop Behaviors
 		if _try_room_specific_activity(cur_room, profile):
 			return
 			
-		# 3. Standard autonomous decision roll
+		# Standard autonomous decision roll
 		var roll: float = randf()
 		if roll < 0.60:
 			# Wander around room floor
@@ -296,110 +387,85 @@ func _try_room_specific_activity(room: String, profile: Dictionary) -> bool:
 		return false
 		
 	match room:
-		"room_bedroom":
-			var is_bed_open: bool = GameState.get_object_state("bedroom_blanket_folded", false)
-			var is_win_open: bool = GameState.get_object_state("bedroom_window_open", false)
-			
-			# Night or Sleep: Sleep cozily by the bed!
-			if (profile.is_night or randf() < 0.35) and is_bed_open:
-				if thought_bubble and visible:
-					thought_bubble.show_random_thought("bedroom_tucked", 3.5)
-				walk_to(168.0, State.NAP, floor_y)
-				return true
-				
-			# If window is open, sit and gaze at breeze
-			if is_win_open and randf() < 0.40:
-				if thought_bubble and visible:
-					thought_bubble.show_random_thought("window_gaze", 3.5)
-				walk_to(122.0, State.WINDOW_GAZE, floor_y)
-				return true
-				
-		"room_livingroom":
-			var is_tv_on: bool = GameState.get_object_state("livingroom_tv_on", false)
-			var is_fire_lit: bool = GameState.get_object_state("livingroom_fireplace_lit", true)
-			var is_win_open: bool = GameState.get_object_state("livingroom_window_open", false)
-			
-			# If TV is ON: high priority to sit on couch and watch!
-			if is_tv_on and randf() < 0.75:
-				if thought_bubble and visible:
-					thought_bubble.show_random_thought("watch_tv", 3.5)
-				walk_to(138.0, State.WATCH_TV, 88.0)
-				return true
-				
-			# If Fireplace is lit: toasting paws on rug
-			if is_fire_lit and randf() < 0.45:
-				if thought_bubble and visible:
-					thought_bubble.show_random_thought("warm_paws", 3.5)
-				walk_to(64.0, State.WARM_PAWS, 112.0)
-				return true
-				
-			# If window open in living room
-			if is_win_open and randf() < 0.30:
-				if thought_bubble and visible:
-					thought_bubble.show_random_thought("window_gaze", 3.5)
-				walk_to(138.0, State.WINDOW_GAZE, 88.0)
-				return true
-				
-		"room_library":
-			var is_book_open: bool = GameState.get_object_state("attic_book_open", true)
-			
-			# Sit in new study chair and study grimoire
-			if is_book_open and randf() < 0.55:
-				if thought_bubble and visible:
-					thought_bubble.show_random_thought("attic_study", 3.5)
-				walk_to(134.0, State.STUDY, 92.0)
-				return true
-			elif randf() < 0.40:
-				# Rest in emerald armchair
-				if thought_bubble and visible:
-					thought_bubble.show_random_thought("attic_armchair", 3.5)
-				walk_to(72.0, State.NAP, 88.0)
-				return true
-				
-		"room_kitchen":
-			var is_stove_on: bool = GameState.get_object_state("kitchen_stove_cooking", false)
-			var is_oven_open: bool = GameState.get_object_state("kitchen_oven_open", false)
-			
-			# Sniff simmering pot at stove
-			if is_stove_on and randf() < 0.50:
-				if thought_bubble and visible:
-					thought_bubble.show_random_thought("kitchen_stove", 3.5)
-				walk_to(106.0, State.CHEF_SNIFF, 112.0)
-				return true
-			# Wait by open oven for pastries
-			elif is_oven_open and randf() < 0.50:
-				if thought_bubble and visible:
-					thought_bubble.show_random_thought("kitchen_oven", 3.5)
-				walk_to(112.0, State.CHEF_SNIFF, 112.0)
-				return true
-			# Espresso drink
-			elif randf() < 0.35:
-				if thought_bubble and visible:
-					thought_bubble.show_random_thought("kitchen_coffee", 3.5)
-				walk_to(55.0, State.DRINK, 112.0)
-				return true
-				
-		"room_greenhouse":
+		"room_bedroom": # Temple of Morpheus
 			var roll: float = randf()
-			if roll < 0.40:
-				# Gaze at Sakura Bonsai & catch falling petals
-				if thought_bubble and visible:
-					thought_bubble.show_random_thought("greenhouse", 3.5)
-				walk_to(75.0, State.WINDOW_GAZE, floor_y)
+			if roll < 0.35:
+				if thought_bubble and visible: thought_bubble.show_thought("Staring into the Font of Lethe... 💧", 3.5)
+				walk_to(drink_x, State.WINDOW_GAZE, floor_y)
 				return true
 			elif roll < 0.70:
-				# Sniff freshly bloomed flowers on potting bench
-				if thought_bubble and visible:
-					thought_bubble.show_thought("Sweet floral fragrance! 🌸🌿", 3.5)
-				walk_to(165.0, State.CHEF_SNIFF, floor_y)
+				if thought_bubble and visible: thought_bubble.show_thought("Floating in the canopy bed~ ☁️💤", 3.5)
+				walk_to(nap_x, State.NAP, floor_y)
 				return true
 			elif roll < 0.90:
-				# Rest in the shade of the Monstera umbrella
-				if thought_bubble and visible:
-					thought_bubble.show_thought("Cozy nap under the big leaves~ 🍃", 3.5)
-				walk_to(125.0, State.NAP, floor_y)
+				if thought_bubble and visible: thought_bubble.show_thought("Watching the sands of time... ⏳", 3.5)
+				walk_to(desk_x, State.STUDY, floor_y)
 				return true
 				
+		"room_livingroom": # Hearth of Hestia
+			var roll: float = randf()
+			if roll < 0.35:
+				if thought_bubble and visible: thought_bubble.show_thought("Fresh water from the amphora! 🏺", 3.5)
+				walk_to(drink_x, State.DRINK, floor_y)
+				return true
+			elif roll < 0.70:
+				if thought_bubble and visible: thought_bubble.show_thought("Warming paws by the sacred fire~ 🔥🐾", 3.5)
+				walk_to(nap_x, State.WARM_PAWS, floor_y)
+				return true
+			elif roll < 0.90:
+				if thought_bubble and visible: thought_bubble.show_thought("Studying the ancient scrolls 📜", 3.5)
+				walk_to(desk_x, State.STUDY, floor_y)
+				return true
+				
+		"room_library": # Tower of Urania
+			var roll: float = randf()
+			if roll < 0.35:
+				if thought_bubble and visible: thought_bubble.show_thought("Looking for shooting stars! 🔭✨", 3.5)
+				walk_to(max_x - 40.0, State.WINDOW_GAZE, floor_y)
+				return true
+			elif roll < 0.70:
+				if thought_bubble and visible: thought_bubble.show_thought("Resting by the celestial globe 🌍💤", 3.5)
+				walk_to(nap_x, State.NAP, floor_y)
+				return true
+			elif roll < 0.90:
+				if thought_bubble and visible: thought_bubble.show_thought("Consulting the Oracle's star map 🌌", 3.5)
+				walk_to(desk_x, State.STUDY, floor_y)
+				return true
+				
+		"room_kitchen": # Banks of the Styx
+			var roll: float = randf()
+			if roll < 0.35:
+				if thought_bubble and visible: thought_bubble.show_thought("Riding Charon's ferry... 🛶👻", 3.5)
+				walk_to(drink_x, State.WINDOW_GAZE, floor_y)
+				return true
+			elif roll < 0.70:
+				if thought_bubble and visible: thought_bubble.show_thought("Watching the murky waters of Styx 🌊", 3.5)
+				walk_to(desk_x, State.IDLE, floor_y)
+				return true
+			elif roll < 0.90:
+				if thought_bubble and visible: thought_bubble.show_thought("Resting on the creaking deck 💤", 3.5)
+				walk_to(nap_x, State.NAP, floor_y)
+				return true
+				
+		"room_greenhouse": # Elysian Fields
+			var roll: float = randf()
+			if roll < 0.30:
+				if thought_bubble and visible: thought_bubble.show_thought("Golden wheat swaying in the breeze! 🌾✨", 3.5)
+				walk_to(desk_x, State.WINDOW_GAZE, floor_y)
+				return true
+			elif roll < 0.50:
+				if thought_bubble and visible: thought_bubble.show_thought("Crystal clear spring water! 💧✨", 3.5)
+				walk_to(drink_x, State.DRINK, floor_y)
+				return true
+			elif roll < 0.70:
+				if thought_bubble and visible: thought_bubble.show_thought("Warm sun and soft fields~ 🌾💤", 3.5)
+				walk_to(nap_x, State.NAP, floor_y)
+				return true
+			elif roll < 0.90:
+				if thought_bubble and visible: thought_bubble.show_thought("Saying hello to the scarecrow 🌾🐦", 3.5)
+				walk_to(desk_x, State.STUDY, floor_y)
+				return true
+	
 	return false
 
 func _process_walk_state(_delta: float) -> void:
@@ -423,7 +489,9 @@ func _process_walk_state(_delta: float) -> void:
 			position.y = post_target_y
 			
 		# Specific arrival facing logic
-		if current_state == State.WATCH_TV or current_state == State.STUDY or current_state == State.TYPE:
+		if current_state == State.SPECIAL_INTERACTION:
+			_execute_primary_stage()
+		elif current_state == State.WATCH_TV or current_state == State.STUDY or current_state == State.TYPE:
 			if renderer:
 				renderer.facing_right = true
 		elif current_state == State.WARM_PAWS:
@@ -517,6 +585,11 @@ func _process_study_state(_delta: float) -> void:
 func _process_window_gaze_state(_delta: float) -> void:
 	velocity.x = 0.0
 	_set_renderer_state(PetRenderer.AnimState.WINDOW_GAZE)
+	
+	if assigned_room == "room_bedroom" and absf(position.x - 540.0) < 5.0:
+		if GameState and fmod(state_timer, 3.0) < 0.05:
+			EventBus.object_state_changed.emit("lethe_paw_dip", true)
+			
 	if state_timer >= randf_range(12.0, 24.0):
 		state_timer = 0.0
 		current_state = State.IDLE
@@ -527,6 +600,15 @@ func _process_chef_sniff_state(_delta: float) -> void:
 	if state_timer >= randf_range(8.0, 16.0):
 		state_timer = 0.0
 		current_state = State.IDLE
+
+func _process_play_state(_delta: float) -> void:
+	velocity.x = 0.0
+	_set_renderer_state(PetRenderer.AnimState.VICTORY) # Use jump animation for catching!
+	if state_timer >= 3.0:
+		state_timer = 0.0
+		current_state = State.IDLE
+		if thought_bubble and visible:
+			thought_bubble.show_thought("Caught a dream! ✨", 3.0)
 
 func _process_petted_state(_delta: float) -> void:
 	velocity.x = 0.0
@@ -576,69 +658,19 @@ func set_room_anchors(p_min_x: float, p_max_x: float, p_desk_x: float, p_nap_x: 
 	post_target_y = floor_y
 	position.y = floor_y
 	position.x = clampf(position.x, min_x, max_x)
+	target_x = clampf(target_x, min_x, max_x)
 
 # ==============================================================================
 # 🚪 ANIMATED ROOM ROAMING TRANSITIONS
 # ==============================================================================
 func _process_autonomous_room_roaming(delta: float) -> void:
-	_roam_timer += delta
-	if _roam_timer < _next_roam_interval:
-		return
-		
-	_reset_roam_timer()
-	
-	var cur_room: String = assigned_room if assigned_room != "" else (GameState.active_view_room if GameState else "room_bedroom")
-	var raw_neighbors: Array = HOUSE_TOPOLOGY.get(cur_room, [])
-	
-	# Only roam into rooms that the player has actually unlocked in the Shop!
-	var neighbors: Array = []
-	for n in raw_neighbors:
-		if GameState and GameState.is_room_unlocked(str(n)):
-			neighbors.append(str(n))
-	
-	if neighbors.is_empty() or current_state == State.TYPE or current_state == State.EXITING_ROOM:
-		return
-		
-	var profile: Dictionary = _get_time_profile()
-	
-	# Night Roaming Logic: High tendency to seek Bedroom
-	if profile.is_night:
-		if cur_room == "room_bedroom":
-			if randf() > 0.15:
-				return
-		else:
-			var target_night_rooms: Array = ["room_bedroom", "room_livingroom"]
-			var best_room: String = neighbors[0]
-			for neighbor in neighbors:
-				if neighbor in target_night_rooms:
-					best_room = neighbor
-					break
-			_start_room_transition_walk(cur_room, best_room)
-			return
-
-	# Daytime Roaming Logic: 35% chance to roam to an unlocked neighbor
-	if randf() <= 0.35:
-		var next_room: String = neighbors[randi() % neighbors.size()]
-		_start_room_transition_walk(cur_room, next_room)
+	# Disabled: Pets no longer autonomously roam between domains.
+	# They stay in the domain they are assigned to.
+	return
 
 func _start_room_transition_walk(from_room: String, to_room: String) -> void:
-	var exit_map: Dictionary = ROOM_EXITS.get(from_room, {})
-	var exit_pos_x: float = exit_map.get(to_room, (min_x + max_x) * 0.5)
-	
-	_pending_target_room = to_room
-	
-	# Show departure thought if visible
-	if thought_bubble and not thought_bubble._is_showing:
-		match to_room:
-			"room_kitchen": thought_bubble.show_thought("Heading to the kitchen! 🥐", 2.5)
-			"room_greenhouse": thought_bubble.show_thought("Visiting the plants! 🌿", 2.5)
-			"room_library": thought_bubble.show_thought("Going up to the attic! 📚", 2.5)
-			"room_livingroom": thought_bubble.show_thought("Heading to the living room! 🛋️", 2.5)
-			"room_bedroom": thought_bubble.show_thought("Going to the bedroom! 🛏️", 2.5)
-			_: thought_bubble.show_thought("Exploring next door! 🐾", 2.5)
-			
-	# Walk over to door/ladder, then execute exit animation
-	walk_to(exit_pos_x, State.EXITING_ROOM, floor_y)
+	# Disabled: No more walking to doors.
+	return
 
 func _on_object_state_changed(key: String, val: Variant) -> void:
 	if not GameState or assigned_room != GameState.active_view_room:
@@ -646,75 +678,111 @@ func _on_object_state_changed(key: String, val: Variant) -> void:
 	var cur_room: String = assigned_room
 	
 	# ==========================================================================
-	# 📺 STATE IDEMPOTENCY & TOGGLE-OFF HANDLING
+	# 🏛️ DOMAIN INTERACTIVE PROP REACTIONS
 	# ==========================================================================
-	if current_state == State.WATCH_TV and key == "livingroom_tv_on":
-		if val == true:
+	
+	# 1. Temple of Morpheus (room_bedroom)
+	if cur_room == "room_bedroom":
+		if key == "lethe_toggled":
+			if renderer:
+				renderer.facing_right = (drink_x > position.x)
 			if thought_bubble:
-				thought_bubble.show_thought("Best part of the show! 🍿📺", 3.0)
+				if val == true:
+					thought_bubble.show_thought("Lethe waterfall is flowing~ 💧✨", 3.0)
+				else:
+					thought_bubble.show_thought("Quiet temple waters... 🌙", 3.0)
 			return
-		else:
+		elif key == "lethe_paw_dip":
 			if thought_bubble:
-				thought_bubble.show_thought("Show's over~ time to stretch! 🐾", 3.0)
-			current_state = State.IDLE
+				thought_bubble.show_thought("Dream orb appeared! ✨", 3.0)
+			if renderer:
+				renderer._spawn_particle("star")
+			var hop_tween = create_tween()
+			hop_tween.tween_property(self, "position:y", position.y - 6.0, 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+			hop_tween.tween_property(self, "position:y", position.y, 0.10).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
 			return
-			
-	if current_state == State.STUDY and key == "attic_book_open":
-		if val == true:
+		elif key == "chimes_struck":
 			if thought_bubble:
-				thought_bubble.show_thought("Fascinating chapter! 📖✨", 3.0)
+				thought_bubble.show_thought("Gentle chime melodies~ 🎐✨", 3.0)
+			if renderer:
+				renderer._spawn_particle("star")
 			return
-		else:
-			current_state = State.IDLE
-			return
-			
-	if current_state == State.WARM_PAWS and key == "livingroom_fireplace_lit" and val == false:
-		if thought_bubble:
-			thought_bubble.show_thought("Fire went out~ brisk! ❄️", 3.0)
-		current_state = State.IDLE
-		return
+		elif key == "weaver_dropped_dust" and current_state == State.IDLE:
+			var dust_x = float(val)
+			if abs(position.x - dust_x) < 120.0 and randf() < 0.5:
+				walk_to(dust_x, State.PLAY, floor_y)
+				return
 
-	# ==========================================================================
-	# ⚡ STARTLED REACTION ON SUDDEN LOUD UNUSED ITEMS
-	# ==========================================================================
-	var loud_keys: Array = [
-		"attic_books_tumbled", "kitchen_stove", "kitchen_oven",
-		"kitchen_espresso", "kitchen_chopping", "greenhouse_monstera"
-	]
-	if key in loud_keys and val == true:
-		if randf() < 0.65:
+	# 2. Hearth of Hestia (room_livingroom)
+	elif cur_room == "room_livingroom":
+		if key == "hearth_toggled":
+			if val == true:
+				if thought_bubble:
+					thought_bubble.show_thought("The sacred fire is roaring! 🔥🐾", 3.0)
+				if current_state == State.IDLE and randf() < 0.60:
+					walk_to(nap_x, State.WARM_PAWS, floor_y)
+			else:
+				if thought_bubble:
+					thought_bubble.show_thought("Fire went out~ chilly! ❄️", 3.0)
+				if current_state == State.WARM_PAWS:
+					current_state = State.IDLE
+			return
+		elif key == "hearth_offering_burned":
 			if thought_bubble:
-				thought_bubble.show_random_thought("startled", 3.0)
+				thought_bubble.show_thought("Sacred offering accepted! 🍇🔥", 3.0)
+			if renderer:
+				renderer._spawn_particle("heart")
+			var bounce_tween = create_tween()
+			bounce_tween.tween_property(self, "position:y", position.y - 5.0, 0.10).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+			bounce_tween.tween_property(self, "position:y", position.y, 0.10).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
+			if current_state == State.IDLE and randf() < 0.50:
+				walk_to(nap_x, State.WARM_PAWS, floor_y)
+			return
+
+	# 3. Tower of Urania (room_library)
+	elif cur_room == "room_library":
+		if key == "telescope_used":
+			if renderer:
+				renderer.facing_right = true
+				renderer._spawn_particle("star")
+			if thought_bubble:
+				thought_bubble.show_thought("A shooting star! Make a wish! 🌠✨", 3.5)
+			if current_state == State.IDLE and randf() < 0.70:
+				walk_to(clampf(max_x - 40.0, min_x, max_x), State.WINDOW_GAZE, floor_y)
+			return
+		elif key == "globe_spun":
+			if thought_bubble:
+				thought_bubble.show_thought("Spinning the golden cosmos! 🌍✨", 3.0)
+			if renderer:
+				renderer._spawn_particle("star")
+			if current_state == State.IDLE and randf() < 0.45:
+				walk_to(drink_x, State.STUDY, floor_y)
+			return
+
+	# 4. Banks of the Styx (room_kitchen)
+	elif cur_room == "room_kitchen":
+		if key == "styx_splashed":
+			if renderer:
+				renderer.facing_right = (drink_x > position.x)
+			if thought_bubble:
+				thought_bubble.show_thought("Ripples in the River Styx! 🌊👻", 3.0)
+			if current_state == State.IDLE and randf() < 0.50:
+				walk_to(drink_x, State.WINDOW_GAZE, floor_y)
+			return
+
+	# 5. Elysian Fields (room_greenhouse)
+	elif cur_room == "room_greenhouse":
+		if key == "scarecrow_clicked":
+			if thought_bubble:
+				thought_bubble.show_thought("Crows flying everywhere! 🐦🌾", 3.0)
 			if renderer:
 				renderer._spawn_particle("exclamation")
-				
-			# Mini startled bounce
 			var startle_tween = create_tween()
-			startle_tween.tween_property(self, "position:y", position.y - 4.0, 0.08).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+			startle_tween.tween_property(self, "position:y", position.y - 5.0, 0.08).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 			startle_tween.tween_property(self, "position:y", position.y, 0.10).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
+			if current_state == State.IDLE and randf() < 0.40:
+				walk_to(desk_x, State.STUDY, floor_y)
 			return
-			
-	# ==========================================================================
-	# 🌱 ORGANIC IDLE ATTRACTIONS
-	# ==========================================================================
-	if current_state != State.IDLE:
-		return
-		
-	if cur_room == "room_livingroom" and key == "livingroom_tv_on" and val == true:
-		if randf() < 0.65:
-			if thought_bubble:
-				thought_bubble.show_random_thought("watch_tv", 3.0)
-			walk_to(138.0, State.WATCH_TV, 88.0)
-	elif cur_room == "room_livingroom" and key == "livingroom_fireplace_lit" and val == true:
-		if randf() < 0.50:
-			if thought_bubble:
-				thought_bubble.show_random_thought("warm_paws", 3.0)
-			walk_to(64.0, State.WARM_PAWS, 112.0)
-	elif cur_room == "room_library" and key == "attic_book_open" and val == true:
-		if randf() < 0.50:
-			if thought_bubble:
-				thought_bubble.show_random_thought("attic_study", 3.0)
-			walk_to(134.0, State.STUDY, 92.0)
 
 func _execute_room_transition_fade(next_room: String) -> void:
 	if not GameState or not GameState.is_room_unlocked(next_room):
@@ -769,25 +837,31 @@ func _on_phase_changed(new_phase: String, _duration: float) -> void:
 		_start_break_behavior()
 
 func _on_session_completed(session_type: String, _coins: int, _xp: int, _streak: int) -> void:
+	_cancel_active_sequence()
 	if session_type == "work":
 		current_state = State.VICTORY
 		state_timer = 0.0
+		if renderer:
+			for i in range(3):
+				renderer._spawn_particle("star")
 		if thought_bubble and visible:
-			if GameState.streak >= 2:
-				thought_bubble.show_random_thought("streak", 3.5)
+			if GameState and GameState.streak >= 2:
+				thought_bubble.show_thought("Focus streak +%d! 🔥🏆" % GameState.streak, 3.5)
 			else:
-				thought_bubble.show_thought("Work session complete! 🎉", 3.5)
+				thought_bubble.show_thought("Focus session complete! 🎉🏆", 3.5)
 	else:
 		if thought_bubble and visible:
 			thought_bubble.show_thought("Refreshed & ready! 🚀", 3.0)
 		current_state = State.IDLE
 
 func _on_session_skipped(_session_type: String) -> void:
+	_cancel_active_sequence()
 	current_state = State.IDLE
 	if thought_bubble and visible:
 		thought_bubble.show_thought("Taking a breather~", 2.5)
 
 func _start_break_behavior() -> void:
+	_cancel_active_sequence()
 	var roll: float = randf()
 	var cur_room = GameState.pet_room if GameState else "room_bedroom"
 	if roll < 0.5:
@@ -800,31 +874,23 @@ func _start_break_behavior() -> void:
 		walk_to(nap_x, State.NAP, floor_y)
 
 func _join_work_session() -> void:
+	_cancel_active_sequence()
 	_work_patience_timer = 0.0
 	_work_patience_duration = randf_range(120.0, 240.0)
 	if thought_bubble and visible:
 		thought_bubble.show_random_thought("work_join", 3.0)
 		
-	var work_x: float
 	var work_state: State = State.TYPE
 	match species:
-		"penguin":
-			work_x = 120.0 + float(pet_index) * 30.0
-			work_state = State.TYPE
-		"bunny":
-			work_x = 50.0 + float(pet_index) * 30.0
-			work_state = State.TYPE
 		"fox":
-			work_x = 140.0 + float(pet_index) * 30.0
 			work_state = State.STUDY
 		"cat":
-			work_x = 100.0 + float(pet_index) * 30.0
 			work_state = State.IDLE
 		_:
-			work_x = 72.0 + float(pet_index) * 35.0
 			work_state = State.TYPE
 			
-	work_x = clampf(work_x, min_x + 5.0, max_x - 5.0)
+	var offset: float = (float(pet_index) - 0.5) * 25.0
+	var work_x: float = clampf(desk_x + offset, min_x + 5.0, max_x - 5.0)
 	walk_to(work_x, work_state, floor_y)
 
 func _on_pet_interacted(interaction_type: String) -> void:
@@ -954,6 +1020,7 @@ func _on_pet_room_changed(_new_pet_room: String) -> void:
 	_update_visibility_from_room_state()
 
 func _on_room_changed(_room_id: String) -> void:
+	_cancel_active_sequence()
 	_update_visibility_from_room_state()
 	position.x = clampf(position.x, min_x, max_x)
 	current_target_y = floor_y
@@ -982,6 +1049,7 @@ func _on_click_area_input_event(_viewport: Node, event: InputEvent, _shape_idx: 
 			get_viewport().set_input_as_handled()
 
 func _perform_pet_action() -> void:
+	_cancel_active_sequence()
 	if GameState:
 		GameState.add_joy(5.0)
 		
@@ -1049,3 +1117,169 @@ func _process_periodic_thoughts() -> void:
 func _set_renderer_state(anim_state: PetRenderer.AnimState) -> void:
 	if renderer and renderer.current_state != anim_state:
 		renderer.current_state = anim_state
+
+# ==============================================================================
+# 🎭 SPECIAL IDLE INTERACTION SEQUENCE RUNNER
+# ==============================================================================
+func _try_start_weighted_idle_interaction() -> bool:
+	if not visible:
+		_special_behavior_cooldown = randf_range(20.0, 40.0)
+		return false
+		
+	# 1. Collect eligible behaviors from Universal and Active Room pools
+	var pool: Array[Dictionary] = []
+	for b in UNIVERSAL_BEHAVIORS:
+		var cond = b.get("condition", "")
+		if cond == "timer_running":
+			var is_working: bool = (TimerEngine and TimerEngine.status == TimerEngine.TimerStatus.RUNNING)
+			if not is_working:
+				continue
+		pool.append(b)
+		
+	if pool.is_empty():
+		_special_behavior_cooldown = randf_range(25.0, 50.0)
+		return false
+		
+	# 2. Compute total weight and roll
+	var total_weight: float = 0.0
+	for b in pool:
+		var r: String = b.get("rarity", "common")
+		total_weight += RARITY_WEIGHTS.get(r, 60.0)
+		
+	var roll: float = randf_range(0.0, total_weight)
+	var cumulative: float = 0.0
+	var chosen: Dictionary = pool[0]
+	for b in pool:
+		var r: String = b.get("rarity", "common")
+		cumulative += RARITY_WEIGHTS.get(r, 60.0)
+		if roll <= cumulative:
+			chosen = b
+			break
+			
+	_start_behavior_sequence(chosen)
+	return true
+
+func _start_behavior_sequence(b: Dictionary) -> void:
+	_active_sequence = b
+	_sequence_stage = 1
+	_sequence_timer = 0.0
+	
+	var target: String = b.get("target", "in_place")
+	var target_x_pos: float = position.x
+	match target:
+		"desk": target_x_pos = desk_x
+		"nap": target_x_pos = nap_x
+		"drink": target_x_pos = drink_x
+		"random_floor": target_x_pos = randf_range(min_x, max_x)
+		_: target_x_pos = position.x
+		
+	if abs(position.x - target_x_pos) > 10.0:
+		walk_to(target_x_pos, State.SPECIAL_INTERACTION, floor_y)
+	else:
+		_execute_primary_stage()
+
+func _execute_primary_stage() -> void:
+	current_state = State.SPECIAL_INTERACTION
+	_sequence_stage = 1
+	_sequence_timer = 0.0
+	
+	var prim: Dictionary = _active_sequence.get("primary", {})
+	var anim = prim.get("anim", PetRenderer.AnimState.IDLE)
+	_set_renderer_state(anim)
+	
+	var thought_txt: String = prim.get("thought", "")
+	if thought_txt != "" and thought_bubble and visible:
+		thought_bubble.show_thought(thought_txt, prim.get("duration", 3.0))
+		
+	var part = prim.get("particle", null)
+	if part != null and renderer:
+		renderer._spawn_particle(part)
+
+func _process_special_interaction_state(delta: float) -> void:
+	velocity.x = 0.0
+	_sequence_timer += delta
+	
+	if _sequence_stage == 1:
+		var prim: Dictionary = _active_sequence.get("primary", {})
+		var dur: float = prim.get("duration", 3.0)
+		if _sequence_timer >= dur:
+			var react = _active_sequence.get("reaction", null)
+			if react != null:
+				_execute_reaction_stage(react)
+			else:
+				_finish_special_sequence()
+	elif _sequence_stage == 2:
+		var react: Dictionary = _active_sequence.get("reaction", {})
+		var dur: float = react.get("duration", 2.0)
+		if _sequence_timer >= dur:
+			_finish_special_sequence()
+
+func _execute_reaction_stage(react: Dictionary) -> void:
+	_sequence_stage = 2
+	_sequence_timer = 0.0
+	
+	var anim = react.get("anim", PetRenderer.AnimState.IDLE)
+	_set_renderer_state(anim)
+	
+	var thought_txt: String = react.get("thought", "")
+	if thought_txt != "" and thought_bubble and visible:
+		thought_bubble.show_thought(thought_txt, react.get("duration", 2.5))
+		
+	var part = react.get("particle", null)
+	if part != null and renderer:
+		renderer._spawn_particle(part)
+		
+	var tween_type: String = react.get("tween", "")
+	if tween_type == "head_shake":
+		_play_head_shake_tween()
+	elif tween_type == "startle_hop":
+		_play_startle_hop_tween()
+
+func _finish_special_sequence() -> void:
+	_cancel_active_sequence()
+	_special_behavior_cooldown = randf_range(25.0, 50.0)
+	current_state = State.IDLE
+	state_timer = 0.0
+
+func _cancel_active_sequence() -> void:
+	if _sequence_tween and _sequence_tween.is_valid():
+		_sequence_tween.kill()
+		_sequence_tween = null
+	_active_sequence.clear()
+	_sequence_stage = 0
+	_sequence_timer = 0.0
+	rotation = 0.0
+
+# ==============================================================================
+# ✨ PROCEDURAL MICRO-TWEENS & REACTIVE HOOKS
+# ==============================================================================
+func _play_head_shake_tween() -> void:
+	if _sequence_tween and _sequence_tween.is_valid():
+		_sequence_tween.kill()
+	_sequence_tween = create_tween()
+	_sequence_tween.tween_property(self, "rotation", -0.15, 0.08)
+	_sequence_tween.tween_property(self, "rotation", 0.15, 0.08)
+	_sequence_tween.tween_property(self, "rotation", -0.10, 0.08)
+	_sequence_tween.tween_property(self, "rotation", 0.0, 0.08)
+
+func _play_startle_hop_tween() -> void:
+	if _sequence_tween and _sequence_tween.is_valid():
+		_sequence_tween.kill()
+	_sequence_tween = create_tween()
+	_sequence_tween.tween_property(self, "position:y", position.y - 7.0, 0.10).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_sequence_tween.tween_property(self, "position:y", position.y, 0.12).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
+
+func _play_happy_hop_tween() -> void:
+	if _sequence_tween and _sequence_tween.is_valid():
+		_sequence_tween.kill()
+	_sequence_tween = create_tween()
+	_sequence_tween.tween_property(self, "position:y", position.y - 5.0, 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_sequence_tween.tween_property(self, "position:y", position.y, 0.12).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
+
+func _on_coins_changed(_new_balance: int, amount_delta: int, _reason: String) -> void:
+	if amount_delta > 0 and current_state == State.IDLE and visible:
+		if thought_bubble and not thought_bubble._is_showing:
+			thought_bubble.show_thought("+Coins! 🪙✨", 2.0)
+		if renderer:
+			renderer._spawn_particle("star")
+		_play_happy_hop_tween()

@@ -166,3 +166,7 @@ signal save_completed(success: bool, timestamp: String)
 
 ## Emitted after load operation
 signal load_completed(success: bool)
+
+## Emitted by rooms with dynamic floors (like Charon's Skiff)
+signal floor_y_offset_changed(offset: float)
+

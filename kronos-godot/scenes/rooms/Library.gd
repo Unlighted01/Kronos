@@ -1,61 +1,46 @@
 @tool
 extends BaseRoom
-class_name Library
+class_name TowerOfUrania
 
-## Grand Archive Library environment for Kronos.
-## Features tall mahogany bookshelves with tumbling interactive books,
-## emerald reading armchair, antique study desk with toggleable candle and openable grimoire,
-## and a dedicated library study chair for pet companion activities.
+## Tower of Urania - Premium Mythological Domain (720px wide).
+## Features asymmetric astronomy layout, telescope, and cluttered desk.
 
 # ==============================================================================
 # 🎨 COLOR PALETTE
 # ==============================================================================
-const COL_WALL: Color = Color(0.16, 0.14, 0.20, 1.0)
-const COL_FLOOR_PARQUET: Color = Color(0.38, 0.24, 0.16, 1.0)
-const COL_FLOOR_DARK: Color = Color(0.28, 0.16, 0.10, 1.0)
-const COL_RUG: Color = Color(0.18, 0.38, 0.35, 1.0) # Emerald Persian Rug
-const COL_RUG_GOLD: Color = Color(0.85, 0.70, 0.25, 1.0)
-const COL_BASEBOARD: Color = Color(0.25, 0.15, 0.10, 1.0)
+const COL_NIGHT_SKY: Color = Color(0.02, 0.03, 0.08, 1.0)
+const COL_SPACE_BLUE: Color = Color(0.10, 0.15, 0.25, 1.0)
+const COL_NEBULA_PURPLE: Color = Color(0.20, 0.05, 0.25, 0.3)
+const COL_NEBULA_TEAL: Color = Color(0.05, 0.25, 0.20, 0.2)
 
-# Bookshelves & Books
-const COL_SHELF_WOOD: Color = Color(0.34, 0.20, 0.12, 1.0)
-const COL_SHELF_SHADOW: Color = Color(0.22, 0.12, 0.08, 1.0)
-const COL_LADDER: Color = Color(0.48, 0.32, 0.20, 1.0)
+const COL_TOWER_STONE: Color = Color(0.18, 0.20, 0.25, 1.0)
+const COL_TOWER_SHADOW: Color = Color(0.10, 0.12, 0.15, 1.0)
+const COL_TOWER_HIGHLIGHT: Color = Color(0.25, 0.28, 0.32, 1.0)
 
-# Book Spines
-const COL_BOOK_RED: Color = Color(0.75, 0.22, 0.22, 1.0)
-const COL_BOOK_BLUE: Color = Color(0.24, 0.45, 0.75, 1.0)
-const COL_BOOK_GREEN: Color = Color(0.22, 0.58, 0.35, 1.0)
-const COL_BOOK_GOLD: Color = Color(0.85, 0.68, 0.20, 1.0)
-const COL_BOOK_PURPLE: Color = Color(0.52, 0.28, 0.65, 1.0)
-const COL_BOOK_TEAL: Color = Color(0.20, 0.60, 0.65, 1.0)
+const COL_BRASS: Color = Color(0.75, 0.55, 0.25, 1.0)
+const COL_BRASS_DARK: Color = Color(0.45, 0.30, 0.15, 1.0)
+const COL_WOOD: Color = Color(0.35, 0.22, 0.15, 1.0)
+const COL_WOOD_LIGHT: Color = Color(0.45, 0.32, 0.20, 1.0)
 
-# Furniture
-const COL_CHAIR_EMERALD: Color = Color(0.15, 0.42, 0.32, 1.0)
-const COL_CHAIR_SHADOW: Color = Color(0.10, 0.28, 0.20, 1.0)
-const COL_DESK_WOOD: Color = Color(0.42, 0.26, 0.16, 1.0)
-const COL_CANDLE_GLOW: Color = Color(1.0, 0.88, 0.50, 0.35)
+const COL_SCROLL: Color = Color(0.9, 0.85, 0.7, 1.0)
+const COL_GLOBE_OCEAN: Color = Color(0.1, 0.3, 0.5, 1.0)
+const COL_GLOBE_LAND: Color = Color(0.2, 0.5, 0.3, 1.0)
+const COL_INK: Color = Color(0.05, 0.05, 0.08, 1.0)
+const COL_CANDLE_WAX: Color = Color(0.8, 0.8, 0.7, 1.0)
+const COL_CANDLE_FLAME: Color = Color(0.95, 0.8, 0.2, 1.0)
 
 # ==============================================================================
-# 🎛️ NODE REFERENCES
+# 📊 INTERNAL STATE
 # ==============================================================================
-@onready var parchment_sparks: CPUParticles2D = $ParchmentSparks
+var _anim_clock: float = 0.0
+var _stars: Array[Dictionary] = []
+var _shooting_stars: Array[Dictionary] = []
+var _globe_spin_speed: float = 1.0
+var _globe_angle: float = 0.0
 
-# ==============================================================================
-# 📊 INTERACTION STATE
-# ==============================================================================
-var is_candle_lit: bool = true
-var is_book_open: bool = true
-var is_books_tumbled: bool = false
-
-var _candle_flicker: float = 0.0
-var _smoke_timer: float = 0.0
-
-# Bounding boxes for click areas
-const RECT_CANDLE: Rect2 = Rect2(144, 76, 12, 18)
-const RECT_BOOK: Rect2 = Rect2(152, 80, 18, 14)
-const RECT_BOOKSHELF: Rect2 = Rect2(38, 8, 164, 88)
-const RECT_LIGHT_SWITCH: Rect2 = Rect2(210, 64, 16, 22)
+# Bounding Boxes
+const RECT_TELESCOPE: Rect2 = Rect2(550, 40, 120, 80)
+const RECT_GLOBE: Rect2 = Rect2(350, 70, 50, 50)
 
 # ==============================================================================
 # ⚙️ LIFECYCLE
@@ -63,322 +48,297 @@ const RECT_LIGHT_SWITCH: Rect2 = Rect2(210, 64, 16, 22)
 func _ready() -> void:
 	super._ready()
 	room_id = "room_library"
-	room_name = "Grand Archive Library"
-	desk_x = 160.0
-	nap_x = 75.0
-	drink_x = 160.0
+	room_name = "Tower of Urania"
+	room_width = 720.0
+	min_x = 80.0
+	max_x = 650.0
+	desk_x = 400.0  # The celestial desk
+	nap_x = 200.0   # On the floor by the books
+	drink_x = 360.0 # Next to the globe (maybe drinking ink? xD)
 	
-	if GameState:
-		is_candle_lit = GameState.get_object_state("attic_candle_lit", true)
-		is_book_open = GameState.get_object_state("attic_book_open", true)
-		is_books_tumbled = GameState.get_object_state("attic_books_tumbled", false)
-		
-	EventBus.object_state_changed.connect(_on_object_state_changed)
-
-var _tumble_timer: float = 0.0
+	for i in range(120):
+		_stars.append({
+			"x": randf_range(0, 720),
+			"y": randf_range(0, 100),
+			"phase": randf_range(0, PI * 2),
+			"size": randf_range(0.5, 2.0)
+		})
 
 func _process(delta: float) -> void:
-	_candle_flicker += delta * 5.0
-	_smoke_timer += delta * 2.0
+	_anim_clock += delta
 	
-	if is_books_tumbled:
-		_tumble_timer -= delta
-		if _tumble_timer <= 0.0:
-			is_books_tumbled = false
+	_globe_angle += _globe_spin_speed * delta
+	_globe_spin_speed = lerpf(_globe_spin_speed, 1.0, delta * 0.5) # Dampen back to normal
+	
+	for i in range(_shooting_stars.size() - 1, -1, -1):
+		var s = _shooting_stars[i]
+		s["x"] -= s["speed"] * delta
+		s["y"] += s["speed"] * 0.5 * delta
+		s["life"] -= delta
+		if s["life"] <= 0:
+			_shooting_stars.remove_at(i)
 			
 	queue_redraw()
 
-func _on_object_state_changed(key: String, val: Variant) -> void:
-	if key == "attic_candle_lit":
-		is_candle_lit = val
-		queue_redraw()
-	elif key == "attic_book_open":
-		is_book_open = val
-		queue_redraw()
-	elif key == "attic_books_tumbled":
-		is_books_tumbled = val
-		_tumble_timer = 3.5
-		queue_redraw()
-
-# ==============================================================================
-# 🖱️ INTERACTION HANDLING
-# ==============================================================================
 func _unhandled_input(event: InputEvent) -> void:
 	if not event is InputEventMouseButton:
 		return
 	var mb: InputEventMouseButton = event as InputEventMouseButton
 	if mb.button_index == MOUSE_BUTTON_LEFT and mb.pressed:
-		var pos: Vector2 = mb.position
+		var cam_x: float = get_viewport().get_camera_2d().position.x - 120.0 if get_viewport().get_camera_2d() else 0.0
+		var pos: Vector2 = mb.position + Vector2(cam_x, 0)
 		
-		# 1. Click Light Switch
-		if RECT_LIGHT_SWITCH.has_point(pos):
-			if GameState:
-				GameState.toggle_room_light(room_id)
+		if RECT_TELESCOPE.has_point(pos):
+			# Shoot a shooting star!
+			_shooting_stars.append({
+				"x": randf_range(400, 700),
+				"y": randf_range(-20, 20),
+				"speed": randf_range(400.0, 600.0),
+				"life": 2.0
+			})
+			if EventBus: EventBus.object_state_changed.emit("telescope_used", true)
 			get_viewport().set_input_as_handled()
 			return
 			
-		# 2. Click Candle (Toggle flame on/off)
-		if RECT_CANDLE.has_point(pos):
-			is_candle_lit = not is_candle_lit
-			if GameState:
-				GameState.set_object_state("attic_candle_lit", is_candle_lit)
-			EventBus.object_state_changed.emit("attic_candle_lit", is_candle_lit)
-			queue_redraw()
-			get_viewport().set_input_as_handled()
-			return
-			
-		# 3. Click Study Book (Toggle open/close grimoire)
-		if RECT_BOOK.has_point(pos):
-			is_book_open = not is_book_open
-			if GameState:
-				GameState.set_object_state("attic_book_open", is_book_open)
-			EventBus.object_state_changed.emit("attic_book_open", is_book_open)
-			queue_redraw()
-			get_viewport().set_input_as_handled()
-			return
-			
-		# 4. Click Reading Armchair
-		if Rect2(58, 70, 36, 32).has_point(pos):
-			EventBus.object_state_changed.emit("attic_armchair", true)
-			queue_redraw()
-			get_viewport().set_input_as_handled()
-			return
-			
-		# 5. Click Bookshelf (Trigger 3.5s book cascade tumble)
-		if RECT_BOOKSHELF.has_point(pos):
-			is_books_tumbled = true
-			_tumble_timer = 3.5
-			if GameState:
-				GameState.set_object_state("attic_books_tumbled", true)
-			EventBus.object_state_changed.emit("attic_books_tumbled", true)
-			if parchment_sparks:
-				parchment_sparks.restart()
-			queue_redraw()
-			get_viewport().set_input_as_handled()
-			return
-			queue_redraw()
+		if RECT_GLOBE.has_point(pos):
+			_globe_spin_speed = 15.0 # Spin rapidly!
+			if EventBus: EventBus.object_state_changed.emit("globe_spun", true)
 			get_viewport().set_input_as_handled()
 			return
 
 # ==============================================================================
-# 🎨 DRAWING PIPELINE (240x140 CANVAS)
+# 🎨 DRAWING PIPELINE
 # ==============================================================================
 func _draw() -> void:
-	# 1. Background Wall & Trim (240x140)
-	draw_rect(Rect2(0, 0, 240, 98), COL_WALL)
+	_draw_cosmos()
+	_draw_tower_architecture()
 	
-	# Baseboard
-	draw_rect(Rect2(0, 96, 240, 4), COL_BASEBOARD)
+	# Left: Bookshelves & Clutter
+	_draw_bookshelves(80, 100)
 	
-	# Floor Parquet Wood
-	draw_rect(Rect2(0, 100, 240, 40), COL_FLOOR_PARQUET)
-	for py in range(100, 140, 8):
-		draw_line(Vector2(0, py), Vector2(240, py), COL_FLOOR_DARK, 1.0)
-		
-	# Persian Emerald Rug (x=50 to 190)
-	draw_rect(Rect2(50, 104, 140, 32), COL_RUG)
-	draw_rect(Rect2(52, 106, 136, 28), COL_RUG_GOLD, false, 1.0)
+	# Center: Celestial Desk
+	_draw_desk(400, 100)
 	
-	# 2. Giant Wall Bookshelves (x=38 to 202, y=8 to 96)
-	_draw_grand_bookshelf(38, 8, 164, 88)
+	# Right: Telescope & Balcony
+	_draw_telescope(600, 100)
 	
-	# 3. Reading Armchair (x=60, y=72)
-	_draw_reading_chair(60, 72)
-	
-	# 4. Library Study Chair (x=130, y=78 - facing desk for pet focus)
-	_draw_study_chair(130, 78)
-	
-	# 5. Antique Study Desk with Candle & Grimoire (x=142, y=74)
-	_draw_study_desk(142, 74)
-	
-	# 6. Wall Light Switch (x=214, y=68 - on open right wall clear of bookshelves)
-	var is_light_on: bool = GameState.is_room_light_on(room_id) if GameState else false
-	draw_light_switch(214, 68, is_light_on)
-	
-	# 7. Placed Room Decorations
-	_draw_placed_decorations()
+	# Foreground Clutter scattered around
+	_draw_clutter()
 
-func _draw_placed_decorations() -> void:
-	if not GameState:
-		return
+# ------------------------------------------------------------------------------
+# 1. COSMOS BACKGROUND
+# ------------------------------------------------------------------------------
+func _draw_cosmos() -> void:
+	draw_rect(Rect2(0, 0, 720, 100), COL_NIGHT_SKY)
+	
+	var cam_x: float = get_viewport().get_camera_2d().position.x - 120.0 if get_viewport().get_camera_2d() else 0.0
+	var p_offset = cam_x * 0.1
+	
+	# Nebulas
+	for i in range(3):
+		var nx = fmod(100 + i * 300 - p_offset * 0.5, 720)
+		draw_circle(Vector2(nx, 40 + sin(i)*20), 80.0, COL_NEBULA_PURPLE)
+		draw_circle(Vector2(nx + 40, 60 + cos(i)*20), 60.0, COL_NEBULA_TEAL)
 		
-	# 🎮 Mini Arcade Cabinet on Desk Nook (x=174, y=74)
-	if GameState.is_decor_placed("decor_arcade"):
-		var ax: float = 174.0
-		var ay: float = 74.0
-		# Wooden/Black Cabinet Body
-		draw_rect(Rect2(ax, ay, 12, 18), Color(0.12, 0.14, 0.20))
-		draw_rect(Rect2(ax + 1, ay + 1, 10, 3), Color(0.95, 0.25, 0.35)) # Glowing Marquee
-		# CRT Screen (Glowing cyan/magenta demo pixel lines)
-		draw_rect(Rect2(ax + 2, ay + 5, 8, 7), Color(0.08, 0.12, 0.24))
-		draw_rect(Rect2(ax + 3, ay + 6, 6, 2), Color(0.35, 0.85, 0.95)) # Player sprite
-		draw_rect(Rect2(ax + 5, ay + 9, 3, 2), Color(0.95, 0.80, 0.20)) # Coin / star
-		# Control Panel & Joystick
-		draw_rect(Rect2(ax + 1, ay + 13, 10, 3), Color(0.25, 0.28, 0.35))
-		draw_rect(Rect2(ax + 3, ay + 12, 2, 2), Color(0.95, 0.25, 0.30)) # Red balltop joystick
-		draw_rect(Rect2(ax + 7, ay + 14, 1, 1), Color(0.3, 0.8, 0.4))   # Button
-		draw_rect(Rect2(ax + 9, ay + 14, 1, 1), Color(0.3, 0.6, 0.9))   # Button
+	# Stars
+	for s in _stars:
+		var sx = fmod(s["x"] - p_offset, 720.0)
+		if sx < 0: sx += 720.0
+		var flicker = sin(_anim_clock * 0.5 + s["phase"]) * 0.5 + 0.5 # Slower flicker
+		draw_rect(Rect2(sx, s["y"], s["size"], s["size"]), Color(1.0, 0.95, 0.9, 0.2 + 0.8 * flicker))
 		
-	# 🔭 Brass Stargazing Telescope on Tripod (x=44, y=82)
-	if GameState.is_decor_placed("decor_telescope"):
-		var tx: float = 44.0
-		var ty: float = 82.0
-		# Tripod Legs (dark walnut wood)
-		draw_line(Vector2(tx, ty), Vector2(tx - 6, ty + 18), Color(0.40, 0.25, 0.15), 1.5)
-		draw_line(Vector2(tx, ty), Vector2(tx, ty + 18), Color(0.35, 0.20, 0.12), 1.5)
-		draw_line(Vector2(tx, ty), Vector2(tx + 6, ty + 18), Color(0.40, 0.25, 0.15), 1.5)
-		# Brass Swivel Mount
-		draw_rect(Rect2(tx - 2, ty - 2, 4, 4), Color(0.90, 0.72, 0.20))
-		# Angled Brass Telescope Barrel (pointed top-left towards upper window)
-		draw_line(Vector2(tx - 8, ty - 8), Vector2(tx + 6, ty + 4), Color(0.95, 0.78, 0.22), 3.0)
-		draw_line(Vector2(tx - 9, ty - 9), Vector2(tx - 7, ty - 7), Color(0.65, 0.90, 1.0), 2.0) # Lens shine
-		draw_rect(Rect2(tx + 5, ty + 3, 3, 3), Color(0.75, 0.58, 0.15)) # Eyepiece
+	# Shooting Stars
+	for s in _shooting_stars:
+		draw_line(Vector2(s["x"], s["y"]), Vector2(s["x"] + 40, s["y"] - 20), Color(1.0, 1.0, 1.0, s["life"]), 2.0)
+		draw_circle(Vector2(s["x"], s["y"]), 2.0, Color(1.0, 1.0, 1.0, s["life"]))
 
-func _draw_grand_bookshelf(bx: float, by: float, bw: float, bh: float) -> void:
-	# Outer Frame
-	draw_rect(Rect2(bx, by, bw, bh), COL_SHELF_SHADOW)
-	draw_rect(Rect2(bx - 2, by - 2, bw + 4, 3), COL_SHELF_WOOD)
-	draw_rect(Rect2(bx - 2, by, 3, bh), COL_SHELF_WOOD)
-	draw_rect(Rect2(bx + bw - 1, by, 3, bh), COL_SHELF_WOOD)
+# ------------------------------------------------------------------------------
+# 2. ARCHITECTURE
+# ------------------------------------------------------------------------------
+func _draw_tower_architecture() -> void:
+	var cam_x: float = get_viewport().get_camera_2d().position.x - 120.0 if get_viewport().get_camera_2d() else 0.0
+	var a_offset = cam_x * 0.2
 	
-	# 3 Shelf Dividers
-	var shelf_h: float = bh / 4.0
-	for i in range(1, 4):
-		var sy = by + i * shelf_h
-		draw_rect(Rect2(bx, sy - 1, bw, 3), COL_SHELF_WOOD)
+	# Giant Observatory Arches in the background
+	for ax in range(50, 720, 200):
+		var rx = ax - a_offset
+		# Arch pillars
+		draw_rect(Rect2(rx, 20, 16, 80), COL_TOWER_STONE.darkened(0.2))
+		draw_rect(Rect2(rx + 120, 20, 16, 80), COL_TOWER_STONE.darkened(0.2))
+		# Arch top
+		draw_arc(Vector2(rx + 68, 20), 60.0, PI, PI*2, 24, COL_TOWER_STONE.darkened(0.2), 16.0)
 		
-	# Fill Shelves with Multi-Colored Book Spines
-	var book_colors = [COL_BOOK_RED, COL_BOOK_BLUE, COL_BOOK_GREEN, COL_BOOK_GOLD, COL_BOOK_PURPLE, COL_BOOK_TEAL]
-	for row in range(4):
-		var ry = by + row * shelf_h + 3
-		var r_height = shelf_h - 4
-		var x_cursor = bx + 4
-		var book_idx = row * 3
+	# Heavy wooden crossbeams across the ceiling
+	draw_rect(Rect2(0, -50, 720, 60), COL_WOOD.darkened(0.2))
+	for bx in range(0, 720, 100):
+		draw_rect(Rect2(bx - a_offset, 10, 10, 15), COL_WOOD.darkened(0.1))
+	
+	# Floor
+	draw_rect(Rect2(0, 100, 720, 40), COL_TOWER_STONE)
+	draw_line(Vector2(0, 100), Vector2(720, 100), COL_TOWER_HIGHLIGHT, 2.0)
+	
+	# Stone Tiles
+	for mx in range(20, 720, 40):
+		draw_line(Vector2(mx, 100), Vector2(mx + 10, 140), COL_TOWER_SHADOW, 1.0)
+		draw_line(Vector2(0, 115), Vector2(720, 115), COL_TOWER_SHADOW, 1.0)
 		
-		while x_cursor < bx + bw - 6:
-			# Skip area where sliding ladder is
-			if x_cursor > 112 and x_cursor < 128:
-				x_cursor += 4
-				continue
-				
-			var book_w = 4
-			var book_col = book_colors[book_idx % book_colors.size()]
-			
-			# Tumble effect on row 1 (second shelf from top) when clicked!
-			if is_books_tumbled and row == 1 and x_cursor >= 70 and x_cursor <= 96:
-				# Tilted book cluster domino effect
-				var tilt_poly: PackedVector2Array = [
-					Vector2(x_cursor, ry + (shelf_h - r_height - 3)),
-					Vector2(x_cursor + book_w + 3, ry + (shelf_h - r_height - 1)),
-					Vector2(x_cursor + book_w, ry + shelf_h - 4),
-					Vector2(x_cursor - 3, ry + shelf_h - 4)
-				]
-				draw_colored_polygon(tilt_poly, book_col)
-				x_cursor += book_w + 3
-				book_idx += 1
-				continue
-			elif is_books_tumbled and row == 2 and x_cursor >= 148 and x_cursor <= 156:
-				# Fallen horizontal book lying on shelf
-				draw_rect(Rect2(x_cursor, ry + shelf_h - 7, 12, 3), book_col)
-				draw_rect(Rect2(x_cursor, ry + shelf_h - 7, 12, 1), COL_BOOK_GOLD)
-				x_cursor += 14
-				book_idx += 1
-				continue
-				
-			# Standard neat book stack
-			draw_rect(Rect2(x_cursor, ry + (shelf_h - r_height - 3), book_w, r_height), book_col)
-			draw_rect(Rect2(x_cursor, ry + (shelf_h - r_height), book_w, 1), COL_BOOK_GOLD)
-			x_cursor += book_w + 1
-			book_idx += 1
-			
-	# Wooden Sliding Ladder (x=118, y=by+2)
-	_draw_ladder(118, by + 2, bh)
+	# Balcony railing on the right
+	draw_rect(Rect2(650, 80, 10, 20), COL_TOWER_STONE)
+	draw_rect(Rect2(690, 80, 10, 20), COL_TOWER_STONE)
+	draw_rect(Rect2(640, 75, 80, 5), COL_TOWER_HIGHLIGHT)
 
-func _draw_ladder(lx: float, ly: float, lh: float) -> void:
-	draw_line(Vector2(lx - 20, ly + 2), Vector2(lx + 30, ly + 2), COL_RUG_GOLD, 2.0)
-	draw_line(Vector2(lx, ly), Vector2(lx - 6, ly + lh + 14), COL_LADDER, 2.0)
-	draw_line(Vector2(lx + 10, ly), Vector2(lx + 4, ly + lh + 14), COL_LADDER, 2.0)
-	for i in range(6):
-		var ry = ly + 12 + i * 14
-		draw_line(Vector2(lx - 1 - i, ry), Vector2(lx + 9 - i, ry), COL_LADDER, 2.0)
+# ------------------------------------------------------------------------------
+# 3. BOOKSHELVES & LADDER
+# ------------------------------------------------------------------------------
+func _draw_bookshelves(bx: float, by: float) -> void:
+	seed(hash("library_books")) # Ensure books don't jitter every frame!
+	
+	# Massive curved bookshelf on the left
+	draw_rect(Rect2(bx - 60, by - 90, 140, 90), COL_WOOD.darkened(0.2))
+	
+	# Shelves
+	for y in range(int(by) - 20, int(by) - 90, -25):
+		draw_rect(Rect2(bx - 60, y, 140, 4), COL_WOOD_LIGHT)
+		# Draw books on this shelf
+		var book_x = bx - 55
+		while book_x < bx + 70:
+			var bw = randf_range(4.0, 12.0)
+			var bh = randf_range(10.0, 22.0)
+			if randf() > 0.2: # 80% chance of a book
+				var bc = Color(randf_range(0.2, 0.8), randf_range(0.2, 0.5), randf_range(0.2, 0.8))
+				# Leaning book?
+				if randf() > 0.8:
+					draw_rect(Rect2(book_x, y - bh, bw, bh), bc)
+					draw_line(Vector2(book_x, y - bh), Vector2(book_x+bw, y - bh), COL_SCROLL, 1.0)
+				else:
+					# Draw it tilted
+					var tilt = randf_range(2.0, 8.0)
+					var bpts = PackedVector2Array([
+						Vector2(book_x, y), Vector2(book_x+bw, y),
+						Vector2(book_x+bw+tilt, y-bh), Vector2(book_x+tilt, y-bh)
+					])
+					draw_colored_polygon(bpts, bc)
+			book_x += bw + randf_range(1.0, 5.0)
 
-func _draw_reading_chair(cx: float, cy: float) -> void:
-	# Emerald Wingback Armchair
-	draw_rect(Rect2(cx, cy, 32, 28), COL_CHAIR_EMERALD)
-	draw_rect(Rect2(cx, cy, 32, 3), COL_CHAIR_SHADOW)
-	draw_rect(Rect2(cx - 3, cy + 4, 5, 24), COL_CHAIR_EMERALD)
-	draw_rect(Rect2(cx + 30, cy + 4, 5, 24), COL_CHAIR_EMERALD)
-	draw_rect(Rect2(cx + 2, cy + 14, 28, 14), Color(0.20, 0.50, 0.38))
-	draw_rect(Rect2(cx + 2, cy + 14, 28, 2), COL_CHAIR_SHADOW)
-	draw_rect(Rect2(cx + 3, cy + 15, 26, 1), COL_RUG_GOLD)
-	draw_rect(Rect2(cx, cy + 28, 3, 6), COL_SHELF_WOOD)
-	draw_rect(Rect2(cx + 29, cy + 28, 3, 6), COL_SHELF_WOOD)
+	# Rolling Ladder
+	var lx = bx + 40
+	draw_line(Vector2(lx, by), Vector2(lx, by - 80), COL_WOOD_LIGHT, 3.0)
+	draw_line(Vector2(lx + 15, by), Vector2(lx + 15, by - 80), COL_WOOD_LIGHT, 3.0)
+	for ly in range(int(by) - 10, int(by) - 80, -15):
+		draw_line(Vector2(lx, ly), Vector2(lx + 15, ly), COL_WOOD_LIGHT, 2.0)
+	# Ladder wheels
+	draw_circle(Vector2(lx + 2, by - 2), 3.0, COL_BRASS_DARK)
+	draw_circle(Vector2(lx + 13, by - 2), 3.0, COL_BRASS_DARK)
+	
+	seed(int(Time.get_ticks_msec())) # Reset seed to random for other systems
 
-## Draws the dedicated study chair positioned at the desk for pet companion
-func _draw_study_chair(sx: float, sy: float) -> void:
-	# Wooden Spindle Backrest (facing right toward desk)
-	draw_rect(Rect2(sx, sy, 3, 20), COL_SHELF_WOOD)
-	draw_rect(Rect2(sx, sy, 8, 2), COL_SHELF_WOOD) # Top crest rail
-	# Spindles
-	draw_rect(Rect2(sx + 3, sy + 3, 1, 14), COL_DESK_WOOD)
-	draw_rect(Rect2(sx + 6, sy + 3, 1, 14), COL_DESK_WOOD)
+# ------------------------------------------------------------------------------
+# 4. CELESTIAL DESK
+# ------------------------------------------------------------------------------
+func _draw_desk(dx: float, dy: float) -> void:
+	# Heavy wooden desk
+	draw_rect(Rect2(dx - 40, dy - 20, 80, 20), COL_WOOD.darkened(0.1))
+	draw_rect(Rect2(dx - 45, dy - 20, 90, 6), COL_WOOD_LIGHT)
+	# Legs
+	draw_rect(Rect2(dx - 35, dy, 8, 10), COL_WOOD)
+	draw_rect(Rect2(dx + 27, dy, 8, 10), COL_WOOD)
 	
-	# Emerald Velvet Seat Cushion
-	draw_rect(Rect2(sx, sy + 18, 12, 4), COL_CHAIR_EMERALD)
-	draw_rect(Rect2(sx, sy + 18, 12, 1), Color(0.25, 0.58, 0.44)) # Top highlight
+	# The Interactive Celestial Globe
+	var gx = dx - 20
+	var gy = dy - 35
+	draw_rect(Rect2(gx - 4, gy + 15, 8, 5), COL_BRASS) # Base
+	draw_arc(Vector2(gx, gy), 12.0, -PI/4, PI*1.25, 12, COL_BRASS, 2.0) # Axis ring
+	draw_circle(Vector2(gx, gy), 10.0, COL_GLOBE_OCEAN)
 	
-	# Turned Wooden Legs
-	draw_rect(Rect2(sx + 1, sy + 22, 2, 14), COL_SHELF_WOOD)
-	draw_rect(Rect2(sx + 9, sy + 22, 2, 14), COL_SHELF_WOOD)
-	# Stretcher bar between legs
-	draw_rect(Rect2(sx + 1, sy + 28, 10, 1), COL_SHELF_SHADOW)
+	# Spin the continents!
+	var cx1 = gx + sin(_globe_angle) * 6.0
+	draw_circle(Vector2(cx1, gy - 2), 3.0, COL_GLOBE_LAND)
+	var cx2 = gx + cos(_globe_angle) * 8.0
+	draw_circle(Vector2(cx2, gy + 4), 4.0, COL_GLOBE_LAND)
 
-func _draw_study_desk(dx: float, dy: float) -> void:
-	# Mahogany Desk Surface
-	draw_rect(Rect2(dx, dy + 16, 38, 4), COL_DESK_WOOD)
-	draw_rect(Rect2(dx, dy + 19, 38, 2), COL_SHELF_SHADOW)
-	draw_rect(Rect2(dx + 2, dy + 20, 3, 18), COL_DESK_WOOD)
-	draw_rect(Rect2(dx + 33, dy + 20, 3, 18), COL_DESK_WOOD)
+	# Candles
+	var cx = dx + 15
+	var cy_c = dy - 25
+	draw_rect(Rect2(cx, cy_c, 4, 8), COL_CANDLE_WAX)
+	draw_rect(Rect2(cx + 8, cy_c + 3, 3, 5), COL_CANDLE_WAX)
+	var flicker = sin(_anim_clock * 15.0) * 1.5
+	draw_circle(Vector2(cx + 2, cy_c - 2), 2.0 + flicker * 0.2, COL_CANDLE_FLAME)
+	draw_circle(Vector2(cx + 2, cy_c - 2), 6.0 + flicker, Color(COL_CANDLE_FLAME.r, COL_CANDLE_FLAME.g, 0.0, 0.2))
+
+	# Spilled Ink Bottle
+	draw_rect(Rect2(dx + 30, dy - 24, 6, 8), Color(0.2, 0.2, 0.2)) # Bottle
+	draw_rect(Rect2(dx + 25, dy - 18, 15, 3), COL_INK) # Spill puddle
+	# Dripping ink off the desk
+	draw_line(Vector2(dx + 35, dy - 15), Vector2(dx + 35, dy - 5), COL_INK, 1.5)
+
+# ------------------------------------------------------------------------------
+# 5. MASSIVE TELESCOPE
+# ------------------------------------------------------------------------------
+func _draw_telescope(tx: float, ty: float) -> void:
+	# Tripod Base
+	draw_line(Vector2(tx, ty - 30), Vector2(tx - 20, ty), COL_WOOD, 3.0)
+	draw_line(Vector2(tx, ty - 30), Vector2(tx + 20, ty), COL_WOOD, 3.0)
+	draw_line(Vector2(tx, ty - 30), Vector2(tx, ty), COL_WOOD.darkened(0.2), 3.0)
+	# Crossbeams for tripod
+	draw_line(Vector2(tx - 10, ty - 15), Vector2(tx + 10, ty - 15), COL_BRASS_DARK, 2.0)
 	
-	# Grimoire / Tome on Desk (Openable State)
-	if is_book_open:
-		# OPEN: Spread parchment pages with gold gilded edge and runes
-		draw_rect(Rect2(dx + 10, dy + 11, 16, 6), Color(0.92, 0.88, 0.78)) # Parchment
-		draw_rect(Rect2(dx + 17, dy + 11, 2, 6), COL_SHELF_SHADOW)        # Spine fold
-		# Gold page edge trim
-		draw_rect(Rect2(dx + 10, dy + 10, 16, 1), COL_RUG_GOLD)
-		# Cursive script lines
-		draw_rect(Rect2(dx + 11, dy + 12, 5, 1), COL_SHELF_SHADOW)
-		draw_rect(Rect2(dx + 11, dy + 14, 5, 1), COL_SHELF_SHADOW)
-		draw_rect(Rect2(dx + 20, dy + 12, 5, 1), COL_SHELF_SHADOW)
-		draw_rect(Rect2(dx + 20, dy + 14, 5, 1), COL_SHELF_SHADOW)
-		# Silk bookmark ribbon hanging down
-		draw_line(Vector2(dx + 18, dy + 17), Vector2(dx + 18, dy + 21), Color(0.85, 0.22, 0.22), 1.0)
-	else:
-		# CLOSED: Thick crimson leather tome with gold clasp
-		draw_rect(Rect2(dx + 12, dy + 12, 12, 5), COL_BOOK_RED)
-		draw_rect(Rect2(dx + 12, dy + 12, 2, 5), COL_SHELF_SHADOW) # Thick spine
-		draw_rect(Rect2(dx + 18, dy + 13, 2, 3), COL_RUG_GOLD)     # Gold clasp
-		# Bookmark tail
-		draw_line(Vector2(dx + 22, dy + 14), Vector2(dx + 25, dy + 14), Color(0.85, 0.22, 0.22), 1.0)
-		
-	# Feather Quill & Inkpot
-	draw_rect(Rect2(dx + 28, dy + 12, 4, 4), Color(0.15, 0.15, 0.18))
-	draw_line(Vector2(dx + 29, dy + 13), Vector2(dx + 25, dy + 4), Color(0.95, 0.95, 0.95), 1.0)
+	# Mount
+	draw_circle(Vector2(tx, ty - 30), 6.0, COL_BRASS)
+	draw_rect(Rect2(tx - 4, ty - 38, 8, 8), COL_BRASS_DARK)
 	
-	# Brass Candle & Dynamic Flame / Smoke
-	draw_rect(Rect2(dx + 4, dy + 11, 4, 2), COL_RUG_GOLD)
-	draw_rect(Rect2(dx + 5, dy + 6, 2, 6), Color(0.95, 0.92, 0.85))
+	# Telescope Tube (Rotated)
+	draw_set_transform(Vector2(tx, ty - 36), -PI / 6.0, Vector2.ONE)
 	
-	if is_candle_lit:
-		# Lit candle: Dancing flickering flame + warm halo
-		var candle_flick: float = sin(_candle_flicker) * 1.0
-		draw_circle(Vector2(dx + 6, dy + 4), 11.0, COL_CANDLE_GLOW)
-		draw_rect(Rect2(dx + 5, dy + 3 + candle_flick, 2, 3), Color(1.0, 0.85, 0.2))
-		draw_rect(Rect2(dx + 5.5, dy + 2 + candle_flick, 1, 2), Color(1.0, 0.4, 0.1))
-	else:
-		# Extinguished candle: Dark burnt wick + curling wisps of smoke
-		draw_rect(Rect2(dx + 5.5, dy + 5, 1, 2), Color(0.18, 0.18, 0.20)) # Dark wick
-		var smoke_ox: float = sin(_smoke_timer) * 1.5
-		draw_rect(Rect2(dx + 5.5 + smoke_ox, dy + 2, 1, 1), Color(0.65, 0.65, 0.70, 0.5))
-		draw_rect(Rect2(dx + 6.0 - smoke_ox, dy - 1, 1, 1), Color(0.65, 0.65, 0.70, 0.3))
+	# Main back barrel
+	draw_rect(Rect2(-20, -10, 40, 20), COL_BRASS_DARK)
+	draw_rect(Rect2(-20, -10, 40, 4), COL_BRASS) # Highlight
+	
+	# Middle extending barrel
+	draw_rect(Rect2(20, -8, 25, 16), COL_BRASS)
+	draw_rect(Rect2(20, -8, 25, 4), Color(0.9, 0.7, 0.4, 1.0)) # Highlight
+	
+	# Front Lens cap / ring
+	draw_rect(Rect2(45, -10, 10, 20), COL_BRASS_DARK)
+	draw_rect(Rect2(55, -8, 5, 16), COL_SPACE_BLUE) # Lens glass
+	
+	# Eyepiece
+	draw_rect(Rect2(-30, -5, 10, 10), COL_BRASS)
+	draw_rect(Rect2(-35, -3, 5, 6), COL_SPACE_BLUE)
+	
+	# Finder Scope on top
+	draw_rect(Rect2(5, -16, 20, 6), COL_BRASS)
+	draw_rect(Rect2(10, -10, 4, 4), COL_BRASS_DARK) # mount
+	
+	# Reset transform!
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+# ------------------------------------------------------------------------------
+# 6. GROUND CLUTTER
+# ------------------------------------------------------------------------------
+func _draw_clutter() -> void:
+	# Dropped scrolls on the floor
+	_draw_scroll(150, 105, 0.2)
+	_draw_scroll(170, 108, -0.1)
+	_draw_scroll(380, 112, 0.5)
+	
+	# Reading Stool
+	draw_rect(Rect2(280, 90, 20, 4), COL_WOOD_LIGHT)
+	draw_line(Vector2(282, 94), Vector2(280, 105), COL_WOOD, 2.0)
+	draw_line(Vector2(298, 94), Vector2(300, 105), COL_WOOD, 2.0)
+	
+	# Dropped Astrolabe gear
+	draw_circle(Vector2(500, 110), 5.0, COL_BRASS)
+	draw_circle(Vector2(500, 110), 3.0, COL_TOWER_STONE.darkened(0.2)) # Hole
+
+func _draw_scroll(sx: float, sy: float, rot: float) -> void:
+	var w = 15.0
+	var h = 5.0
+	var pts = PackedVector2Array([
+		Vector2(sx, sy), Vector2(sx + cos(rot)*w, sy + sin(rot)*w),
+		Vector2(sx + cos(rot)*w - sin(rot)*h, sy + sin(rot)*w + cos(rot)*h),
+		Vector2(sx - sin(rot)*h, sy + cos(rot)*h)
+	])
+	draw_colored_polygon(pts, COL_SCROLL)
+	# Scroll ends
+	draw_circle(Vector2(sx, sy + h/2.0), h/2.0, COL_WOOD_LIGHT)
+	draw_circle(Vector2(sx + cos(rot)*w, sy + sin(rot)*w + h/2.0), h/2.0, COL_WOOD_LIGHT)

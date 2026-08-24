@@ -307,39 +307,44 @@ const THOUGHTS_ATTIC_ARMCHAIR: Array[String] = [
 	"Softest chair in the archive 🌿"
 ]
 
-const THOUGHTS_KITCHEN_STOVE: Array[String] = [
-	"Mmm, stew smells so savory! 🍲✨",
-	"Bubbling soup is almost ready!",
-	"Chef is on duty! 🐾",
-	"Smells delicious in here! 🍲"
+const THOUGHTS_MORPHEUS: Array[String] = [
+	"Floating in a sea of clouds~ ☁️💤",
+	"The sands of time trickle down... ⏳",
+	"Dream orbs glowing softly ✨",
+	"The Font of Lethe washes worries away 💧",
+	"Resting beneath the crescent moon 🌙"
 ]
 
-const THOUGHTS_KITCHEN_OVEN: Array[String] = [
-	"Hot golden croissants! 🥐✨",
-	"Pastry aroma is heavenly~",
-	"Waiting for treats to cool down! 😋",
-	"Fresh baked goodness! 🥐"
+const THOUGHTS_HESTIA: Array[String] = [
+	"The sacred hearth fire is so warm! 🔥🐾",
+	"Fresh water from the Olympic amphora 🏺",
+	"Ancient recipes and scrolls 📜",
+	"A sweet offering for Hestia 🍇",
+	"Cozy nap on the hearth couch ✨"
 ]
 
-const THOUGHTS_KITCHEN_COFFEE: Array[String] = [
-	"Fresh espresso aroma! ☕✨",
-	"Morning brew hits the spot~",
-	"Coziest cafe vibes 🥐☕",
-	"Sipping warmth! ☕"
+const THOUGHTS_URANIA: Array[String] = [
+	"A shooting star! Make a wish! 🌠✨",
+	"Charting the cosmos through the telescope 🔭",
+	"Spinning the golden planetarium 🌍",
+	"Reading forgotten astrological tomes 📜",
+	"The universe is so vast and quiet... ✨"
 ]
 
-const THOUGHTS_KITCHEN_CHOPPING: Array[String] = [
-	"Dicing carrots for dinner! 🥕✨",
-	"Chop chop chop! 🔪🐾",
-	"Food prep master! 🥗",
-	"Fresh veggies ready! 🥕"
+const THOUGHTS_STYX: Array[String] = [
+	"Riding Charon's silent ferry 🛶👻",
+	"The green lantern guides our voyage 🏮✨",
+	"The river mist is chilly and quiet ❄️",
+	"Holding steady at the helm of the skiff ⚓",
+	"Gentle creaking of the wooden deck 🌊"
 ]
 
-const THOUGHTS_GREENHOUSE: Array[String] = [
-	"Blooming cherry blossoms! 🌸✨",
-	"Sniffing the fresh monsteras 🌿",
-	"Such peaceful green energy~ 🍃",
-	"Catching falling petals! 🌸"
+const THOUGHTS_ELYSIAN: Array[String] = [
+	"Golden wheat rustling in the breeze 🌾✨",
+	"The scarecrow is watching over the fields 🐦🌾",
+	"Crystal clear spring water 💧✨",
+	"Rolling green hills under the warm sun ☀️",
+	"So soft and peaceful out here~ 🌾💤"
 ]
 
 const THOUGHTS_ANNOYED: Array[String] = [
@@ -477,11 +482,11 @@ func show_random_thought(category: String, duration: float = 3.5) -> void:
 			"warm_paws": pool = THOUGHTS_WARM_PAWS
 			"attic_study": pool = THOUGHTS_ATTIC_STUDY
 			"attic_armchair": pool = THOUGHTS_ATTIC_ARMCHAIR
-			"kitchen_stove": pool = THOUGHTS_KITCHEN_STOVE
-			"kitchen_oven": pool = THOUGHTS_KITCHEN_OVEN
-			"kitchen_coffee": pool = THOUGHTS_KITCHEN_COFFEE
-			"kitchen_chopping": pool = THOUGHTS_KITCHEN_CHOPPING
-			"greenhouse": pool = THOUGHTS_GREENHOUSE
+			"morpheus", "room_bedroom": pool = THOUGHTS_MORPHEUS
+			"hestia", "room_livingroom": pool = THOUGHTS_HESTIA
+			"urania", "room_library": pool = THOUGHTS_URANIA
+			"styx", "room_kitchen": pool = THOUGHTS_STYX
+			"elysian", "room_greenhouse": pool = THOUGHTS_ELYSIAN
 			_: pool = THOUGHTS_IDLE_SHIBA
 	
 	if pool.size() > 0:

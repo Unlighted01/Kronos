@@ -1,63 +1,64 @@
 @tool
 extends BaseRoom
-class_name Bedroom
+class_name TempleOfMorpheus
 
-## Cozy Bedroom environment for Kronos.
-## Features interactive work desk with glowing laptop, foldable daybed, 
-## wall light switch, and opening bay window with real-world seasonal weather particles.
+## Temple of Morpheus - Premium Mythological Domain (720px wide).
+## Features the Font of Lethe waterfall, Starlight Weaver moth, and Interactive Dreamcatcher Chimes.
 
 # ==============================================================================
 # 🎨 COLOR PALETTE
 # ==============================================================================
-const COL_WALL: Color = Color(0.18, 0.20, 0.28, 1.0)
-const COL_WALL_STRIPE: Color = Color(0.15, 0.17, 0.24, 1.0)
-const COL_FLOOR_WOOD: Color = Color(0.42, 0.28, 0.18, 1.0)
-const COL_FLOOR_PLANK: Color = Color(0.35, 0.22, 0.14, 1.0)
-const COL_BASEBOARD: Color = Color(0.28, 0.18, 0.12, 1.0)
+const COL_SKY_DEEP: Color = Color(0.04, 0.05, 0.10, 1.0)
+const COL_SKY_MID: Color = Color(0.08, 0.12, 0.20, 1.0)
+const COL_TEMPLE_BG: Color = Color(0.12, 0.10, 0.16, 1.0)
+const COL_TEMPLE_FG: Color = Color(0.18, 0.16, 0.22, 1.0)
+const COL_FLOOR: Color = Color(0.15, 0.12, 0.18, 1.0)
 
-# Window Sky Palettes
-const COL_SKY_DAY: Color = Color(0.45, 0.72, 0.95, 1.0)
-const COL_SKY_SUNSET: Color = Color(0.92, 0.55, 0.42, 1.0)
-const COL_SKY_NIGHT: Color = Color(0.08, 0.09, 0.18, 1.0)
-const COL_SUN_GOLD: Color = Color(1.0, 0.92, 0.50, 1.0)
-const COL_MOON_WHITE: Color = Color(0.95, 0.96, 1.0, 1.0)
-const COL_WINDOW_FRAME: Color = Color(0.55, 0.40, 0.28, 1.0)
-const COL_WINDOW_FRAME_DARK: Color = Color(0.38, 0.26, 0.18, 1.0)
-const COL_WINDOW_GLASS_SHINE: Color = Color(1.0, 1.0, 1.0, 0.22)
+const COL_LETHE_WATER: Color = Color(0.40, 0.85, 0.95, 0.8)
+const COL_LETHE_FOAM: Color = Color(0.80, 0.95, 1.0, 0.9)
+const COL_LETHE_GLOW: Color = Color(0.20, 0.65, 0.95, 0.4)
 
-# Furniture & Bed
-const COL_DESK_WOOD: Color = Color(0.52, 0.35, 0.22, 1.0)
-const COL_DESK_SHADOW: Color = Color(0.38, 0.24, 0.15, 1.0)
-const COL_BED_FRAME: Color = Color(0.45, 0.30, 0.20, 1.0)
-const COL_BED_SHEET: Color = Color(0.88, 0.90, 0.95, 1.0)
-const COL_BED_SHEET_SHADOW: Color = Color(0.72, 0.76, 0.84, 1.0)
-const COL_BED_DUVET: Color = Color(0.32, 0.52, 0.65, 1.0)
-const COL_BED_DUVET_FOLD: Color = Color(0.42, 0.65, 0.78, 1.0)
-const COL_BED_DUVET_INNER: Color = Color(0.24, 0.40, 0.52, 1.0)
-const COL_BED_PILLOW: Color = Color(0.95, 0.96, 0.98, 1.0)
-const COL_LAMP_SHADE: Color = Color(0.98, 0.85, 0.50, 1.0)
-const COL_LAMP_GLOW: Color = Color(1.0, 0.92, 0.60, 0.25)
-const COL_LAPTOP_GLOW: Color = Color(0.35, 0.75, 1.0, 0.35)
+const COL_MARBLE: Color = Color(0.85, 0.80, 0.85, 1.0)
+const COL_MARBLE_SHADE: Color = Color(0.65, 0.60, 0.70, 1.0)
+const COL_VINE: Color = Color(0.15, 0.25, 0.20, 1.0)
+const COL_MOONFLOWER: Color = Color(0.95, 0.95, 1.0, 1.0)
+
+const COL_BED_CANOPY: Color = Color(0.15, 0.25, 0.45, 0.8)
+const COL_BED_PILLOW: Color = Color(0.70, 0.85, 0.95, 1.0)
+const COL_BED_SHEET: Color = Color(0.25, 0.35, 0.55, 1.0)
+const COL_WOOD_SILVER: Color = Color(0.45, 0.50, 0.60, 1.0)
+
+const COL_SAND: Color = Color(0.95, 0.80, 0.45, 1.0)
+const COL_HOURGLASS_GLASS: Color = Color(0.70, 0.90, 0.95, 0.3)
+const COL_CHIME_BRONZE: Color = Color(0.65, 0.45, 0.25, 1.0)
+
+const COL_MOTH_WING: Color = Color(0.60, 0.85, 1.0, 0.6)
+const COL_MOTH_GLOW: Color = Color(0.40, 0.75, 1.0, 0.3)
 
 # ==============================================================================
-# 🎛️ NODE REFERENCES
+# 📊 INTERNAL STATE
 # ==============================================================================
-@onready var seasonal_particles: CPUParticles2D = $SeasonalWeatherParticles
+var _anim_clock: float = 0.0
+var _stars: Array[Dictionary] = []
+var _dreams: Array[Dictionary] = []
 
-# ==============================================================================
-# 📊 INTERACTION STATE
-# ==============================================================================
-var is_bed_open: bool = false
-var is_window_open: bool = false
-var _flicker_timer: float = 0.0
-var _laptop_glow_alpha: float = 0.35
-var _breeze_offset: float = 0.0
+# Interactables
+var is_waterfall_flowing: bool = true
+var _chime_swing: float = 0.0
+var _chime_vel: float = 0.0
 
-# Bounding boxes for click areas
-const RECT_BED: Rect2 = Rect2(144, 76, 56, 40)
-const RECT_WINDOW: Rect2 = Rect2(103, 16, 38, 52)
-const RECT_LIGHT_SWITCH: Rect2 = Rect2(200, 70, 16, 22)
-const RECT_LAPTOP: Rect2 = Rect2(52, 72, 40, 30)
+# The Starlight Weaver (Moth)
+var moth_x: float = -100.0
+var moth_y: float = 40.0
+var moth_active: bool = false
+var moth_timer: float = 0.0
+
+var _floor_cache: Array[Dictionary] = []
+
+# Bounding Boxes
+const RECT_CHIMES: Rect2 = Rect2(400, -20, 40, 100)
+const RECT_MOTH: Rect2 = Rect2(0, 0, 40, 40)
+const RECT_WATERFALL: Rect2 = Rect2(530, 80, 80, 100)
 
 # ==============================================================================
 # ⚙️ LIFECYCLE
@@ -65,337 +66,473 @@ const RECT_LAPTOP: Rect2 = Rect2(52, 72, 40, 30)
 func _ready() -> void:
 	super._ready()
 	room_id = "room_bedroom"
-	room_name = "Study Bedroom"
-	desk_x = 72.0
-	nap_x = 168.0
-	drink_x = 115.0
+	room_name = "Temple of Morpheus"
+	room_width = 720.0
+	min_x = 50.0
+	max_x = 500.0  # Cannot walk past the waterfall edge
+	desk_x = 100.0 # Altar
+	nap_x = 220.0  # Bed
+	drink_x = 490.0 # Font of Lethe (at waterfall pool edge)
 	
-	# Load saved object states if available
-	if GameState:
-		is_bed_open = GameState.get_object_state("bedroom_bed_open", false)
-		is_window_open = GameState.get_object_state("bedroom_window_open", false)
+	# Initial star field
+	for i in range(50):
+		_stars.append({
+			"x": randf_range(0, 720),
+			"y": randf_range(0, 90),
+			"size": randf_range(1, 3),
+			"phase": randf_range(0, PI * 2)
+		})
+	
+	_generate_floor_cache()
 		
-	_update_seasonal_weather()
-	EventBus.object_state_changed.connect(_on_object_state_changed)
+	# Ambient Dream Orbs
+	for i in range(15):
+		_spawn_dream_orb(randf_range(0, 720), randf_range(40, 120))
+		
+	if EventBus:
+		EventBus.object_state_changed.connect(_on_object_state_changed)
 
-func _process(delta: float) -> void:
-	_flicker_timer += delta * 3.0
-	_laptop_glow_alpha = 0.28 + sin(_flicker_timer) * 0.08
-	
-	if is_window_open:
-		_breeze_offset = sin(_flicker_timer * 1.5) * 1.5
-	else:
-		_breeze_offset = 0.0
+func _generate_floor_cache() -> void:
+	_floor_cache.clear()
+	var cx = 0.0
+	while cx < 550.0:
+		var tw = randf_range(30, 80)
+		var cracks = []
+		if randf() > 0.4:
+			var crack_x = cx + randf_range(5, tw - 5)
+			cracks.append([crack_x, 100, crack_x + randf_range(-5, 5), 115])
+			cracks.append([crack_x + randf_range(-5, 5), 115, crack_x + randf_range(-10, 10), 140])
 		
-	queue_redraw()
+		_floor_cache.append({
+			"x": cx,
+			"w": tw,
+			"shade": randf_range(-0.05, 0.05),
+			"cracks": cracks
+		})
+		cx += tw
 
 func _on_object_state_changed(key: String, val: Variant) -> void:
-	if key == "bedroom_bed_open":
-		is_bed_open = val
-		queue_redraw()
-	elif key == "bedroom_window_open":
-		is_window_open = val
-		_update_seasonal_weather()
+	if key == "lethe_paw_dip":
+		# Paw dipped! Spawn a dream orb at the font!
+		_spawn_dream_orb(180.0, 100.0)
+		# Flash water glow
+		is_waterfall_flowing = true
 		queue_redraw()
 
-# ==============================================================================
-# 🖱️ INTERACTION HANDLING
-# ==============================================================================
+func _spawn_dream_orb(px: float, py: float) -> void:
+	_dreams.append({
+		"x": px,
+		"y": py,
+		"vx": randf_range(-10.0, 10.0),
+		"vy": randf_range(-5.0, -20.0),
+		"phase": randf_range(0, PI * 2),
+		"scale": randf_range(0.5, 1.5)
+	})
+
+func _process(delta: float) -> void:
+	_anim_clock += delta * 1.5
+	
+	# Chime physics (damped pendulum)
+	_chime_vel -= _chime_swing * 20.0 * delta
+	_chime_vel *= 0.95 # Damping
+	_chime_swing += _chime_vel * delta
+	
+	# Update Dream Orbs
+	for i in range(_dreams.size() - 1, -1, -1):
+		var d = _dreams[i]
+		d["x"] += (d["vx"] + sin(_anim_clock + d["phase"]) * 10.0) * delta
+		d["y"] += d["vy"] * delta
+		if d["y"] < -20:
+			if _dreams.size() > 15:
+				_dreams.remove_at(i)
+			else:
+				# Recycle orb
+				d["y"] = randf_range(130, 140)
+				d["x"] = randf_range(0, 720)
+			
+	# Update Starlight Weaver (Moth)
+	if moth_active:
+		moth_x += 40.0 * delta
+		moth_y = 30.0 + sin(_anim_clock * 2.0) * 15.0
+		# Drop dream dust
+		if randf() < 0.05 and _dreams.size() < 40:
+			_spawn_dream_orb(moth_x, moth_y)
+			if EventBus: EventBus.object_state_changed.emit("weaver_dropped_dust", moth_x)
+		if moth_x > 800.0:
+			moth_active = false
+			moth_timer = 0.0
+	else:
+		moth_timer += delta
+		if moth_timer > 15.0 and randf() < 0.01: # Spawn occasionally
+			moth_active = true
+			moth_x = -50.0
+			
+	queue_redraw()
+
 func _unhandled_input(event: InputEvent) -> void:
 	if not event is InputEventMouseButton:
 		return
 	var mb: InputEventMouseButton = event as InputEventMouseButton
 	if mb.button_index == MOUSE_BUTTON_LEFT and mb.pressed:
-		var pos: Vector2 = mb.position
+		var cam_x: float = get_viewport().get_camera_2d().position.x - 120.0 if get_viewport().get_camera_2d() else 0.0
+		var pos: Vector2 = mb.position + Vector2(cam_x, 0)
 		
-		# 1. Click Light Switch
-		if RECT_LIGHT_SWITCH.has_point(pos):
+		# Click Chimes
+		if RECT_CHIMES.has_point(pos):
+			_chime_vel += 5.0 # Strike the chime
+			for i in range(5):
+				_spawn_dream_orb(460, 40)
+			# Boost Joy if GameState exists
 			if GameState:
-				GameState.toggle_room_light(room_id)
+				GameState.joy = minf(GameState.MAX_JOY, GameState.joy + 5.0)
+				EventBus.object_state_changed.emit("chimes_struck", true)
 			get_viewport().set_input_as_handled()
 			return
 			
-		# 2. Click Bay Window
-		if RECT_WINDOW.has_point(pos):
-			is_window_open = not is_window_open
-			if GameState:
-				GameState.set_object_state("bedroom_window_open", is_window_open)
-			_update_seasonal_weather()
-			queue_redraw()
-			get_viewport().set_input_as_handled()
-			return
-			
-		# 3. Click Bed (Right Side)
-		if RECT_BED.has_point(pos):
-			is_bed_open = not is_bed_open
-			if GameState:
-				GameState.set_object_state("bedroom_bed_open", is_bed_open)
-				GameState.set_object_state("bedroom_blanket_folded", is_bed_open)
-			EventBus.object_state_changed.emit("bedroom_bed_open", is_bed_open)
-			queue_redraw()
-			get_viewport().set_input_as_handled()
-			return
-			
-		# 4. Click Computer Desk / Laptop (Left Side)
-		if RECT_LAPTOP.has_point(pos):
-			EventBus.object_state_changed.emit("bedroom_desk", true)
-			queue_redraw()
+		# Click Font of Lethe
+		if RECT_WATERFALL.has_point(pos):
+			is_waterfall_flowing = not is_waterfall_flowing
+			if EventBus: EventBus.object_state_changed.emit("lethe_toggled", is_waterfall_flowing)
 			get_viewport().set_input_as_handled()
 			return
 
 # ==============================================================================
-# 🍂 SEASONAL WEATHER CONFIGURATION
-# ==============================================================================
-func _update_seasonal_weather() -> void:
-	if not seasonal_particles:
-		return
-		
-	var season: String = GameState.get_current_season() if GameState else "summer"
-	match season:
-		"spring":
-			# Pink sakura / blossom petals
-			seasonal_particles.color = Color(1.0, 0.72, 0.82, 0.85)
-			seasonal_particles.gravity = Vector2(10, 12)
-			seasonal_particles.scale_amount_min = 1.5
-			seasonal_particles.scale_amount_max = 2.5
-			seasonal_particles.amount = 16
-		"summer":
-			# Warm golden dust motes & sunbeams
-			seasonal_particles.color = Color(1.0, 0.94, 0.55, 0.75)
-			seasonal_particles.gravity = Vector2(4, 6)
-			seasonal_particles.scale_amount_min = 1.0
-			seasonal_particles.scale_amount_max = 2.0
-			seasonal_particles.amount = 14
-		"autumn":
-			# Amber, crimson, and golden maple leaves
-			seasonal_particles.color = Color(0.92, 0.42, 0.16, 0.90)
-			seasonal_particles.gravity = Vector2(16, 15)
-			seasonal_particles.scale_amount_min = 1.8
-			seasonal_particles.scale_amount_max = 3.0
-			seasonal_particles.amount = 22
-		"winter":
-			# Crisp white snowflakes
-			seasonal_particles.color = Color(0.95, 0.98, 1.0, 0.92)
-			seasonal_particles.gravity = Vector2(6, 16)
-			seasonal_particles.scale_amount_min = 1.2
-			seasonal_particles.scale_amount_max = 2.2
-			seasonal_particles.amount = 25
-			
-	seasonal_particles.emitting = is_window_open
-
-# ==============================================================================
-# 🎨 DRAWING PIPELINE (240x140 CANVAS)
+# 🎨 DRAWING PIPELINE
 # ==============================================================================
 func _draw() -> void:
-	# 1. Background Wallpaper & Floor (240x140)
-	draw_rect(Rect2(0, 0, 240, 100), COL_WALL)
-	# Vertical wallpaper stripes
-	for sx in range(0, 240, 16):
-		draw_rect(Rect2(sx, 0, 8, 100), COL_WALL_STRIPE)
-		
-	# Baseboard
-	draw_rect(Rect2(0, 96, 240, 6), COL_BASEBOARD)
+	# 1. Deep Parallax Background (Sky & Arches)
+	_draw_parallax_background()
 	
-	# Floor Planks
-	draw_rect(Rect2(0, 102, 240, 38), COL_FLOOR_WOOD)
-	for fy in range(102, 140, 8):
-		draw_line(Vector2(0, fy), Vector2(240, fy), COL_FLOOR_PLANK, 1.0)
-	for fx in range(0, 240, 32):
-		draw_line(Vector2(fx, 102), Vector2(fx, 110), COL_FLOOR_PLANK, 1.0)
-		draw_line(Vector2(fx + 16, 110), Vector2(fx + 16, 118), COL_FLOOR_PLANK, 1.0)
-		draw_line(Vector2(fx, 118), Vector2(fx, 126), COL_FLOOR_PLANK, 1.0)
-		draw_line(Vector2(fx + 16, 126), Vector2(fx + 16, 140), COL_FLOOR_PLANK, 1.0)
-		
-	# 2. Window with Dynamic Sky & Open/Closed States (x=105, y=18, w=34, h=48)
-	_draw_window_view(105, 18, 34, 48)
+	# 2. Floor Architecture (Stops at x=550 for the cliff)
+	_draw_floor()
 	
-	# 3. Work Desk (x=50 to 94, y=70 to 115)
-	_draw_work_desk(52, 76)
+	# 3. Fluted Columns & Moonflower Vines
+	for cx in [40, 320]:
+		_draw_fluted_column(cx, 0, 100)
 	
-	# 4. Cozy Bed with Foldable Blanket (x=144 to 200, y=75 to 115)
-	_draw_cozy_bed(146, 78)
+	# 4. Far Left: Hourglass Altar
+	_draw_hourglass_altar(100, 100)
 	
-	# 5. Wall Light Switch (x=204, y=74 - beside the right door)
-	var is_light_on: bool = GameState.is_room_light_on(room_id) if GameState else false
-	draw_light_switch(204, 74, is_light_on)
+	# 5. Left Zone: Ethereal Canopy Bed
+	_draw_canopy_bed(220, 100)
 	
-	# 6. Placed Room Decorations
-	_draw_placed_decorations()
+	# 6. Center Zone: Broken Moon Dial & Chimes
+	_draw_chimes(420, 0)
+	
+	# 7. Far Right Cliff: The Font of Lethe Waterfall
+	_draw_lethe_waterfall(550, 100)
+	
+	# 8. Foreground Entities
+	_draw_starlight_weaver()
+	
+	for d in _dreams:
+		var alpha = sin(_anim_clock * 2.0 + d["phase"]) * 0.3 + 0.5
+		var c = Color(0.6, 0.8, 1.0, alpha)
+		draw_circle(Vector2(d["x"], d["y"]), 3.0 * d["scale"], c)
+		draw_circle(Vector2(d["x"], d["y"]), 1.5 * d["scale"], Color(1.0, 1.0, 1.0, alpha))
 
-func _draw_placed_decorations() -> void:
-	if not GameState:
-		return
+# ------------------------------------------------------------------------------
+# 1. PARALLAX BACKGROUND
+# ------------------------------------------------------------------------------
+func _draw_parallax_background() -> void:
+	# Sky gradient
+	draw_rect(Rect2(0, 0, 720, 100), COL_SKY_DEEP)
+	for y in range(0, 100, 5):
+		var lerp_val = y / 100.0
+		draw_rect(Rect2(0, y, 720, 5), COL_SKY_DEEP.lerp(COL_SKY_MID, lerp_val))
 		
-	# 🪴 Mini Pine Bonsai on Desk Right Edge (x=84, y=83)
-	if GameState.is_decor_placed("decor_bonsai"):
-		var bx: float = 84.0
-		var by: float = 83.0
-		# Ceramic Bonsai Pot
-		draw_rect(Rect2(bx - 4, by + 5, 8, 4), Color(0.35, 0.22, 0.15))
-		draw_rect(Rect2(bx - 3, by + 4, 6, 1), Color(0.25, 0.15, 0.10)) # Soil
-		# Gnarled Trunk
-		draw_rect(Rect2(bx - 1, by + 1, 2, 4), Color(0.45, 0.30, 0.18))
-		draw_rect(Rect2(bx + 1, by - 1, 2, 3), Color(0.45, 0.30, 0.18))
-		# Lush Pine Needles (Puffed green clusters)
-		draw_rect(Rect2(bx - 4, by - 3, 5, 4), Color(0.18, 0.55, 0.28))
-		draw_rect(Rect2(bx - 1, by - 5, 6, 4), Color(0.24, 0.68, 0.35))
-		draw_rect(Rect2(bx + 1, by - 2, 4, 3), Color(0.18, 0.55, 0.28))
+	var cam_x: float = get_viewport().get_camera_2d().position.x - 120.0 if get_viewport().get_camera_2d() else 0.0
+	var p_offset = cam_x * 0.2
+	
+	# Massive True Crescent Moon (Deep Background)
+	var moon_x = 450.0 - (cam_x * 0.05)
+	var moon_y = 40.0
+	
+	draw_circle(Vector2(moon_x, moon_y), 80.0, Color(1.0, 0.95, 0.9, 0.1)) # Glow
+	
+	# Draw crescent using a polygon (outer arc + inner arc)
+	var c_pts = PackedVector2Array()
+	var outer_r = 60.0
+	var inner_r = 50.0
+	var offset = Vector2(-15, -10)
+	for i in range(21):
+		var a = -PI/2.0 + (PI/20.0)*i
+		c_pts.append(Vector2(moon_x + cos(a)*outer_r, moon_y + sin(a)*outer_r))
+	for i in range(20, -1, -1):
+		var a = -PI/2.0 + (PI/20.0)*i
+		c_pts.append(Vector2(moon_x + offset.x + cos(a)*inner_r, moon_y + offset.y + sin(a)*inner_r))
+	
+	draw_colored_polygon(c_pts, Color(1.0, 0.95, 0.9, 0.8))
+	
+	# Stars
+	for s in _stars:
+		var sx = fmod(s["x"] - p_offset, 720.0)
+		if sx < 0: sx += 720.0
+		var flicker = sin(_anim_clock * 1.5 + s["phase"]) * 0.5 + 0.5
+		draw_rect(Rect2(sx, s["y"], s["size"], s["size"]), Color(1.0, 0.95, 0.9, 0.2 + 0.6 * flicker))
 		
-	# 🏮 Retro Lava Lamp on Nightstand (x=136, y=82)
-	if GameState.is_decor_placed("decor_lava_lamp"):
-		var lx: float = 136.0
-		var ly: float = 82.0
-		# Silver Metallic Base & Cap
-		draw_rect(Rect2(lx - 2, ly + 8, 5, 3), Color(0.70, 0.72, 0.78))
-		draw_rect(Rect2(lx - 1, ly - 2, 3, 2), Color(0.70, 0.72, 0.78))
-		# Glass Chamber
-		draw_rect(Rect2(lx - 2, ly, 5, 8), Color(0.95, 0.35, 0.45, 0.85)) # Deep magenta liquid
-		# Floating Warm Wax Blobs (sinusoidal pulse)
-		var blob_y1: float = ly + 1.5 + sin(_flicker_timer * 2.5) * 1.5
-		var blob_y2: float = ly + 5.0 - sin(_flicker_timer * 2.0) * 1.5
-		draw_rect(Rect2(lx - 1, blob_y1, 3, 2), Color(1.0, 0.85, 0.20)) # Golden wax
-		draw_rect(Rect2(lx, blob_y2, 2, 2), Color(1.0, 0.65, 0.15))
-		# Subtle Ambient Glow
-		draw_circle(Vector2(lx + 0.5, ly + 4), 10.0, Color(1.0, 0.45, 0.35, 0.22))
+	# Ruined Temple Arches
+	var a_offset = cam_x * 0.1
+	for ax in range(-100, 820, 160):
+		var x = ax - a_offset
+		# Break the arch over the moon
+		if abs(x - 400) > 100:
+			draw_rect(Rect2(x, 20, 16, 80), COL_TEMPLE_BG)
+			draw_rect(Rect2(x + 100, 20, 16, 80), COL_TEMPLE_BG)
+			draw_arc(Vector2(x + 58, 20), 50.0, PI, PI*2, 16, COL_TEMPLE_BG, 16.0)
+		else:
+			# Shattered arch columns
+			draw_rect(Rect2(x, 60, 16, 40), COL_TEMPLE_BG)
+			draw_rect(Rect2(x + 100, 50, 16, 50), COL_TEMPLE_BG)
 
-func _draw_window_view(wx: float, wy: float, ww: float, wh: float) -> void:
-	var hour: int = Time.get_time_dict_from_system().get("hour", 12)
-	var sky_col: Color = COL_SKY_DAY
-	var is_night: bool = (hour < 6 or hour >= 20)
-	var is_sunset: bool = (hour >= 16 and hour < 20)
+# ------------------------------------------------------------------------------
+# 2. ARCHITECTURE & FLOOR
+# ------------------------------------------------------------------------------
+func _draw_floor() -> void:
+	# Base Floor (Ends at 550)
+	draw_rect(Rect2(0, 100, 550, 40), COL_FLOOR)
+	draw_line(Vector2(0, 100), Vector2(550, 100), COL_MARBLE_SHADE, 2.0)
 	
-	if is_night:
-		sky_col = COL_SKY_NIGHT
-	elif is_sunset:
-		sky_col = COL_SKY_SUNSET
+	# Draw Cached Tiles & Cracks
+	for t in _floor_cache:
+		var tx = t["x"]
+		var tw = t["w"]
+		var shade = COL_FLOOR.darkened(t["shade"])
+		draw_rect(Rect2(tx, 100, tw, 40), shade)
+		draw_line(Vector2(tx + tw, 100), Vector2(tx + tw, 140), COL_MARBLE_SHADE.darkened(0.2), 1.0)
 		
-	# Sky Background
-	draw_rect(Rect2(wx, wy, ww, wh), sky_col)
+		# Draw unique cracks
+		for c in t["cracks"]:
+			draw_line(Vector2(c[0], c[1]), Vector2(c[2], c[3]), COL_MARBLE_SHADE.darkened(0.2), 1.0)
+			
+	# Grand Temple Rug under the bed
+	_draw_rug(160, 105, 140)
 	
-	# Celestial Body
-	if is_night:
-		# Crescent Moon & Stars
-		draw_rect(Rect2(wx + 20, wy + 8, 5, 5), COL_MOON_WHITE)
-		draw_rect(Rect2(wx + 19, wy + 8, 3, 5), sky_col)
-		# Twinkling Stars
-		draw_rect(Rect2(wx + 6, wy + 12, 1, 1), COL_MOON_WHITE)
-		draw_rect(Rect2(wx + 14, wy + 22, 1, 1), COL_MOON_WHITE)
-		draw_rect(Rect2(wx + 26, wy + 16, 1, 1), COL_MOON_WHITE)
-	else:
-		# Sun & Soft Cloud
-		var sun_col = COL_SUN_GOLD
-		draw_circle(Vector2(wx + 22, wy + 12), 4.0, sun_col)
-		# Fluffy Cloud
-		draw_rect(Rect2(wx + 6, wy + 24, 14, 4), Color(1.0, 1.0, 1.0, 0.7))
-		draw_rect(Rect2(wx + 9, wy + 21, 8, 3), Color(1.0, 1.0, 1.0, 0.7))
-		
-	# Outer Window Casing & Sill
-	draw_rect(Rect2(wx - 3, wy - 3, ww + 6, 4), COL_WINDOW_FRAME_DARK) # Header
-	draw_rect(Rect2(wx - 2, wy - 2, ww + 4, 3), COL_WINDOW_FRAME)
-	draw_rect(Rect2(wx - 4, wy + wh - 1, ww + 8, 5), COL_WINDOW_FRAME_DARK) # Sill shadow
-	draw_rect(Rect2(wx - 3, wy + wh - 2, ww + 6, 4), COL_WINDOW_FRAME)      # Sill
-	draw_rect(Rect2(wx - 3, wy, 3, wh), COL_WINDOW_FRAME)                    # Left jamb
-	draw_rect(Rect2(wx + ww, wy, 3, wh), COL_WINDOW_FRAME)                   # Right jamb
-	
-	if is_window_open:
-		# OPEN WINDOW: Sashes are swung open outwards
-		# Left open sash panel
-		draw_rect(Rect2(wx - 7 + _breeze_offset, wy + 2, 6, wh - 4), COL_WINDOW_FRAME_DARK)
-		draw_rect(Rect2(wx - 6 + _breeze_offset, wy + 3, 4, wh - 6), Color(0.6, 0.8, 1.0, 0.3))
-		# Right open sash panel
-		draw_rect(Rect2(wx + ww + 1 - _breeze_offset, wy + 2, 6, wh - 4), COL_WINDOW_FRAME_DARK)
-		draw_rect(Rect2(wx + ww + 2 - _breeze_offset, wy + 3, 4, wh - 6), Color(0.6, 0.8, 1.0, 0.3))
-		
-		# Breeze indicator / Open highlight
-		draw_line(Vector2(wx + 4, wy + wh * 0.4), Vector2(wx + 14 + _breeze_offset, wy + wh * 0.4 + 2), Color(1.0, 1.0, 1.0, 0.25), 1.0)
-		draw_line(Vector2(wx + 16, wy + wh * 0.6), Vector2(wx + 26 + _breeze_offset, wy + wh * 0.6 - 2), Color(1.0, 1.0, 1.0, 0.25), 1.0)
-	else:
-		# CLOSED WINDOW: Sashes locked with center crossbars and glass shine
-		draw_line(Vector2(wx + 4, wy + 8), Vector2(wx + 14, wy + 26), COL_WINDOW_GLASS_SHINE, 1.0)
-		draw_line(Vector2(wx + 18, wy + 16), Vector2(wx + 28, wy + 34), COL_WINDOW_GLASS_SHINE, 1.0)
-		# Crossbars
-		draw_rect(Rect2(wx + ww * 0.5 - 1, wy, 2, wh), COL_WINDOW_FRAME)
-		draw_rect(Rect2(wx, wy + wh * 0.5 - 1, ww, 2), COL_WINDOW_FRAME)
+	# Broken cliff edge going down into the abyss
+	var cliff_pts = PackedVector2Array([
+		Vector2(550, 100), Vector2(560, 105), Vector2(555, 120), Vector2(565, 140), Vector2(550, 140)
+	])
+	draw_colored_polygon(cliff_pts, COL_FLOOR)
+	draw_line(Vector2(550, 100), Vector2(560, 105), COL_MARBLE_SHADE, 1.0)
+	draw_line(Vector2(560, 105), Vector2(555, 120), COL_MARBLE_SHADE, 1.0)
+	draw_line(Vector2(555, 120), Vector2(565, 140), COL_MARBLE_SHADE, 1.0)
 
-func _draw_work_desk(dx: float, dy: float) -> void:
-	# Wooden Desk Surface
-	draw_rect(Rect2(dx, dy + 16, 40, 4), COL_DESK_WOOD)
-	draw_rect(Rect2(dx, dy + 19, 40, 2), COL_DESK_SHADOW)
+func _draw_rug(rx: float, ry: float, rw: float) -> void:
+	# Rich ornamental rug
+	draw_rect(Rect2(rx, ry, rw, 25), Color(0.2, 0.1, 0.15))
+	draw_rect(Rect2(rx + 4, ry + 4, rw - 8, 17), COL_FLOOR.darkened(0.2)) # Inner pattern
 	
-	# Desk Legs
-	draw_rect(Rect2(dx + 2, dy + 20, 3, 19), COL_DESK_WOOD)
-	draw_rect(Rect2(dx + 35, dy + 20, 3, 19), COL_DESK_WOOD)
-	
-	# Laptop on Desk
-	draw_rect(Rect2(dx + 14, dy + 13, 14, 3), Color(0.5, 0.52, 0.58)) # Base
-	draw_rect(Rect2(dx + 16, dy + 3, 12, 10), Color(0.18, 0.22, 0.30)) # Screen back
-	draw_rect(Rect2(dx + 17, dy + 4, 10, 8), Color(0.35, 0.65, 0.95)) # Glowing screen
-	draw_rect(Rect2(dx + 19, dy + 6, 6, 2), Color(0.8, 0.95, 1.0))   # Code line
-	draw_rect(Rect2(dx + 18, dy + 9, 8, 1), Color(0.8, 0.95, 1.0))   # Code line
-	
-	# Laptop Glow Cone on Desk
-	var is_working: bool = (TimerEngine and TimerEngine.status == TimerEngine.TimerStatus.RUNNING and TimerEngine.current_phase == TimerEngine.TimerPhase.WORK)
-	if is_working:
-		var glow_col = Color(COL_LAPTOP_GLOW.r, COL_LAPTOP_GLOW.g, COL_LAPTOP_GLOW.b, _laptop_glow_alpha)
-		draw_circle(Vector2(dx + 22, dy + 10), 16.0, glow_col)
-		
-	# Mini Desk Plant / Succulent
-	draw_rect(Rect2(dx + 4, dy + 11, 5, 5), Color(0.8, 0.4, 0.3)) # Terracotta pot
-	draw_rect(Rect2(dx + 5, dy + 8, 3, 3), Color(0.3, 0.7, 0.3))  # Green succulent
-	
-	# Desk Chair
-	draw_rect(Rect2(dx + 16, dy + 22, 10, 3), Color(0.3, 0.35, 0.45))
-	draw_rect(Rect2(dx + 19, dy + 25, 4, 14), Color(0.2, 0.2, 0.25))
+	# Golden tassels and trim
+	draw_line(Vector2(rx, ry + 25), Vector2(rx + rw, ry + 25), Color(0.8, 0.6, 0.2), 2.0)
+	for tx in range(int(rx) + 2, int(rx + rw), 6):
+		draw_line(Vector2(tx, ry + 25), Vector2(tx, ry + 28), Color(0.8, 0.6, 0.2), 1.0)
 
-func _draw_cozy_bed(bx: float, by: float) -> void:
-	# Nightstand with Lamp (Left of bed)
-	draw_rect(Rect2(bx - 12, by + 14, 10, 15), COL_DESK_WOOD)
-	draw_rect(Rect2(bx - 11, by + 18, 8, 1), COL_DESK_SHADOW) # Drawer
-	# Small Lamp
-	draw_rect(Rect2(bx - 8, by + 10, 2, 4), Color(0.7, 0.6, 0.4))
-	draw_rect(Rect2(bx - 10, by + 5, 6, 5), COL_LAMP_SHADE)
-	draw_circle(Vector2(bx - 7, by + 7), 8.0, COL_LAMP_GLOW)
+func _draw_fluted_column(cx: float, cy: float, ch: float, is_bedpost: bool = false) -> void:
+	# Base & Capital
+	draw_rect(Rect2(cx - 20, cy + ch - 5, 40, 5), COL_MARBLE_SHADE)
+	draw_rect(Rect2(cx - 20, cy, 40, 8), COL_MARBLE_SHADE)
 	
-	# Bed Frame (Headboard on right & Base rail)
-	draw_rect(Rect2(bx + 40, by + 4, 5, 25), COL_BED_FRAME) # Headboard
-	draw_rect(Rect2(bx, by + 22, 45, 7), COL_BED_FRAME)     # Base rail
+	# Pillar Body
+	draw_rect(Rect2(cx - 15, cy + 8, 30, ch - 13), COL_MARBLE)
+	draw_rect(Rect2(cx - 15, cy + 8, 8, ch - 13), COL_MARBLE_SHADE) # Left shadow
 	
-	# Mattress & Crisp Sheet
-	draw_rect(Rect2(bx + 2, by + 14, 40, 10), COL_BED_SHEET)
-	draw_rect(Rect2(bx + 2, by + 22, 40, 2), COL_BED_SHEET_SHADOW)
-	
-	# Soft Fluffy Pillow (on the right side next to headboard)
-	draw_rect(Rect2(bx + 30, by + 11, 9, 6), COL_BED_PILLOW)
-	draw_rect(Rect2(bx + 31, by + 15, 8, 2), Color(0.85, 0.88, 0.92)) # Pillow crease
-	
-	# Duvet / Quilt (Foldable State)
-	if is_bed_open:
-		# PARTIALLY OPEN: Folded back from the RIGHT (pillow/headboard side)
-		# Main body covers feet & lower bed (left side bx+2 to bx+18)
-		draw_rect(Rect2(bx + 2, by + 16, 18, 10), COL_BED_DUVET)
-		draw_rect(Rect2(bx + 2, by + 15, 18, 2), COL_BED_DUVET_FOLD)
+	# Fluting lines
+	for i in range(4):
+		var lx = cx - 10 + i * 6
+		draw_line(Vector2(lx, cy + 8), Vector2(lx, cy + ch - 5), COL_MARBLE_SHADE.darkened(0.2), 1.0)
 		
-		# Lower edge of right duvet
-		draw_rect(Rect2(bx + 20, by + 20, 10, 6), COL_BED_DUVET)
+	# Moonflower Vines (Only on architectural columns, not furniture)
+	if not is_bedpost:
+		for vy in range(int(cy + ch), int(cy), -30):
+			var p1 = Vector2(cx - 15, vy - 5)
+			var p2 = Vector2(cx + 15, vy - 20)
+			draw_line(p1, p2, COL_MOONFLOWER.darkened(0.4), 2.0)
+			draw_circle(p1 + Vector2(5, -5), 3.0, COL_MOONFLOWER)
+			draw_circle(p1 + Vector2(5, -5), 6.0, Color(COL_MOONFLOWER.r, COL_MOONFLOWER.g, COL_MOONFLOWER.b, 0.3))
+
+# ------------------------------------------------------------------------------
+# 3. INTERACTIVE LETHE WATERFALL
+# ------------------------------------------------------------------------------
+func _draw_lethe_waterfall(fx: float, fy: float) -> void:
+	# Asymmetrical rugged rocky outcrop at the cliff edge
+	var crag1 = PackedVector2Array([
+		Vector2(fx - 10, fy + 10), Vector2(fx + 35, fy - 5),
+		Vector2(fx + 45, fy + 15), Vector2(fx + 20, fy + 35),
+		Vector2(fx - 10, fy + 40)
+	])
+	draw_colored_polygon(crag1, COL_MARBLE_SHADE.darkened(0.2))
+	
+	var crag2 = PackedVector2Array([
+		Vector2(fx - 5, fy - 10), Vector2(fx + 25, fy - 20),
+		Vector2(fx + 35, fy + 5), Vector2(fx + 10, fy + 15),
+		Vector2(fx - 5, fy + 10)
+	])
+	draw_colored_polygon(crag2, COL_MARBLE_SHADE.darkened(0.1))
+	
+	var crag3 = PackedVector2Array([
+		Vector2(fx - 20, fy - 15), Vector2(fx + 15, fy - 25),
+		Vector2(fx + 20, fy - 5), Vector2(fx, fy + 5),
+		Vector2(fx - 20, fy)
+	])
+	draw_colored_polygon(crag3, COL_MARBLE_SHADE)
+	
+	if is_waterfall_flowing:
+		var fall_y_start = fy - 10
+		var fall_height = 300.0
 		
-		# Exposed crisp sheet on top-right (under the pillow fold)
-		draw_rect(Rect2(bx + 18, by + 14, 12, 6), COL_BED_SHEET)
-		draw_rect(Rect2(bx + 18, by + 18, 12, 2), COL_BED_SHEET_SHADOW)
+		# Main Flow
+		draw_rect(Rect2(fx + 5, fall_y_start, 35, fall_height), COL_LETHE_WATER.darkened(0.2))
+		draw_rect(Rect2(fx + 10, fall_y_start, 25, fall_height), COL_LETHE_WATER)
+		draw_rect(Rect2(fx + 15, fall_y_start, 12, fall_height), COL_LETHE_WATER.lightened(0.2))
 		
-		# Diagonal folded corner polygon folding back from top-right towards bottom-left
-		var fold_pts: PackedVector2Array = [
-			Vector2(bx + 28, by + 15), # top-right near pillow
-			Vector2(bx + 18, by + 15), # fold apex on top hem
-			Vector2(bx + 28, by + 22)  # fold corner on right edge
-		]
-		draw_colored_polygon(fold_pts, COL_BED_DUVET_FOLD)
-		# Inner fold crease line
-		draw_line(Vector2(bx + 18, by + 15), Vector2(bx + 28, by + 22), COL_BED_DUVET_INNER, 1.0)
-	else:
-		# CLOSED: Neatly pulled up duvet
-		draw_rect(Rect2(bx + 2, by + 16, 28, 10), COL_BED_DUVET)
-		draw_rect(Rect2(bx + 2, by + 15, 28, 2), COL_BED_DUVET_FOLD) # Top fold hem
-		# Quilt pattern pixel dots
-		draw_rect(Rect2(bx + 8, by + 19, 2, 2), COL_BED_DUVET_FOLD)
-		draw_rect(Rect2(bx + 18, by + 19, 2, 2), COL_BED_DUVET_FOLD)
-		draw_rect(Rect2(bx + 13, by + 23, 2, 2), COL_BED_DUVET_FOLD)
+		# Animated Cascade Lines
+		for i in range(10):
+			var lx = fx + 8 + i * 2.5
+			var speed = 100.0 + (i % 4) * 30.0
+			var ly = fall_y_start + fmod(_anim_clock * speed + i * 37.0, fall_height)
+			draw_line(Vector2(lx, ly), Vector2(lx, ly + 25), COL_LETHE_FOAM, 2.0)
+			
+		# Animated Foam Splash
+		for i in range(5):
+			var splash_x = fx + 5 + i * 6
+			var splash_y = fall_y_start - 2 + sin(_anim_clock * 10.0 + i) * 3.0
+			draw_line(Vector2(splash_x, splash_y), Vector2(splash_x, splash_y - 8), COL_LETHE_FOAM, 1.5)
+			draw_arc(Vector2(splash_x + 3, splash_y + 4), 6.0, PI, PI*2, 8, COL_LETHE_FOAM, 2.0)
+		
+		# Magical glow radiating from the fall
+		draw_circle(Vector2(fx + 15, fy + 20), 45.0, COL_LETHE_GLOW)
+
+# ------------------------------------------------------------------------------
+# 4. CANOPY BED
+# ------------------------------------------------------------------------------
+func _draw_canopy_bed(bx: float, by: float) -> void:
+	var hover = sin(_anim_clock * 2.0) * 3.0
+	by += hover
+	
+	var fw = 100.0
+	var fh = 16.0
+	var fx = bx - fw/2.0
+	var fy = by - fh
+	
+	# Bed Frame (Reskinned to be grander)
+	draw_rect(Rect2(fx, fy, fw, fh), COL_MARBLE_SHADE)
+	draw_rect(Rect2(fx, fy + fh, fw, 4), COL_WOOD_SILVER.darkened(0.2))
+	
+	# Gold filigree trim on the bed frame
+	draw_line(Vector2(fx + 5, fy + 4), Vector2(fx + fw - 5, fy + 4), Color(0.8, 0.6, 0.2), 1.0)
+	
+	# Mattress & Sheets
+	draw_rect(Rect2(fx + 6, fy - 8, fw - 12, 8), COL_BED_SHEET.darkened(0.2))
+	draw_rect(Rect2(fx + 6, fy - 4, fw - 12, 12), COL_BED_SHEET)
+	
+	# Plump Pillows
+	draw_rect(Rect2(fx + 12, fy - 16, 18, 10), COL_BED_PILLOW)
+	draw_rect(Rect2(fx + 24, fy - 14, 16, 10), COL_BED_PILLOW.darkened(0.1))
+	draw_rect(Rect2(fx + fw - 30, fy - 16, 18, 10), COL_BED_PILLOW)
+	
+	# Fluted Temple Columns as Bedposts
+	var th = 75.0
+	_draw_fluted_column(fx + 10, fy - th, th, true)
+	_draw_fluted_column(fx + fw - 10, fy - th, th, true)
+	
+	# Heavy Architrave bridging the posts
+	draw_rect(Rect2(fx - 10, fy - th, fw + 20, 8), COL_MARBLE_SHADE)
+	draw_rect(Rect2(fx - 5, fy - th - 5, fw + 10, 5), COL_WOOD_SILVER)
+	
+	# Rich Drapery
+	var drape_sway = sin(_anim_clock * 1.5) * 4.0
+	
+	var d1_pts = PackedVector2Array([
+		Vector2(fx - 5, fy - th + 8), Vector2(fx + 25, fy - th + 8),
+		Vector2(fx + 15 + drape_sway, fy - 15), Vector2(fx - 10 + drape_sway, fy - 15)
+	])
+	draw_colored_polygon(d1_pts, COL_BED_CANOPY)
+	
+	var d2_pts = PackedVector2Array([
+		Vector2(fx + fw + 5, fy - th + 8), Vector2(fx + fw - 25, fy - th + 8),
+		Vector2(fx + fw - 15 + drape_sway, fy - 15), Vector2(fx + fw + 10 + drape_sway, fy - 15)
+	])
+	draw_colored_polygon(d2_pts, COL_BED_CANOPY)
+
+# ------------------------------------------------------------------------------
+# 5. HOURGLASS ALTAR
+# ------------------------------------------------------------------------------
+func _draw_hourglass_altar(ax: float, ay: float) -> void:
+	var dw = 60.0
+	var dh = 8.0
+	var dx = ax - dw/2.0
+	var dy = ay - 20
+	
+	# Reskinned to have a massive marble fluted pedestal
+	draw_rect(Rect2(dx + 15, dy + dh, 30, 20), COL_MARBLE)
+	draw_rect(Rect2(dx + 10, dy + dh + 15, 40, 5), COL_MARBLE_SHADE) # Base
+	
+	# Gold Trim on Tabletop
+	draw_rect(Rect2(dx, dy, dw, dh), COL_MARBLE_SHADE)
+	draw_rect(Rect2(dx, dy + dh, dw, 2), Color(0.8, 0.6, 0.2))
+	
+	var hx = ax
+	var hy = dy - 25
+	draw_rect(Rect2(hx - 15, hy - 22, 30, 4), COL_WOOD_SILVER)
+	draw_rect(Rect2(hx - 15, hy + 18, 30, 4), COL_WOOD_SILVER)
+	
+	draw_circle(Vector2(hx, hy - 10), 12.0, COL_HOURGLASS_GLASS)
+	draw_circle(Vector2(hx, hy + 10), 12.0, COL_HOURGLASS_GLASS)
+	
+	draw_circle(Vector2(hx, hy - 10), 8.0, COL_SAND)
+	draw_line(Vector2(hx, hy), Vector2(hx, hy + 10), COL_SAND, 2.0)
+	draw_circle(Vector2(hx, hy + 14), 6.0, COL_SAND)
+
+# ------------------------------------------------------------------------------
+# 6. INTERACTIVE CHIMES
+# ------------------------------------------------------------------------------
+func _draw_chimes(cx: float, cy: float) -> void:
+	# The chime base ring
+	var rx = cx + sin(_chime_swing) * 20.0
+	var ry = cy + 20.0 + cos(_chime_swing) * 5.0
+	
+	# Ceiling string
+	draw_line(Vector2(cx, cy), Vector2(rx, ry), COL_CHIME_BRONZE, 1.0)
+	
+	# Base ring
+	draw_rect(Rect2(rx - 15, ry, 30, 3), COL_CHIME_BRONZE.darkened(0.2))
+	
+	# 4 Chime pipes
+	for i in range(4):
+		var px = rx - 10 + i * 6.5
+		var pl = 15.0 + fmod(i * 7.0, 10.0) # Variable lengths
+		var pipe_swing = sin(_chime_swing * 2.0 + i) * 5.0
+		draw_line(Vector2(px, ry + 3), Vector2(px + pipe_swing, ry + 3 + pl), COL_CHIME_BRONZE, 2.0)
+		draw_line(Vector2(px-1, ry + 3), Vector2(px-1 + pipe_swing, ry + 3 + pl), COL_CHIME_BRONZE.lightened(0.2), 1.0) # Highlight
+
+# ------------------------------------------------------------------------------
+# 7. THE STARLIGHT WEAVER
+# ------------------------------------------------------------------------------
+func _draw_starlight_weaver() -> void:
+	if not moth_active: return
+	
+	var flap = sin(_anim_clock * 20.0) * 10.0
+	
+	# Body
+	draw_circle(Vector2(moth_x, moth_y), 3.0, COL_MOONFLOWER)
+	
+	# Left Wing
+	var lw_pts = PackedVector2Array([
+		Vector2(moth_x - 2, moth_y),
+		Vector2(moth_x - 15, moth_y - 10 + flap),
+		Vector2(moth_x - 20, moth_y + flap),
+		Vector2(moth_x - 5, moth_y + 5)
+	])
+	draw_colored_polygon(lw_pts, COL_MOTH_WING)
+	
+	# Right Wing
+	var rw_pts = PackedVector2Array([
+		Vector2(moth_x + 2, moth_y),
+		Vector2(moth_x + 15, moth_y - 10 + flap),
+		Vector2(moth_x + 20, moth_y + flap),
+		Vector2(moth_x + 5, moth_y + 5)
+	])
+	draw_colored_polygon(rw_pts, COL_MOTH_WING)
+	
+	# Glow
+	draw_circle(Vector2(moth_x, moth_y), 25.0, COL_MOTH_GLOW)

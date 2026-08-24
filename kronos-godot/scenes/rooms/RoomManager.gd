@@ -26,6 +26,7 @@ const DELIVERY_BOX_SCENE: PackedScene = preload("res://scenes/pet/PetDeliveryBox
 @onready var pet_layer: Node2D = $SubViewportContainer/SubViewport/PetLayer
 @onready var transition_overlay: ColorRect = $TransitionOverlay
 @onready var room_title_badge: Label = $HUDOverlay/RoomTitleBadge
+@onready var sub_viewport: SubViewport = $SubViewportContainer/SubViewport
 
 # ==============================================================================
 # 📊 INTERNAL STATE
@@ -35,12 +36,24 @@ var current_room_id: String = ""
 var spawned_pets: Array[PetBrain] = []
 var is_transitioning: bool = false
 
+# Camera / Scrolling State
+var room_camera: Camera2D = null
+var current_room_width: float = 240.0
+var _is_dragging_cam: bool = false
+var _drag_start_x: float = 0.0
+var _cam_start_x: float = 0.0
+
 # ==============================================================================
 # ⚙️ LIFECYCLE
 # ==============================================================================
 func _ready() -> void:
 	custom_minimum_size = Vector2(240, 140)
 	clip_contents = true
+	
+	# Setup Camera
+	room_camera = Camera2D.new()
+	room_camera.position = Vector2(120, 70)
+	sub_viewport.add_child(room_camera)
 	
 	if transition_overlay:
 		transition_overlay.color = Color(0.04, 0.05, 0.09, 1.0)
@@ -54,11 +67,33 @@ func _ready() -> void:
 	EventBus.pet_called.connect(_on_pet_called)
 	EventBus.pet_list_changed.connect(_on_pet_list_changed)
 	EventBus.pet_delivery_box_spawned.connect(_on_pet_delivery_box_spawned)
+	EventBus.timer_state_changed.connect(_on_timer_state_changed)
+	
+	$SubViewportContainer.gui_input.connect(_on_viewport_gui_input)
 	
 	# Load initial room from GameState
 	var init_room = GameState.active_view_room if (GameState and GameState.active_view_room != "") else "room_bedroom"
 	_load_room_instant(init_room)
-	_sync_pets_for_current_room()
+
+func _on_viewport_gui_input(event: InputEvent) -> void:
+	if current_room_width <= 240.0:
+		return # No need to scroll
+		
+	if event is InputEventMouseButton:
+		if event.button_index == MOUSE_BUTTON_LEFT:
+			if event.pressed:
+				_is_dragging_cam = true
+				_drag_start_x = event.global_position.x
+				_cam_start_x = room_camera.position.x
+			else:
+				_is_dragging_cam = false
+	elif event is InputEventMouseMotion and _is_dragging_cam:
+		var dx = event.global_position.x - _drag_start_x
+		# Moving mouse right should move camera left
+		var target_x = _cam_start_x - dx
+		# Clamp camera
+		target_x = clampf(target_x, 120.0, current_room_width - 120.0)
+		room_camera.position.x = target_x
 
 # ==============================================================================
 # 🚪 ROOM SWITCHING & TRANSITIONS
@@ -116,6 +151,10 @@ func _perform_room_swap(target_room_id: String) -> void:
 	room_container.add_child(current_room_node)
 	current_room_id = target_room_id
 	
+	if room_camera:
+		current_room_width = current_room_node.room_width
+		room_camera.position.x = 120.0
+	
 	# Update GameState view room
 	if GameState:
 		GameState.set_view_room(target_room_id)
@@ -131,6 +170,10 @@ func _load_room_instant(room_id: String) -> void:
 	current_room_node = room_packed.instantiate() as BaseRoom
 	room_container.add_child(current_room_node)
 	current_room_id = room_id
+	
+	if room_camera:
+		current_room_width = current_room_node.room_width
+		room_camera.position.x = 120.0
 	
 	_sync_pets_for_current_room()
 	_show_room_badge(current_room_node.room_name)
@@ -175,23 +218,27 @@ func _sync_pets_for_current_room() -> void:
 	if room_pets.is_empty() and GameState.active_pets.size() == 1:
 		room_pets.append(GameState.active_pets[0])
 		
-	# Spawn each pet companion with slightly offset starting X positions
+	# Spawn each pet companion with properly bounded starting X positions
 	for i in range(room_pets.size()):
 		var p_info: Dictionary = room_pets[i]
 		var pet_inst: PetBrain = PET_SCENE.instantiate() as PetBrain
 		pet_inst.pet_index = i
-		var start_x: float = clampf(70.0 + float(i) * 32.0, anchors.get("min_x", 35.0), anchors.get("max_x", 205.0))
-		pet_inst.position = Vector2(start_x, anchors.get("floor_y", 115.0))
+		
+		var a_min: float = float(anchors.get("min_x", 40.0))
+		var a_max: float = float(anchors.get("max_x", 200.0))
+		var a_desk: float = float(anchors.get("desk_x", (a_min + a_max) * 0.5))
+		var a_nap: float = float(anchors.get("nap_x", a_min + 30.0))
+		var a_drink: float = float(anchors.get("drink_x", a_max - 30.0))
+		var a_floor: float = float(anchors.get("floor_y", 115.0))
+		
+		var mid_x: float = (a_min + a_max) * 0.5
+		var count_offset: float = (float(i) - float(room_pets.size() - 1) * 0.5) * 24.0
+		var start_x: float = clampf(mid_x + count_offset, a_min + 5.0, a_max - 5.0)
+		
+		pet_inst.position = Vector2(start_x, a_floor)
 		pet_layer.add_child(pet_inst)
 		pet_inst.setup_pet(p_info)
-		pet_inst.set_room_anchors(
-			anchors.get("min_x", 35.0),
-			anchors.get("max_x", 205.0),
-			anchors.get("desk_x", 75.0),
-			anchors.get("nap_x", 175.0),
-			anchors.get("drink_x", 120.0),
-			anchors.get("floor_y", 115.0)
-		)
+		pet_inst.set_room_anchors(a_min, a_max, a_desk, a_nap, a_drink, a_floor)
 		spawned_pets.append(pet_inst)
 
 func _on_pet_delivery_box_spawned(p_data: Dictionary, spawn_pos: Vector2) -> void:
@@ -217,6 +264,15 @@ func _on_pet_delivery_box_spawned(p_data: Dictionary, spawn_pos: Vector2) -> voi
 					p.trigger_victory()
 					break
 		)
+
+func _on_timer_state_changed(status_name: String, _remaining: int) -> void:
+	if status_name == "RUNNING" and room_camera and current_room_node and current_room_width > 240.0:
+		var desk_x = current_room_node.desk_x
+		var target_x = clampf(desk_x, 120.0, current_room_width - 120.0)
+		
+		# Smoothly pan to the desk area where the pet will be working
+		var tween = create_tween()
+		tween.tween_property(room_camera, "position:x", target_x, 1.5).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
 
 func _on_room_changed(room_id: String) -> void:
 	if room_id != current_room_id and not is_transitioning:

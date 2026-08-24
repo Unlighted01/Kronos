@@ -32,8 +32,4 @@ scale_amount_min = 1.5
 scale_amount_max = 3.0
 color = Color(0.98, 0.68, 0.80, 0.85)
 
-[node name="DoorLeft" parent="." instance=ExtResource("2_door")]
 position = Vector2(14, 115)
-target_room = "room_kitchen"
-door_label = "Kitchen"
-door_direction = "left"

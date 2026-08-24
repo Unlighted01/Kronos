@@ -298,7 +298,7 @@ func _draw_idle_anim() -> void:
 			_draw_pixel_rect(Rect2(2, 0, 4, 2), fur_cream)
 			_draw_pixel_rect(Rect2(-3, -2, 4, 4), fur_main)
 			_draw_pixel_rect(Rect2(-3, 0, 4, 2), fur_cream)
-			_draw_shiba_head(Vector2(2, -14 + bob), ear_twitch, false, false)
+			_draw_head(Vector2(2, -14 + bob), ear_twitch, false, false)
 
 ## Penguin upright biped idle — stands on 2 orange feet, flippers at sides, gentle rock
 func _draw_penguin_idle(bob: float, fur_main: Color, fur_cream: Color) -> void:
@@ -314,7 +314,7 @@ func _draw_penguin_idle(bob: float, fur_main: Color, fur_cream: Color) -> void:
 	_draw_pixel_rect(Rect2(-9, -9 + bob + rock, 4, 6), fur_main)
 	_draw_pixel_rect(Rect2(7, -9 + bob - rock, 4, 6), fur_main)
 	# Head
-	_draw_shiba_head(Vector2(0, -16 + bob), 0.0, false, false)
+	_draw_head(Vector2(0, -16 + bob), 0.0, false, false)
 
 ## Bunny sitting biped idle — sits upright, long ears twitch, nose wiggles
 func _draw_bunny_idle(bob: float, ear_twitch: float, fur_main: Color, fur_cream: Color) -> void:
@@ -331,7 +331,7 @@ func _draw_bunny_idle(bob: float, ear_twitch: float, fur_main: Color, fur_cream:
 	_draw_pixel_rect(Rect2(-3, -3, 3, 3), fur_cream)
 	_draw_pixel_rect(Rect2(2, -3, 3, 3), fur_cream)
 	# Head with long ears
-	_draw_shiba_head(Vector2(1, -15 + bob + nose_wiggle), ear_twitch, false, false)
+	_draw_head(Vector2(1, -15 + bob + nose_wiggle), ear_twitch, false, false)
 
 ## Fox idle — lower crouch, huge sweeping tail, ears rotate
 func _draw_fox_idle(bob: float, tail_wag: float, ear_twitch: float, fur_main: Color, fur_shadow: Color, fur_cream: Color) -> void:
@@ -349,7 +349,7 @@ func _draw_fox_idle(bob: float, tail_wag: float, ear_twitch: float, fur_main: Co
 	_draw_pixel_rect(Rect2(-2, -1, 4, 3), fur_main)
 	_draw_pixel_rect(Rect2(-2, 1, 4, 2), Color(0.12, 0.16, 0.24))
 	# Head
-	_draw_shiba_head(Vector2(3, -13 + bob), ear_twitch, false, false)
+	_draw_head(Vector2(3, -13 + bob), ear_twitch, false, false)
 
 # ------------------------------------------------------------------------------
 # 2. WALK ANIMATION (Cute 4-frame waddle with alternating paws)
@@ -380,7 +380,7 @@ func _draw_walk_anim() -> void:
 			_draw_pixel_rect(Rect2(2 + paw_offset, 0, 4, 2), fur_cream)
 			_draw_pixel_rect(Rect2(-2 - paw_offset, -2, 4, 4), fur_main)
 			_draw_pixel_rect(Rect2(-2 - paw_offset, 0, 4, 2), fur_cream)
-			_draw_shiba_head(Vector2(3, -14 + bob), 0.0, false, false)
+			_draw_head(Vector2(3, -14 + bob), 0.0, false, false)
 
 ## Penguin waddle walk — body rocks left/right, feet shuffle
 func _draw_penguin_walk(fur_main: Color, fur_cream: Color) -> void:
@@ -396,7 +396,7 @@ func _draw_penguin_walk(fur_main: Color, fur_cream: Color) -> void:
 	_draw_pixel_rect(Rect2(-9 + rock, -8, 4, 5), fur_main)
 	_draw_pixel_rect(Rect2(7 + rock, -8, 4, 5), fur_main)
 	# Head follows rock
-	_draw_shiba_head(Vector2(0 + rock, -16), 0.0, false, false)
+	_draw_head(Vector2(0 + rock, -16), 0.0, false, false)
 
 ## Bunny hop walk — springs forward with both hind legs, ears bounce on landing
 func _draw_bunny_walk(fur_main: Color, fur_cream: Color) -> void:
@@ -419,7 +419,7 @@ func _draw_bunny_walk(fur_main: Color, fur_cream: Color) -> void:
 	_draw_pixel_rect(Rect2(-2, -4 + hop_height, 3, 3), fur_cream)
 	_draw_pixel_rect(Rect2(1, -4 + hop_height, 3, 3), fur_cream)
 	# Head bounces with ears
-	_draw_shiba_head(Vector2(1, -15 + hop_height), ear_bounce, false, false)
+	_draw_head(Vector2(1, -15 + hop_height), ear_bounce, false, false)
 
 ## Fox slinky trot — lower body, longer stride, tail streams behind
 func _draw_fox_walk(bob: float, paw_offset: float, tail_wag: float, fur_main: Color, fur_shadow: Color, fur_cream: Color) -> void:
@@ -437,7 +437,7 @@ func _draw_fox_walk(bob: float, paw_offset: float, tail_wag: float, fur_main: Co
 	_draw_pixel_rect(Rect2(-2 - paw_offset, -1, 4, 3), fur_main)
 	_draw_pixel_rect(Rect2(-2 - paw_offset, 1, 4, 2), Color(0.12, 0.16, 0.24))
 	# Head
-	_draw_shiba_head(Vector2(4, -13 + bob), 0.0, false, false)
+	_draw_head(Vector2(4, -13 + bob), 0.0, false, false)
 
 # ------------------------------------------------------------------------------
 # 3. TYPE LAPTOP ANIMATION (Sitting with mini laptop, rapid typing)
@@ -475,7 +475,7 @@ func _draw_type_anim() -> void:
 			var r_paw_y: float = -3.0 if tap_left else -1.0
 			_draw_pixel_rect(Rect2(5, l_paw_y, 3, 3), fur_cream)
 			_draw_pixel_rect(Rect2(8, r_paw_y, 3, 3), fur_cream)
-			_draw_shiba_head(Vector2(0, -13), 0.0, true, false)
+			_draw_head(Vector2(0, -13), 0.0, true, false)
 
 ## Penguin clipboard writing — stands upright holding clipboard, scribbles with flipper
 func _draw_penguin_type(tap_left: bool, fur_main: Color, fur_cream: Color) -> void:
@@ -497,7 +497,7 @@ func _draw_penguin_type(tap_left: bool, fur_main: Color, fur_cream: Color) -> vo
 	var write_y: float = -6.0 if tap_left else -4.0
 	_draw_pixel_rect(Rect2(8, write_y, 3, 3), fur_main) # Right flipper writing
 	# Focused head
-	_draw_shiba_head(Vector2(0, -16), 0.0, true, false)
+	_draw_head(Vector2(0, -16), 0.0, true, false)
 
 ## Bunny paper sorting — sits upright shuffling papers rapidly
 func _draw_bunny_type(tap_left: bool, fur_main: Color, fur_cream: Color) -> void:
@@ -518,7 +518,7 @@ func _draw_bunny_type(tap_left: bool, fur_main: Color, fur_cream: Color) -> void
 	_draw_pixel_rect(Rect2(l_paw_x, -4, 3, 3), fur_cream)
 	_draw_pixel_rect(Rect2(r_paw_x, -4, 3, 3), fur_cream)
 	# Focused head with perked ears
-	_draw_shiba_head(Vector2(1, -15), 0.0, true, false)
+	_draw_head(Vector2(1, -15), 0.0, true, false)
 
 ## Fox scroll study — curled on floor with scroll/tablet, tail wrapped around body
 func _draw_fox_type(fur_main: Color, fur_shadow: Color, fur_cream: Color) -> void:
@@ -538,7 +538,7 @@ func _draw_fox_type(fur_main: Color, fur_shadow: Color, fur_cream: Color) -> voi
 	_draw_pixel_rect(Rect2(5, -3, 3, 3), fur_cream)
 	_draw_pixel_rect(Rect2(9, -3, 3, 3), fur_cream)
 	# Head looking down at scroll
-	_draw_shiba_head(Vector2(3, -12 + bob), 0.0, true, false)
+	_draw_head(Vector2(3, -12 + bob), 0.0, true, false)
 
 # ------------------------------------------------------------------------------
 # 4. DRINK COFFEE ANIMATION (Holding mug, sipping, steam)
@@ -564,7 +564,7 @@ func _draw_drink_anim() -> void:
 			_draw_pixel_rect(Rect2(-8, -7, 4, 5), fur_main)
 			_draw_pixel_rect(Rect2(1, mug_y + 1, 3, 4), fur_main)
 			var head_tilt: float = -2.0 if sipping else 0.0
-			_draw_shiba_head(Vector2(0, -16 + head_tilt), 0.0, false, sipping)
+			_draw_head(Vector2(0, -16 + head_tilt), 0.0, false, sipping)
 		"bunny":
 			# Bunny sits upright holding tiny cup, ears droop from steam warmth
 			_draw_pixel_rect(Rect2(-10, -4, 4, 4), Color(0.98, 0.98, 1.0))
@@ -578,7 +578,7 @@ func _draw_drink_anim() -> void:
 			_draw_pixel_rect(Rect2(4, mug_y + 1, 3, 3), fur_cream)
 			_draw_pixel_rect(Rect2(7, mug_y + 1, 3, 3), fur_cream)
 			var ear_droop: float = 2.0 if sipping else 0.0
-			_draw_shiba_head(Vector2(1, -15), ear_droop, false, sipping)
+			_draw_head(Vector2(1, -15), ear_droop, false, sipping)
 		_:
 			# Shiba / Cat / Fox default drink
 			_draw_curled_tail(Vector2(-9, -5), 0.0)
@@ -590,7 +590,7 @@ func _draw_drink_anim() -> void:
 			_draw_pixel_rect(Rect2(11, mug_y + 1, 2, 4), COL_MUG_BODY)
 			_draw_pixel_rect(Rect2(4, mug_y + 2, 3, 3), fur_cream)
 			_draw_pixel_rect(Rect2(8, mug_y + 2, 3, 3), fur_cream)
-			_draw_shiba_head(Vector2(0, -13), 0.0, false, sipping)
+			_draw_head(Vector2(0, -13), 0.0, false, sipping)
 
 # ------------------------------------------------------------------------------
 # 5. NAP ANIMATION (Curled up in a ball, slow breathing, Zzz)
@@ -665,7 +665,7 @@ func _draw_petted_anim() -> void:
 			var flip_y: float = -10.0 if (anim_frame % 2 == 0) else -7.0
 			_draw_pixel_rect(Rect2(-9 + rock, flip_y + bob, 4, 5), fur_main)
 			_draw_pixel_rect(Rect2(7 + rock, flip_y + bob, 4, 5), fur_main)
-			_draw_shiba_head(Vector2(0 + rock, -16 + bob), 0.0, false, true, true)
+			_draw_head(Vector2(0 + rock, -16 + bob), 0.0, false, true, true)
 		"bunny":
 			# Bunny ears go flat-back (relaxed), eyes close, shows tiny buck tooth
 			_draw_pixel_rect(Rect2(-10, -4 + bob, 4, 4), Color(0.98, 0.98, 1.0))
@@ -676,7 +676,7 @@ func _draw_petted_anim() -> void:
 			_draw_pixel_rect(Rect2(-3, -3, 3, 3), fur_cream)
 			_draw_pixel_rect(Rect2(2, -3, 3, 3), fur_cream)
 			# Flat-back ears (relaxed) + blush
-			_draw_shiba_head(Vector2(1, -15 + bob), 3.0, false, true, true)
+			_draw_head(Vector2(1, -15 + bob), 3.0, false, true, true)
 		_:
 			# Shiba / Cat / Fox default petted
 			_draw_curled_tail(Vector2(-10, -6 + bob), tail_wag)
@@ -686,7 +686,7 @@ func _draw_petted_anim() -> void:
 			_draw_pixel_rect(Rect2(2, 0, 4, 2), fur_cream)
 			_draw_pixel_rect(Rect2(-3, -2, 4, 4), fur_main)
 			_draw_pixel_rect(Rect2(-3, 0, 4, 2), fur_cream)
-			_draw_shiba_head(Vector2(2, -15 + bob), 0.0, false, true, true)
+			_draw_head(Vector2(2, -15 + bob), 0.0, false, true, true)
 
 # ------------------------------------------------------------------------------
 # 7. VICTORY DANCE ANIMATION (Celebratory hops, open smile, stars)
@@ -711,7 +711,7 @@ func _draw_victory_anim() -> void:
 			else:
 				_draw_pixel_rect(Rect2(-9, -8 + hop_height, 4, 5), fur_main)
 				_draw_pixel_rect(Rect2(7, -8 + hop_height, 4, 5), fur_main)
-			_draw_shiba_head(Vector2(0, -16 + hop_height), 0.0, false, false, true, true)
+			_draw_head(Vector2(0, -16 + hop_height), 0.0, false, false, true, true)
 		"bunny":
 			# Bunny binky! Twists mid-air with ears flying
 			var twist: float = 2.0 if (anim_frame == 2 or anim_frame == 4) else -2.0
@@ -733,7 +733,7 @@ func _draw_victory_anim() -> void:
 				_draw_pixel_rect(Rect2(2, -3 + hop_height, 3, 3), fur_cream)
 			# Ears flying in opposite directions during twist
 			var ear_fly: float = -3.0 if arms_up else 0.0
-			_draw_shiba_head(Vector2(1 + twist, -15 + hop_height), ear_fly, false, false, true, true)
+			_draw_head(Vector2(1 + twist, -15 + hop_height), ear_fly, false, false, true, true)
 		"fox":
 			# Fox playful pounce-hop with tail poof
 			_draw_curled_tail(Vector2(-10, -8 + hop_height), 3.0)
@@ -751,7 +751,7 @@ func _draw_victory_anim() -> void:
 			else:
 				_draw_pixel_rect(Rect2(-8, -7 + hop_height, 3, 4), fur_cream)
 				_draw_pixel_rect(Rect2(6, -7 + hop_height, 3, 4), fur_cream)
-			_draw_shiba_head(Vector2(1, -16 + hop_height), 0.0, false, false, true, true)
+			_draw_head(Vector2(1, -16 + hop_height), 0.0, false, false, true, true)
 		_:
 			# Shiba / Cat default victory
 			_draw_curled_tail(Vector2(-10, -8 + hop_height), 2.0)
@@ -769,7 +769,7 @@ func _draw_victory_anim() -> void:
 			else:
 				_draw_pixel_rect(Rect2(-8, -8 + hop_height, 3, 4), fur_cream)
 				_draw_pixel_rect(Rect2(6, -8 + hop_height, 3, 4), fur_cream)
-			_draw_shiba_head(Vector2(0, -17 + hop_height), 0.0, false, false, true, true)
+			_draw_head(Vector2(0, -17 + hop_height), 0.0, false, false, true, true)
 
 # ------------------------------------------------------------------------------
 # 8. WATCH TV ANIMATION (Sits upright facing right, sparkling eyes)
@@ -791,7 +791,7 @@ func _draw_watch_tv_anim() -> void:
 	_draw_pixel_rect(Rect2(-4, -2, 4, 3), fur_cream)
 	
 	# Attentive head with wide sparkling eyes watching TV screen
-	_draw_shiba_head(Vector2(2, -15 + head_tilt), 0.0, false, false, false, false)
+	_draw_head(Vector2(2, -15 + head_tilt), 0.0, false, false, false, false)
 
 # ------------------------------------------------------------------------------
 # 9. WARM PAWS ANIMATION (Lying on belly in front of fire, toasting paws)
@@ -813,7 +813,7 @@ func _draw_warm_paws_anim() -> void:
 	_draw_pixel_rect(Rect2(4, -2, 4, 3), fur_cream)
 	
 	# Happy cozy head with blushing cheeks and closed eyes
-	_draw_shiba_head(Vector2(3, -11), 0.0, false, true, true, false)
+	_draw_head(Vector2(3, -11), 0.0, false, true, true, false)
 
 # ------------------------------------------------------------------------------
 # 10. STUDY ANIMATION (Sitting at library desk, studying open grimoire)
@@ -835,7 +835,7 @@ func _draw_study_anim() -> void:
 	_draw_pixel_rect(Rect2(-2, -4, 4, 4), fur_cream)
 	
 	# Focused head looking down at book
-	_draw_shiba_head(Vector2(2, -14 + look_down), 0.0, true, false, false, false)
+	_draw_head(Vector2(2, -14 + look_down), 0.0, true, false, false, false)
 
 # ------------------------------------------------------------------------------
 # 11. WINDOW GAZE ANIMATION (Sitting peacefully watching breeze & particles)
@@ -857,7 +857,7 @@ func _draw_window_gaze_anim() -> void:
 	_draw_pixel_rect(Rect2(-3, -2, 4, 4), fur_cream)
 	
 	# Head tilted upward gazing at sky with breezy ear twitch
-	_draw_shiba_head(Vector2(2, -16), ear_twitch, false, false, false, false)
+	_draw_head(Vector2(2, -16), ear_twitch, false, false, false, false)
 
 # ------------------------------------------------------------------------------
 # 12. TUCKED IN BED ANIMATION (Classic cozy curled sleeping donut)
@@ -885,83 +885,123 @@ func _draw_chef_sniff_anim() -> void:
 	_draw_pixel_rect(Rect2(-3, -2, 4, 4), fur_cream)
 	
 	# Sniffing head with open mouth and shiny eyes
-	_draw_shiba_head(Vector2(4, -13 + sniff_bob), 0.0, false, false, false, true)
+	_draw_head(Vector2(4, -13 + sniff_bob), 0.0, false, false, false, true)
 
 # ==============================================================================
-# 🦊 MODULAR SHIBA HEAD RENDERER
+# 🦊 MODULAR ANATOMICAL HEAD RENDERER
 # ==============================================================================
-func _draw_shiba_head(pos: Vector2, ear_tilt: float, focused: bool = false, closed_eyes: bool = false, blush: bool = false, open_mouth: bool = false) -> void:
+func _draw_head(pos: Vector2, ear_tilt: float, focused: bool = false, closed_eyes: bool = false, blush: bool = false, open_mouth: bool = false) -> void:
 	var hx: float = pos.x
 	var hy: float = pos.y
 	var fur_main: Color = _get_fur_main()
 	var fur_cream: Color = _get_fur_cream()
 	
-	# 1. Ears (Species-specific)
 	match species:
 		"bunny":
-			# Long upright floppy bunny ears
-			_draw_pixel_rect(Rect2(hx - 5, hy - 14 + ear_tilt, 4, 11), fur_main)
-			_draw_pixel_rect(Rect2(hx - 4, hy - 12 + ear_tilt, 2, 8), Color(0.96, 0.72, 0.80))
-			_draw_pixel_rect(Rect2(hx + 3, hy - 14, 4, 11), fur_main)
-			_draw_pixel_rect(Rect2(hx + 4, hy - 12, 2, 8), Color(0.96, 0.72, 0.80))
+			_draw_bunny_head(hx, hy, ear_tilt, fur_main, fur_cream, closed_eyes, focused, blush, open_mouth)
 		"penguin":
-			# Tuxedo head crest
-			_draw_pixel_rect(Rect2(hx - 2, hy - 6, 6, 2), fur_main)
+			_draw_penguin_head(hx, hy, fur_main, fur_cream, closed_eyes, focused, blush, open_mouth)
 		"fox":
-			# Fox pointed ears with black tips
-			_draw_pixel_rect(Rect2(hx - 6, hy - 8 + ear_tilt, 4, 5), fur_main)
-			_draw_pixel_rect(Rect2(hx - 6, hy - 8 + ear_tilt, 4, 2), Color(0.12, 0.16, 0.24)) # Black tips
-			_draw_pixel_rect(Rect2(hx - 5, hy - 6 + ear_tilt, 2, 2), COL_EAR_PINK)
-			_draw_pixel_rect(Rect2(hx + 3, hy - 8, 4, 5), fur_main)
-			_draw_pixel_rect(Rect2(hx + 3, hy - 8, 4, 2), Color(0.12, 0.16, 0.24))
-			_draw_pixel_rect(Rect2(hx + 4, hy - 6, 2, 2), COL_EAR_PINK)
+			_draw_fox_head(hx, hy, ear_tilt, fur_main, fur_cream, closed_eyes, focused, blush, open_mouth)
 		"cat":
-			# Cat triangular ears
-			_draw_pixel_rect(Rect2(hx - 6, hy - 7 + ear_tilt, 4, 4), fur_main)
-			_draw_pixel_rect(Rect2(hx - 5, hy - 6 + ear_tilt, 2, 2), COL_EAR_PINK)
-			_draw_pixel_rect(Rect2(hx + 3, hy - 7, 4, 4), Color(0.25, 0.25, 0.30)) # Slate patch ear
-			_draw_pixel_rect(Rect2(hx + 4, hy - 6, 2, 2), COL_EAR_PINK)
+			_draw_cat_head(hx, hy, ear_tilt, fur_main, fur_cream, closed_eyes, focused, blush, open_mouth)
 		_:
-			# Shiba pointed ears
-			_draw_pixel_rect(Rect2(hx - 6, hy - 7 + ear_tilt, 4, 4), fur_main)
-			_draw_pixel_rect(Rect2(hx - 5, hy - 6 + ear_tilt, 2, 2), COL_EAR_PINK)
-			_draw_pixel_rect(Rect2(hx + 3, hy - 7, 4, 4), fur_main)
-			_draw_pixel_rect(Rect2(hx + 4, hy - 6, 2, 2), COL_EAR_PINK)
+			_draw_shiba_head(hx, hy, ear_tilt, fur_main, fur_cream, closed_eyes, focused, blush, open_mouth)
+
+func _draw_bunny_head(hx: float, hy: float, ear_tilt: float, fur_main: Color, fur_cream: Color, closed_eyes: bool, focused: bool, blush: bool, open_mouth: bool) -> void:
+	# Long floppy ears
+	_draw_pixel_rect(Rect2(hx - 5, hy - 14 + ear_tilt, 4, 11), fur_main)
+	_draw_pixel_rect(Rect2(hx - 4, hy - 12 + ear_tilt, 2, 8), Color(0.96, 0.72, 0.80))
+	_draw_pixel_rect(Rect2(hx + 3, hy - 14, 4, 11), fur_main)
+	_draw_pixel_rect(Rect2(hx + 4, hy - 12, 2, 8), Color(0.96, 0.72, 0.80))
 	
-	# 2. Head Base
+	# Rounder, slightly wider face base
+	_draw_pixel_rect(Rect2(hx - 7, hy - 3, 16, 11), fur_main)
+	
+	# Soft cheeks & nose
+	_draw_pixel_rect(Rect2(hx - 4, hy + 3, 11, 5), fur_cream)
+	_draw_pixel_rect(Rect2(hx + 6, hy + 3, 2, 2), Color(0.96, 0.72, 0.80)) # Pink nose
+	
+	_draw_eyes_and_mouth(hx, hy, closed_eyes, focused, blush, open_mouth, false)
+
+func _draw_penguin_head(hx: float, hy: float, fur_main: Color, fur_cream: Color, closed_eyes: bool, focused: bool, blush: bool, open_mouth: bool) -> void:
+	# Tuxedo head crest / dome (Taller and rounder)
+	_draw_pixel_rect(Rect2(hx - 4, hy - 8, 10, 5), fur_main)
+	_draw_pixel_rect(Rect2(hx - 6, hy - 4, 14, 12), fur_main)
+	
+	# White face masks
+	_draw_pixel_rect(Rect2(hx - 4, hy - 1, 11, 8), fur_cream)
+	
+	# Orange beak
+	_draw_pixel_rect(Rect2(hx + 5, hy + 2, 5, 3), Color(0.98, 0.60, 0.10))
+	
+	# Red Scarf
+	_draw_pixel_rect(Rect2(hx - 6, hy + 8, 14, 3), Color(0.88, 0.22, 0.25))
+	
+	_draw_eyes_and_mouth(hx, hy, closed_eyes, focused, blush, open_mouth, true)
+
+func _draw_fox_head(hx: float, hy: float, ear_tilt: float, fur_main: Color, fur_cream: Color, closed_eyes: bool, focused: bool, blush: bool, open_mouth: bool) -> void:
+	# Fox pointed ears with black tips
+	_draw_pixel_rect(Rect2(hx - 6, hy - 8 + ear_tilt, 4, 5), fur_main)
+	_draw_pixel_rect(Rect2(hx - 6, hy - 8 + ear_tilt, 4, 2), Color(0.12, 0.16, 0.24))
+	_draw_pixel_rect(Rect2(hx - 5, hy - 6 + ear_tilt, 2, 2), COL_EAR_PINK)
+	_draw_pixel_rect(Rect2(hx + 3, hy - 8, 4, 5), fur_main)
+	_draw_pixel_rect(Rect2(hx + 3, hy - 8, 4, 2), Color(0.12, 0.16, 0.24))
+	_draw_pixel_rect(Rect2(hx + 4, hy - 6, 2, 2), COL_EAR_PINK)
+	
+	# Sleek wedge-shaped face
+	_draw_pixel_rect(Rect2(hx - 6, hy - 4, 14, 8), fur_main)
+	
+	# Pointed muzzle extending forward
+	_draw_pixel_rect(Rect2(hx - 2, hy + 2, 12, 4), fur_cream)
+	_draw_pixel_rect(Rect2(hx + 8, hy + 2, 2, 2), Color(0.12, 0.16, 0.24)) # Black nose
+	
+	_draw_eyes_and_mouth(hx, hy, closed_eyes, focused, blush, open_mouth, false, true)
+
+func _draw_cat_head(hx: float, hy: float, ear_tilt: float, fur_main: Color, fur_cream: Color, closed_eyes: bool, focused: bool, blush: bool, open_mouth: bool) -> void:
+	# Cat triangular ears
+	_draw_pixel_rect(Rect2(hx - 6, hy - 7 + ear_tilt, 4, 4), fur_main)
+	_draw_pixel_rect(Rect2(hx - 5, hy - 6 + ear_tilt, 2, 2), COL_EAR_PINK)
+	_draw_pixel_rect(Rect2(hx + 3, hy - 7, 4, 4), Color(0.25, 0.25, 0.30)) # Slate patch ear
+	_draw_pixel_rect(Rect2(hx + 4, hy - 6, 2, 2), COL_EAR_PINK)
+	
+	# Face base (slightly squatter)
+	_draw_pixel_rect(Rect2(hx - 7, hy - 4, 15, 10), fur_main)
+	
+	# Calico patches & whiskers
+	_draw_pixel_rect(Rect2(hx - 7, hy - 4, 6, 5), Color(0.90, 0.55, 0.20)) # Ginger patch
+	_draw_pixel_rect(Rect2(hx + 2, hy - 4, 6, 5), Color(0.25, 0.25, 0.30)) # Dark patch
+	_draw_pixel_rect(Rect2(hx - 3, hy + 2, 9, 4), fur_main) # White muzzle
+	
+	# Tiny Whiskers
+	_draw_pixel_rect(Rect2(hx - 9, hy + 2, 3, 1), Color(0.4, 0.4, 0.45))
+	_draw_pixel_rect(Rect2(hx + 8, hy + 2, 3, 1), Color(0.4, 0.4, 0.45))
+	
+	_draw_pixel_rect(Rect2(hx + 6, hy + 2, 2, 2), COL_DARK_EYE) # Nose
+	
+	_draw_eyes_and_mouth(hx, hy, closed_eyes, focused, blush, open_mouth, false, false)
+
+func _draw_shiba_head(hx: float, hy: float, ear_tilt: float, fur_main: Color, fur_cream: Color, closed_eyes: bool, focused: bool, blush: bool, open_mouth: bool) -> void:
+	# Pointed ears
+	_draw_pixel_rect(Rect2(hx - 6, hy - 7 + ear_tilt, 4, 4), fur_main)
+	_draw_pixel_rect(Rect2(hx - 5, hy - 6 + ear_tilt, 2, 2), COL_EAR_PINK)
+	_draw_pixel_rect(Rect2(hx + 3, hy - 7, 4, 4), fur_main)
+	_draw_pixel_rect(Rect2(hx + 4, hy - 6, 2, 2), COL_EAR_PINK)
+	
+	# Blocky head base
 	_draw_pixel_rect(Rect2(hx - 6, hy - 4, 14, 11), fur_main)
 	
-	# 3. Markings & Muzzle
-	match species:
-		"shiba":
-			# White Eyebrow Dots
-			_draw_pixel_rect(Rect2(hx - 3, hy - 2, 2, 2), fur_cream)
-			_draw_pixel_rect(Rect2(hx + 3, hy - 2, 2, 2), fur_cream)
-			_draw_pixel_rect(Rect2(hx - 3, hy + 2, 10, 5), fur_cream)
-			_draw_pixel_rect(Rect2(hx + 1, hy, 6, 4), fur_cream)
-		"cat":
-			# Calico patches & whiskers
-			_draw_pixel_rect(Rect2(hx - 6, hy - 4, 6, 5), Color(0.90, 0.55, 0.20)) # Ginger patch
-			_draw_pixel_rect(Rect2(hx + 2, hy - 4, 6, 5), Color(0.25, 0.25, 0.30)) # Dark patch
-			_draw_pixel_rect(Rect2(hx - 2, hy + 2, 8, 5), fur_main) # White muzzle
-			# Tiny Whiskers
-			_draw_pixel_rect(Rect2(hx - 8, hy + 2, 2, 1), Color(0.4, 0.4, 0.45))
-			_draw_pixel_rect(Rect2(hx + 8, hy + 2, 2, 1), Color(0.4, 0.4, 0.45))
-		"bunny":
-			# Soft cheeks
-			_draw_pixel_rect(Rect2(hx - 3, hy + 2, 9, 5), fur_main)
-			_draw_pixel_rect(Rect2(hx + 6, hy + 2, 2, 2), Color(0.96, 0.72, 0.80)) # Pink nose
-		"penguin":
-			# White face masks & orange beak
-			_draw_pixel_rect(Rect2(hx - 3, hy - 1, 9, 7), Color(0.99, 0.99, 1.0))
-			_draw_pixel_rect(Rect2(hx + 5, hy + 2, 4, 3), Color(0.98, 0.60, 0.10)) # Orange beak
-			# Red Scarf
-			_draw_pixel_rect(Rect2(hx - 6, hy + 7, 14, 3), Color(0.88, 0.22, 0.25))
-		"fox":
-			# White muzzle and cheek tufts
-			_draw_pixel_rect(Rect2(hx - 4, hy + 2, 11, 5), Color(0.99, 0.96, 0.89))
-			_draw_pixel_rect(Rect2(hx + 7, hy + 2, 2, 2), Color(0.12, 0.16, 0.24)) # Black nose
+	# White Eyebrow Dots
+	_draw_pixel_rect(Rect2(hx - 3, hy - 2, 2, 2), fur_cream)
+	_draw_pixel_rect(Rect2(hx + 3, hy - 2, 2, 2), fur_cream)
+	_draw_pixel_rect(Rect2(hx - 3, hy + 2, 10, 5), fur_cream)
+	_draw_pixel_rect(Rect2(hx + 1, hy, 6, 4), fur_cream)
 	
+	_draw_pixel_rect(Rect2(hx + 6, hy + 2, 2, 2), COL_DARK_EYE) # Nose
+	
+	_draw_eyes_and_mouth(hx, hy, closed_eyes, focused, blush, open_mouth, false, false)
+
+func _draw_eyes_and_mouth(hx: float, hy: float, closed_eyes: bool, focused: bool, blush: bool, open_mouth: bool, is_penguin: bool = false, is_fox: bool = false) -> void:
 	# 4. Eyes
 	if closed_eyes:
 		_draw_pixel_rect(Rect2(hx - 2, hy, 3, 1), COL_DARK_EYE)
@@ -975,21 +1015,18 @@ func _draw_shiba_head(pos: Vector2, ear_tilt: float, focused: bool = false, clos
 		_draw_pixel_rect(Rect2(hx + 4, hy - 1, 3, 3), COL_DARK_EYE)
 		_draw_pixel_rect(Rect2(hx + 4, hy - 1, 1, 1), COL_EYE_SHINE)
 		
-	# 5. Nose & Cheeks
-	if species != "penguin" and species != "bunny":
-		_draw_pixel_rect(Rect2(hx + 6, hy + 2, 2, 2), COL_DARK_EYE)
-		
 	if blush:
 		_draw_pixel_rect(Rect2(hx - 4, hy + 2, 3, 2), COL_CHEEK_BLUSH)
 		_draw_pixel_rect(Rect2(hx + 2, hy + 2, 3, 2), COL_CHEEK_BLUSH)
 		
 	# 6. Mouth / Tongue
-	if species != "penguin":
+	if not is_penguin:
+		var mouth_x = hx + 3 if is_fox else hx + 4
 		if open_mouth:
 			_draw_pixel_rect(Rect2(hx + 3, hy + 4, 3, 3), COL_DARK_EYE)
 			_draw_pixel_rect(Rect2(hx + 4, hy + 5, 2, 2), COL_TONGUE)
 		else:
-			_draw_pixel_rect(Rect2(hx + 4, hy + 4, 2, 1), COL_DARK_EYE)
+			_draw_pixel_rect(Rect2(mouth_x, hy + 4, 2, 1), COL_DARK_EYE)
 
 # ------------------------------------------------------------------------------
 # 🌀 TAIL HELPER

@@ -10,6 +10,7 @@ class_name BaseRoom
 # ==============================================================================
 @export var room_id: String = "room_base"
 @export var room_name: String = "Base Room"
+@export var room_width: float = 240.0
 
 @export_group("Navigation Anchors")
 @export var min_x: float = 35.0
@@ -43,6 +44,8 @@ const COL_SWITCH_LEVER_ON: Color = Color(0.96, 0.65, 0.15, 1.0)
 # ==============================================================================
 func _ready() -> void:
 	_update_ambient_lighting()
+	if EventBus and EventBus.has_signal("floor_y_offset_changed"):
+		EventBus.floor_y_offset_changed.emit(0.0)
 	EventBus.room_light_toggled.connect(_on_room_light_toggled)
 	EventBus.decor_placed.connect(_on_decor_placed)
 

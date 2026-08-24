@@ -1,50 +1,17 @@
-[gd_scene load_steps=3 format=3 uid="uid://df7h1g2j3k4m5"]
+[gd_scene load_steps=2 format=3 uid="uid://df7h1g2j3k4m5"]
 
 [ext_resource type="Script" path="res://scenes/rooms/Bedroom.gd" id="1_bedr"]
-[ext_resource type="PackedScene" uid="uid://b2d8e4f6a1c9x" path="res://scenes/rooms/Door.tscn" id="2_door"]
 
 [node name="Bedroom" type="Node2D"]
 script = ExtResource("1_bedr")
 room_id = "room_bedroom"
-room_name = "Study Bedroom"
-desk_x = 72.0
-nap_x = 168.0
-drink_x = 115.0
+room_name = "Temple of Morpheus"
+room_width = 720.0
+min_x = 50.0
+max_x = 670.0
+desk_x = 550.0
+nap_x = 360.0
+drink_x = 180.0
 
 [node name="AmbientModulate" type="CanvasModulate" parent="."]
 color = Color(1, 1, 1, 1)
-
-[node name="DustMotes" type="CPUParticles2D" parent="."]
-position = Vector2(120, 50)
-amount = 12
-lifetime = 4.0
-randomness = 0.5
-emission_shape = 3
-emission_rect_extents = Vector2(30, 25)
-gravity = Vector2(2, 4)
-initial_velocity_min = 2.0
-initial_velocity_max = 6.0
-scale_amount_min = 1.0
-scale_amount_max = 2.0
-color = Color(1, 0.95, 0.8, 0.45)
-
-[node name="SeasonalWeatherParticles" type="CPUParticles2D" parent="."]
-position = Vector2(122, 32)
-emitting = false
-amount = 20
-lifetime = 3.5
-randomness = 0.6
-emission_shape = 3
-emission_rect_extents = Vector2(18, 16)
-gravity = Vector2(14, 18)
-initial_velocity_min = 6.0
-initial_velocity_max = 16.0
-scale_amount_min = 1.5
-scale_amount_max = 2.5
-color = Color(0.95, 0.98, 1, 0.9)
-
-[node name="DoorRight" parent="." instance=ExtResource("2_door")]
-position = Vector2(226, 115)
-target_room = "room_livingroom"
-door_label = "Living Room"
-door_direction = "right"

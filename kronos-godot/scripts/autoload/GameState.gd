@@ -225,7 +225,7 @@ const ITEM_DEFINITIONS: Dictionary = {
 		"icon": "🪴",
 		"category": "decor",
 		"target_room": "room_bedroom",
-		"target_room_name": "Study Bedroom",
+		"target_room_name": "Temple of Morpheus",
 		"price": 300,
 		"description": "Tranquil miniature pine bonsai on the desk shelf."
 	},
@@ -235,7 +235,7 @@ const ITEM_DEFINITIONS: Dictionary = {
 		"icon": "🏮",
 		"category": "decor",
 		"target_room": "room_bedroom",
-		"target_room_name": "Study Bedroom",
+		"target_room_name": "Temple of Morpheus",
 		"price": 400,
 		"description": "Mesmerizing glowing lava lamp on the nightstand."
 	},
@@ -246,7 +246,7 @@ const ITEM_DEFINITIONS: Dictionary = {
 		"icon": "📻",
 		"category": "decor",
 		"target_room": "room_livingroom",
-		"target_room_name": "Living Room",
+		"target_room_name": "Hearth of Hestia",
 		"price": 450,
 		"description": "Old-school cassette beatbox on the lounge credenza."
 	},
@@ -256,7 +256,7 @@ const ITEM_DEFINITIONS: Dictionary = {
 		"icon": "🎶",
 		"category": "decor",
 		"target_room": "room_livingroom",
-		"target_room_name": "Living Room",
+		"target_room_name": "Hearth of Hestia",
 		"price": 350,
 		"description": "Color-coded vintage vinyl albums stacked beside turntable."
 	},
@@ -267,7 +267,7 @@ const ITEM_DEFINITIONS: Dictionary = {
 		"icon": "🎮",
 		"category": "decor",
 		"target_room": "room_library",
-		"target_room_name": "Attic Library",
+		"target_room_name": "Tower of Urania",
 		"price": 1200,
 		"description": "Vintage tabletop pixel arcade cabinet with glowing demo screen."
 	},
@@ -277,7 +277,7 @@ const ITEM_DEFINITIONS: Dictionary = {
 		"icon": "🔭",
 		"category": "decor",
 		"target_room": "room_library",
-		"target_room_name": "Attic Library",
+		"target_room_name": "Tower of Urania",
 		"price": 500,
 		"description": "Antique brass stargazing telescope pointed out the rafter window."
 	},
@@ -288,7 +288,7 @@ const ITEM_DEFINITIONS: Dictionary = {
 		"icon": "🧂",
 		"category": "decor",
 		"target_room": "room_kitchen",
-		"target_room_name": "Bakery Kitchen",
+		"target_room_name": "Banks of the Styx",
 		"price": 380,
 		"description": "Handcrafted wooden spice rack with glass herb jars."
 	},
@@ -298,7 +298,7 @@ const ITEM_DEFINITIONS: Dictionary = {
 		"icon": "🧁",
 		"category": "decor",
 		"target_room": "room_kitchen",
-		"target_room_name": "Bakery Kitchen",
+		"target_room_name": "Banks of the Styx",
 		"price": 420,
 		"description": "Elegant glass display cloche with blueberry muffins."
 	},
@@ -309,7 +309,7 @@ const ITEM_DEFINITIONS: Dictionary = {
 		"icon": "🌿",
 		"category": "decor",
 		"target_room": "room_greenhouse",
-		"target_room_name": "Conservatory",
+		"target_room_name": "Elysian Fields",
 		"price": 450,
 		"description": "Geometric brass & crystal terrarium housing rare moss."
 	},
@@ -324,43 +324,63 @@ const ITEM_DEFINITIONS: Dictionary = {
 		"description": "Hanging blown-glass lantern casting fairy light motes."
 	},
 	# Rooms / Real Estate
+	"room_bedroom": {
+		"id": "room_bedroom",
+		"name": "Temple of Morpheus",
+		"icon": "🌙",
+		"category": "room",
+		"price": 0,
+		"unlock_level": 1,
+		"description": "The sanctuary of sleep, featuring the Font of Lethe and the Hourglass Altar."
+	},
 	"room_livingroom": {
 		"id": "room_livingroom",
-		"name": "Living Room",
-		"icon": "🛋️",
+		"name": "Hearth of Hestia",
+		"icon": "🔥",
 		"category": "room",
 		"price": 250,
 		"unlock_level": 2,
-		"description": "Spacious lounge with cozy fireplace, TV, vinyl turntable, and warm sofa."
+		"description": "A sacred marble hearth with a roaring fire pit and ancient study desk."
 	},
 	"room_library": {
 		"id": "room_library",
-		"name": "Attic Library",
-		"icon": "📚",
+		"name": "Tower of Urania",
+		"icon": "🔭",
 		"category": "room",
 		"price": 500,
 		"unlock_level": 4,
-		"description": "Old-world attic under wooden rafters with antique bookshelves, globe, and telescope."
+		"description": "An astronomical observatory overlooking the endless cosmos."
 	},
 	"room_kitchen": {
 		"id": "room_kitchen",
-		"name": "Bakery Kitchen",
-		"icon": "🍳",
+		"name": "Banks of the Styx",
+		"icon": "🛶",
 		"category": "room",
 		"price": 750,
 		"unlock_level": 6,
-		"description": "Warm country kitchen with copper stove, espresso station, and pastry cloche."
+		"description": "The gloomy underworld dock featuring Asphodel meadows and a spectral forge."
 	},
 	"room_greenhouse": {
 		"id": "room_greenhouse",
-		"name": "Conservatory",
-		"icon": "🌿",
+		"name": "Elysian Fields",
+		"icon": "🌾",
 		"category": "room",
 		"price": 1000,
 		"unlock_level": 8,
-		"description": "Sun-drenched botanical solarium with blooming flora and flutter of butterflies."
+		"description": "Endless golden wheat fields under a sunset sky of the Golden Age."
 	},
 	# Adoptable Pets
+	"pet_shiba": {
+		"id": "pet_shiba",
+		"name": "Loyal Shiba",
+		"default_name": "Kronos",
+		"icon": "🐕",
+		"category": "pet",
+		"species": "shiba",
+		"price": 0,
+		"unlock_level": 1,
+		"description": "The original loyal companion! Fluffy curled tail, energetic typing, and warm smiles."
+	},
 	"pet_cat": {
 		"id": "pet_cat",
 		"name": "Calico Cat",

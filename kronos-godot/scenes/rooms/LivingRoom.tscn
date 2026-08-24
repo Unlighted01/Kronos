@@ -1,66 +1,17 @@
-[gd_scene load_steps=4 format=3 uid="uid://e4r5t6y7u8i9o"]
+[gd_scene load_steps=2 format=3 uid="uid://e4r5t6y7u8i9o"]
 
 [ext_resource type="Script" path="res://scenes/rooms/LivingRoom.gd" id="1_livr"]
-[ext_resource type="PackedScene" uid="uid://b2d8e4f6a1c9x" path="res://scenes/rooms/Door.tscn" id="2_door"]
-[ext_resource type="PackedScene" uid="uid://c5l8a2d1d4e7r" path="res://scenes/rooms/Ladder.tscn" id="3_ladder"]
 
 [node name="LivingRoom" type="Node2D"]
 script = ExtResource("1_livr")
 room_id = "room_livingroom"
-room_name = "Living Room Lounge"
-desk_x = 92.0
-nap_x = 138.0
-drink_x = 138.0
+room_name = "Hearth of Hestia"
+room_width = 720.0
+min_x = 50.0
+max_x = 670.0
+desk_x = 550.0
+nap_x = 150.0
+drink_x = 350.0
 
 [node name="AmbientModulate" type="CanvasModulate" parent="."]
 color = Color(1, 1, 1, 1)
-
-[node name="FireEmbers" type="CPUParticles2D" parent="."]
-position = Vector2(55, 84)
-amount = 16
-lifetime = 1.8
-randomness = 0.6
-emission_shape = 3
-emission_rect_extents = Vector2(10, 4)
-gravity = Vector2(0, -25)
-initial_velocity_min = 10.0
-initial_velocity_max = 24.0
-tangential_accel_min = -8.0
-tangential_accel_max = 8.0
-scale_amount_min = 1.0
-scale_amount_max = 2.5
-color = Color(1, 0.7, 0.2, 0.9)
-
-[node name="SeasonalWeatherParticles" type="CPUParticles2D" parent="."]
-position = Vector2(137, 30)
-emitting = false
-amount = 20
-lifetime = 3.5
-randomness = 0.6
-emission_shape = 3
-emission_rect_extents = Vector2(18, 16)
-gravity = Vector2(14, 18)
-initial_velocity_min = 6.0
-initial_velocity_max = 16.0
-scale_amount_min = 1.5
-scale_amount_max = 2.5
-color = Color(0.95, 0.98, 1, 0.9)
-
-[node name="DoorLeft" parent="." instance=ExtResource("2_door")]
-position = Vector2(14, 115)
-target_room = "room_bedroom"
-door_label = "Bedroom"
-door_direction = "left"
-
-[node name="LadderAttic" parent="." instance=ExtResource("3_ladder")]
-z_index = 1
-position = Vector2(92, 115)
-target_room = "room_library"
-ladder_label = "Attic Library"
-direction = "up"
-
-[node name="DoorRight" parent="." instance=ExtResource("2_door")]
-position = Vector2(226, 115)
-target_room = "room_kitchen"
-door_label = "Kitchen"
-door_direction = "right"
