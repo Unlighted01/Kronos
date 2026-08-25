@@ -173,3 +173,18 @@ signal load_completed(success: bool)
 ## Emitted by rooms with dynamic floors (like Charon's Skiff)
 signal floor_y_offset_changed(offset: float)
 
+# ==============================================================================
+# 🏆 ACHIEVEMENTS & FRIENDSHIP SIGNALS
+# ==============================================================================
+## Emitted when an achievement/trophy is unlocked
+signal achievement_unlocked(achievement_id: String, achievement_def: Dictionary)
+
+## Emitted when pet affection/friendship level or exp increases
+signal affection_changed(pet_id: String, new_level: int, new_xp: int, delta: int)
+
+## Emitted when a flashcard is reviewed in study drill
+signal flashcard_reviewed(card_id: String, rating: String)
+
+## Emitted when a new flashcard is created
+signal flashcard_created(card_id: String)
+

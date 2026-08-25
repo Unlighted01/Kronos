@@ -66,7 +66,7 @@ const RECT_WATERFALL: Rect2 = Rect2(530, 80, 80, 100)
 func _ready() -> void:
 	super._ready()
 	room_id = "room_bedroom"
-	room_name = "Temple of Morpheus"
+	room_name = "Study Bedroom"
 	room_width = 720.0
 	min_x = 50.0
 	max_x = 500.0  # Cannot walk past the waterfall edge

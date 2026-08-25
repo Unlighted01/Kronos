@@ -49,9 +49,6 @@ func _ready() -> void:
 	EventBus.room_light_toggled.connect(_on_room_light_toggled)
 	EventBus.decor_placed.connect(_on_decor_placed)
 
-func _process(_delta: float) -> void:
-	pass
-
 func _on_room_light_toggled(toggled_room_id: String, _is_on: bool) -> void:
 	if toggled_room_id == room_id:
 		_update_ambient_lighting()

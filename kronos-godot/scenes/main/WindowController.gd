@@ -32,6 +32,7 @@ const SCALE_LABELS: Array[String] = ["1.25x", "1.5x", "2x"]
 @onready var title_label: Label = $MainContainer/MiddlePanel/VBox/HeaderBar/HBox/TitleLabel
 @onready var scale_btn: Button = $MainContainer/MiddlePanel/VBox/HeaderBar/HBox/ScaleButton
 @onready var pin_btn: Button = $MainContainer/MiddlePanel/VBox/HeaderBar/HBox/PinButton
+@onready var min_btn: Button = $MainContainer/MiddlePanel/VBox/HeaderBar/HBox/MinimizeButton
 @onready var close_btn: Button = $MainContainer/MiddlePanel/VBox/HeaderBar/HBox/CloseButton
 
 # HUD Stats
@@ -75,12 +76,13 @@ func _ready() -> void:
 	_connect_event_bus()
 	_update_layout()
 	_refresh_ui_from_state()
+	_spawn_splash_intro()
 
-func _notification(_what: int) -> void:
-	pass
-
-func _process(_delta: float) -> void:
-	pass
+func _spawn_splash_intro() -> void:
+	var splash_scene = load("res://scenes/main/SplashIntro.tscn")
+	if splash_scene:
+		var splash_inst = splash_scene.instantiate()
+		add_child(splash_inst)
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
@@ -121,7 +123,9 @@ func _connect_signals() -> void:
 	if scale_btn:
 		scale_btn.pressed.connect(cycle_window_scale)
 	if pin_btn:
-		pin_btn.pressed.connect(toggle_position_lock)
+		pin_btn.pressed.connect(toggle_always_on_top)
+	if min_btn:
+		min_btn.pressed.connect(_on_minimize_pressed)
 	if close_btn:
 		close_btn.pressed.connect(func(): get_tree().quit())
 		
@@ -165,6 +169,17 @@ func _connect_event_bus() -> void:
 	EventBus.panel_visibility_changed.connect(_on_panel_visibility_changed)
 	EventBus.window_pin_toggled.connect(_on_window_pin_toggled)
 	EventBus.active_task_selected.connect(func(_id, title): _update_active_task_display(title))
+	EventBus.achievement_unlocked.connect(_on_achievement_unlocked)
+	if NotificationManager:
+		NotificationManager.toast_requested.connect(_on_toast_requested)
+
+func _on_achievement_unlocked(_ach_id: String, ach_def: Dictionary) -> void:
+	var popup_scene = load("res://scenes/main/AchievementPopup.tscn")
+	if popup_scene:
+		var popup_inst = popup_scene.instantiate()
+		add_child(popup_inst)
+		if popup_inst.has_method("display_achievement"):
+			popup_inst.display_achievement(ach_def)
 
 func _refresh_ui_from_state() -> void:
 	if GameState:
@@ -290,15 +305,17 @@ func toggle_always_on_top() -> void:
 func _apply_always_on_top(pinned: bool) -> void:
 	is_pinned = pinned
 	
-	# Get the actual native Windows HWND integer from Godot
+	# Godot 4 WINDOW_FLAG_ALWAYS_ON_TOP doesn't work correctly with borderless+transparent on Windows
+	# We MUST use our custom C++ Win32 Helper to force SetWindowPos HWND_TOPMOST
 	var hwnd: int = DisplayServer.window_get_native_handle(DisplayServer.WINDOW_HANDLE, 0)
-	
 	if hwnd != 0:
 		var exe_path = ProjectSettings.globalize_path("res://bin/kronos_pinner.exe")
 		var state_str = "1" if pinned else "0"
-		
-		# Execute our silent native Win32 helper
 		OS.create_process(exe_path, [str(hwnd), state_str])
+		
+	if pin_btn:
+		pin_btn.modulate = Color(1.0, 0.84, 0.0, 1.0) if is_pinned else Color(1.0, 1.0, 1.0, 0.6)
+		pin_btn.text = "📌" if is_pinned else "📍" 
 
 ## Recalculates dimensions, applies scaling, resizes OS window, and re-clamps to screen
 func _update_layout() -> void:
@@ -538,3 +555,157 @@ func _on_minigame_pressed() -> void:
 		hub_instance.custom_minimum_size = Vector2(236, 140)
 		hub_instance.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		pet_slot.add_child(hub_instance)
+
+func _on_minimize_pressed() -> void:
+	if AudioManager:
+		AudioManager.play_sfx("click")
+	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_MINIMIZED, 0)
+
+func _unhandled_key_input(event: InputEvent) -> void:
+	if not (event is InputEventKey) or not event.is_pressed() or event.is_echo():
+		return
+		
+	# Ignore shortcuts if user is currently typing in a text field
+	var focused = get_viewport().gui_get_focus_owner()
+	if focused is LineEdit or focused is TextEdit:
+		return
+		
+	var key = event as InputEventKey
+	
+	# 1. Space: Toggle Start / Pause Pomodoro Focus
+	if key.keycode == KEY_SPACE:
+		if TimerEngine:
+			if TimerEngine.status == TimerEngine.TimerStatus.RUNNING:
+				TimerEngine.pause()
+			elif TimerEngine.status == TimerEngine.TimerStatus.PAUSED:
+				TimerEngine.resume()
+			else:
+				TimerEngine.start_focus()
+		get_viewport().set_input_as_handled()
+		return
+		
+	# 2. Escape: Close open modals / panels
+	if key.keycode == KEY_ESCAPE:
+		if _close_open_modals():
+			get_viewport().set_input_as_handled()
+			return
+		if is_left_open or is_right_open:
+			if is_left_open: toggle_left_panel()
+			if is_right_open: toggle_right_panel()
+			get_viewport().set_input_as_handled()
+			return
+			
+	# 3. Ctrl + P: Toggle Always-On-Top Pin
+	if key.ctrl_pressed and key.keycode == KEY_P:
+		toggle_always_on_top()
+		get_viewport().set_input_as_handled()
+		return
+		
+	# 4. Ctrl + 1/2/3: Scale Factor Switching
+	if key.ctrl_pressed:
+		if key.keycode == KEY_1:
+			set_scale_preset(0)
+			get_viewport().set_input_as_handled()
+			return
+		elif key.keycode == KEY_2:
+			set_scale_preset(1)
+			get_viewport().set_input_as_handled()
+			return
+		elif key.keycode == KEY_3:
+			set_scale_preset(2)
+			get_viewport().set_input_as_handled()
+			return
+			
+	# 5. Ctrl + Left / Right: Cycle Unlocked Rooms
+	if key.ctrl_pressed:
+		if key.keycode == KEY_LEFT or key.keycode == KEY_RIGHT:
+			_cycle_unlocked_room(key.keycode == KEY_RIGHT)
+			get_viewport().set_input_as_handled()
+			return
+			
+	# 6. M: Quick Mute / Ambience Toggle
+	if key.keycode == KEY_M and not key.ctrl_pressed and not key.alt_pressed:
+		if GameState:
+			var current_amb = GameState.audio_settings.get("ambience_enabled", true)
+			GameState.set_audio_setting("ambience_enabled", not current_amb)
+			if NotificationManager:
+				var msg = "Ambience Muted 🔇" if current_amb else "Ambience Unmuted 🔊"
+				NotificationManager.show_toast(msg, NotificationManager.ToastType.INFO)
+		get_viewport().set_input_as_handled()
+		return
+
+func _close_open_modals() -> bool:
+	if not pet_slot:
+		return false
+	var modal_names = ["FlashcardEngine", "MinigameHub", "SnackCatchGame", "PlantBloomGame", "MemoryMatchGame"]
+	for m in modal_names:
+		if pet_slot.has_node(m):
+			pet_slot.get_node(m).queue_free()
+			if AudioManager: AudioManager.play_sfx("click")
+			return true
+	return false
+
+func _cycle_unlocked_room(next: bool) -> void:
+	if not GameState or GameState.unlocked_rooms.is_empty():
+		return
+	var rooms = GameState.unlocked_rooms
+	var cur_idx = rooms.find(GameState.active_view_room)
+	if cur_idx == -1: cur_idx = 0
+	var new_idx = (cur_idx + 1) % rooms.size() if next else (cur_idx - 1 + rooms.size()) % rooms.size()
+	var target_room = rooms[new_idx]
+	GameState.set_active_view_room(target_room)
+	if AudioManager: AudioManager.play_sfx("click")
+	if NotificationManager:
+		var r_name = GameState.get_room_display_name(target_room)
+		NotificationManager.show_toast("Domain: " + r_name, NotificationManager.ToastType.INFO)
+
+func _on_toast_requested(msg: String, toast_type: int) -> void:
+	# Spawn or update floating retro toast overlay
+	var toast_node = get_node_or_null("FloatingToast")
+	if toast_node:
+		toast_node.queue_free()
+		
+	var panel: PanelContainer = PanelContainer.new()
+	panel.name = "FloatingToast"
+	panel.z_index = 100
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	style.bg_color = Color(0.06, 0.08, 0.14, 0.96)
+	style.set_border_width_all(1)
+	
+	match toast_type:
+		0: style.border_color = Color(0.31, 0.82, 0.91, 1.0) # INFO cyan
+		1: style.border_color = Color(0.35, 0.85, 0.55, 1.0) # SUCCESS green
+		2: style.border_color = Color(0.96, 0.62, 0.04, 1.0) # WARNING gold
+		3: style.border_color = Color(0.95, 0.35, 0.35, 1.0) # ERROR red
+		_: style.border_color = Color(0.31, 0.82, 0.91, 1.0)
+		
+	style.set_corner_radius_all(3)
+	style.content_margin_left = 8
+	style.content_margin_right = 8
+	style.content_margin_top = 4
+	style.content_margin_bottom = 4
+	panel.add_theme_stylebox_override("panel", style)
+	
+	var lbl: Label = Label.new()
+	lbl.text = msg
+	lbl.add_theme_font_size_override("font_size", 7)
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	panel.add_child(lbl)
+	
+	add_child(panel)
+	
+	# Position near top of middle panel
+	panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
+	panel.position.y = 28.0
+	panel.modulate.a = 0.0
+	
+	var tween = create_tween()
+	tween.tween_property(panel, "modulate:a", 1.0, 0.15)
+	tween.tween_interval(2.2)
+	tween.tween_property(panel, "modulate:a", 0.0, 0.25)
+	tween.tween_callback(func():
+		if is_instance_valid(panel):
+			panel.queue_free()
+	)

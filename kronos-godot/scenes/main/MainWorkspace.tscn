@@ -154,6 +154,15 @@ mouse_filter = 0
 mouse_default_cursor_shape = 2
 text = "▶"
 
+[node name="MinimizeButton" type="Button" parent="MainContainer/MiddlePanel/VBox/HeaderBar/HBox"]
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 2
+focus_mode = 0
+mouse_filter = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 7
+text = "—"
+
 [node name="CloseButton" type="Button" parent="MainContainer/MiddlePanel/VBox/HeaderBar/HBox"]
 custom_minimum_size = Vector2(20, 20)
 layout_mode = 2

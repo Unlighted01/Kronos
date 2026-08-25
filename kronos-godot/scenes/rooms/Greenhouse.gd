@@ -48,7 +48,7 @@ const RECT_SCARECROW: Rect2 = Rect2(40, 50, 60, 80)
 func _ready() -> void:
 	super._ready()
 	room_id = "room_greenhouse"
-	room_name = "Elysian Fields"
+	room_name = "Zen Greenhouse"
 	room_width = 720.0
 	min_x = 50.0
 	max_x = 650.0

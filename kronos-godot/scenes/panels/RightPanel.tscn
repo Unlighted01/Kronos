@@ -36,10 +36,51 @@ custom_minimum_size = Vector2(20, 20)
 layout_mode = 2
 text = "✕"
 
+[node name="TabBarScroll" type="ScrollContainer" parent="VBox"]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+horizontal_scroll_mode = 1
+vertical_scroll_mode = 0
+
+[node name="TabHBox" type="HBoxContainer" parent="VBox/TabBarScroll"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="TabVitalsBtn" type="Button" parent="VBox/TabBarScroll/TabHBox"]
+custom_minimum_size = Vector2(56, 20)
+layout_mode = 2
+theme_override_font_sizes/font_size = 7
+text = "💖 VITALS"
+
+[node name="TabBagBtn" type="Button" parent="VBox/TabBarScroll/TabHBox"]
+custom_minimum_size = Vector2(46, 20)
+layout_mode = 2
+theme_override_font_sizes/font_size = 7
+text = "🎒 BAG"
+
+[node name="TabDtrBtn" type="Button" parent="VBox/TabBarScroll/TabHBox"]
+custom_minimum_size = Vector2(46, 20)
+layout_mode = 2
+theme_override_font_sizes/font_size = 7
+text = "📅 DTR"
+
+[node name="TabDeckBtn" type="Button" parent="VBox/TabBarScroll/TabHBox"]
+custom_minimum_size = Vector2(50, 20)
+layout_mode = 2
+theme_override_font_sizes/font_size = 7
+text = "📚 DECK"
+
+[node name="TabConfigBtn" type="Button" parent="VBox/TabBarScroll/TabHBox"]
+custom_minimum_size = Vector2(60, 20)
+layout_mode = 2
+theme_override_font_sizes/font_size = 7
+text = "⚙️ CONFIG"
+
 [node name="TabContainer" type="TabContainer" parent="VBox"]
 layout_mode = 2
 size_flags_vertical = 3
 current_tab = 0
+tabs_visible = false
 
 [node name="VITALS" type="Control" parent="VBox/TabContainer"]
 layout_mode = 2
@@ -206,6 +247,39 @@ layout_mode = 2
 value = 80.0
 show_percentage = false
 
+[node name="FriendshipCard" type="PanelContainer" parent="VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox"]
+layout_mode = 2
+
+[node name="VBox" type="VBoxContainer" parent="VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox/FriendshipCard"]
+layout_mode = 2
+theme_override_constants/separation = 3
+
+[node name="HBox" type="HBoxContainer" parent="VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox/FriendshipCard/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="FriendshipTitle" type="Label" parent="VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox/FriendshipCard/VBox/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.93, 0.28, 0.60, 1)
+theme_override_font_sizes/font_size = 8
+text = "FRIENDSHIP"
+
+[node name="Spacer" type="Control" parent="VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox/FriendshipCard/VBox/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="FriendshipHearts" type="Label" parent="VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox/FriendshipCard/VBox/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.96, 0.45, 0.70, 1)
+theme_override_font_sizes/font_size = 8
+text = "💖 🤍 🤍 🤍 🤍 Lv.1"
+
+[node name="FriendshipBar" type="ProgressBar" parent="VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox/FriendshipCard/VBox"]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+value = 20.0
+show_percentage = false
+
 [node name="StreakCard" type="PanelContainer" parent="VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox"]
 layout_mode = 2
 
@@ -255,6 +329,43 @@ layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_constants/separation = 6
+
+[node name="HeatmapCard" type="PanelContainer" parent="VBox/TabContainer/DTR/ScrollContainer/DtrVBox"]
+layout_mode = 2
+
+[node name="VBox" type="VBoxContainer" parent="VBox/TabContainer/DTR/ScrollContainer/DtrVBox/HeatmapCard"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="HeatmapTitle" type="Label" parent="VBox/TabContainer/DTR/ScrollContainer/DtrVBox/HeatmapCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.35, 0.85, 0.55, 1)
+theme_override_font_sizes/font_size = 7
+text = "🟩 28-DAY STUDY CONSISTENCY"
+
+[node name="HeatmapGrid" type="GridContainer" parent="VBox/TabContainer/DTR/ScrollContainer/DtrVBox/HeatmapCard/VBox"]
+layout_mode = 2
+columns = 7
+theme_override_constants/h_separation = 3
+theme_override_constants/v_separation = 3
+
+[node name="LifetimeStatsCard" type="PanelContainer" parent="VBox/TabContainer/DTR/ScrollContainer/DtrVBox"]
+layout_mode = 2
+
+[node name="HBox" type="HBoxContainer" parent="VBox/TabContainer/DTR/ScrollContainer/DtrVBox/LifetimeStatsCard"]
+layout_mode = 2
+
+[node name="TotalHoursLabel" type="Label" parent="VBox/TabContainer/DTR/ScrollContainer/DtrVBox/LifetimeStatsCard/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 7
+text = "⏱️ 0.0 hrs total"
+
+[node name="TotalSprintsLabel" type="Label" parent="VBox/TabContainer/DTR/ScrollContainer/DtrVBox/LifetimeStatsCard/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 1)
+theme_override_font_sizes/font_size = 7
+text = "⚡ 0 sprints" 
 
 [node name="MetricsRow" type="HBoxContainer" parent="VBox/TabContainer/DTR/ScrollContainer/DtrVBox"]
 layout_mode = 2
@@ -406,10 +517,25 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 8
 placeholder_text = "Subject / Tag (e.g. Code, Lore)"
 
-[node name="AddBtn" type="Button" parent="VBox/TabContainer/DECK/ScrollContainer/DeckVBox/AddCardPanel/VBox"]
+[node name="ButtonHBox" type="HBoxContainer" parent="VBox/TabContainer/DECK/ScrollContainer/DeckVBox/AddCardPanel/VBox"]
 layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="AddBtn" type="Button" parent="VBox/TabContainer/DECK/ScrollContainer/DeckVBox/AddCardPanel/VBox/ButtonHBox"]
+custom_minimum_size = Vector2(0, 22)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.309804, 0.819608, 0.909804, 1)
 theme_override_font_sizes/font_size = 8
 text = "+ ADD TO DECK"
+
+[node name="CancelEditBtn" type="Button" parent="VBox/TabContainer/DECK/ScrollContainer/DeckVBox/AddCardPanel/VBox/ButtonHBox"]
+visible = false
+custom_minimum_size = Vector2(40, 22)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 7
+text = "✕ CANCEL"
 
 [node name="CardsListVBox" type="VBoxContainer" parent="VBox/TabContainer/DECK/ScrollContainer/DeckVBox"]
 layout_mode = 2
@@ -684,99 +810,3 @@ theme_override_font_sizes/font_size = 7
 text = "Auto-save active (60s)"
 horizontal_alignment = 1
 
-
-[node name="DTRModal" type="PanelContainer" parent="."]
-visible = false
-layout_mode = 2
-
-[node name="Center" type="CenterContainer" parent="DTRModal"]
-layout_mode = 2
-
-[node name="Card" type="PanelContainer" parent="DTRModal/Center"]
-custom_minimum_size = Vector2(180, 220)
-layout_mode = 2
-
-[node name="VBox" type="VBoxContainer" parent="DTRModal/Center/Card"]
-layout_mode = 2
-theme_override_constants/separation = 6
-
-[node name="Title" type="Label" parent="DTRModal/Center/Card/VBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.960784, 0.619608, 0.0392157, 1)
-text = "EDIT DTR ENTRY"
-horizontal_alignment = 1
-
-[node name="TaskLbl" type="Label" parent="DTRModal/Center/Card/VBox"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 7
-text = "TASK NAME"
-
-[node name="TaskInput" type="LineEdit" parent="DTRModal/Center/Card/VBox"]
-layout_mode = 2
-placeholder_text = "e.g. Debugging"
-
-[node name="CategoryLbl" type="Label" parent="DTRModal/Center/Card/VBox"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 7
-text = "CATEGORY"
-
-[node name="CategoryInput" type="LineEdit" parent="DTRModal/Center/Card/VBox"]
-layout_mode = 2
-placeholder_text = "e.g. work"
-
-[node name="HBox" type="HBoxContainer" parent="DTRModal/Center/Card/VBox"]
-layout_mode = 2
-theme_override_constants/separation = 4
-
-[node name="StartVBox" type="VBoxContainer" parent="DTRModal/Center/Card/VBox/HBox"]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="StartLbl" type="Label" parent="DTRModal/Center/Card/VBox/HBox/StartVBox"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 7
-text = "START TIME (HH:MM)"
-
-[node name="StartInput" type="LineEdit" parent="DTRModal/Center/Card/VBox/HBox/StartVBox"]
-layout_mode = 2
-placeholder_text = "09:00"
-
-[node name="EndVBox" type="VBoxContainer" parent="DTRModal/Center/Card/VBox/HBox"]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="EndLbl" type="Label" parent="DTRModal/Center/Card/VBox/HBox/EndVBox"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 7
-text = "END TIME (HH:MM)"
-
-[node name="EndInput" type="LineEdit" parent="DTRModal/Center/Card/VBox/HBox/EndVBox"]
-layout_mode = 2
-placeholder_text = "09:25"
-
-[node name="DateLbl" type="Label" parent="DTRModal/Center/Card/VBox"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 7
-text = "DATE (YYYY-MM-DD)"
-
-[node name="DateInput" type="LineEdit" parent="DTRModal/Center/Card/VBox"]
-layout_mode = 2
-placeholder_text = "2026-08-18"
-
-[node name="Spacer" type="Control" parent="DTRModal/Center/Card/VBox"]
-custom_minimum_size = Vector2(0, 4)
-layout_mode = 2
-
-[node name="SaveBtn" type="Button" parent="DTRModal/Center/Card/VBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.309804, 0.819608, 0.909804, 1)
-text = "SAVE ENTRY"
-
-[node name="DeleteBtn" type="Button" parent="DTRModal/Center/Card/VBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.301961, 0.301961, 1)
-text = "DELETE ENTRY"
-
-[node name="CancelBtn" type="Button" parent="DTRModal/Center/Card/VBox"]
-layout_mode = 2
-text = "CANCEL"

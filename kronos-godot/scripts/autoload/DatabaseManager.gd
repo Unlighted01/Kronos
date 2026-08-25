@@ -257,3 +257,17 @@ func export_dtr_to_csv(custom_folder: String = "") -> Dictionary:
 			
 	return {"success": true, "path": ProjectSettings.globalize_path(CSV_EXPORT_PATH), "count": _dtr_cache.size(), "csv": csv_text}
 
+## Completely wipes the local save file and resets to a clean day-1 player state
+func reset_all_data() -> void:
+	if FileAccess.file_exists(SAVE_PATH):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(SAVE_PATH))
+	if FileAccess.file_exists(BACKUP_SAVE_PATH):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(BACKUP_SAVE_PATH))
+	if FileAccess.file_exists(DTR_PATH):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(DTR_PATH))
+	_dtr_cache.clear()
+	if GameState and GameState.has_method("reset_to_defaults"):
+		GameState.reset_to_defaults()
+	if NotificationManager:
+		NotificationManager.show_toast("🔄 Save wiped! Reset to fresh Day-1 state.", NotificationManager.ToastType.INFO)
+

@@ -114,7 +114,6 @@ func _process(delta: float) -> void:
 		if indicator_container:
 			var base_y: float = -24.0 if (is_trapdoor_hatch or direction == "down") else -114.0
 			indicator_container.position.y = base_y + bounce
-	queue_redraw()
 
 func _update_indicator_text() -> void:
 	if indicator_label:

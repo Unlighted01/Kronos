@@ -1,15 +1,12 @@
 extends Control
 class_name PlantBloomGame
 
-## 🌿 Plant Bloom — Greenhouse Musical Pattern Minigame for Kronos.
-## Listen to the melodic plant chime sequence and water the pots in rhythm to make flowers bloom!
+## 🌿 Plant Bloom (Botanical Herbarium) — Musical Simon Pattern Minigame for Kronos.
+## Water pots in sequence with pure harmonic chimes to earn Coins, Knowledge Points (KP), and Pet Joy!
 
 signal game_closed()
 
-# ==============================================================================
-# 🎮 GAME DATA & TONES
-# ==============================================================================
-const ROUND_LENGTHS: Array[int] = [3, 5, 7] # 3 Progressive rounds
+const ROUND_LENGTHS: Array[int] = [3, 4, 6]
 const POT_COLORS: Array[Color] = [
 	Color(0.95, 0.35, 0.45), # 0: Rose Pink
 	Color(0.96, 0.72, 0.15), # 1: Sunflower Gold
@@ -21,10 +18,7 @@ const POT_NOTES: Array[float] = [261.63, 329.63, 392.00, 523.25] # C4, E4, G4, C
 
 enum MinigameState { INTRO, PLAYING_SEQUENCE, PLAYER_INPUT, ROUND_CLEAR, GAME_OVER, VICTORY }
 
-# ==============================================================================
-# 📊 STATE
-# ==============================================================================
-var current_round: int = 0 # 0, 1, 2
+var current_round: int = 0
 var sequence: Array[int] = []
 var player_step: int = 0
 var current_state: MinigameState = MinigameState.INTRO
@@ -38,9 +32,6 @@ var _bloomed_pots: Array[bool] = [false, false, false, false]
 var _bloom_scales: Array[float] = [0.0, 0.0, 0.0, 0.0]
 var _particles: Array[Dictionary] = []
 
-# ==============================================================================
-# 🎛️ UI REFERENCES
-# ==============================================================================
 @onready var round_label: Label = $HUD/HBox/RoundLabel
 @onready var status_label: Label = $HUD/HBox/StatusLabel
 @onready var close_btn: Button = $HUD/HBox/CloseButton
@@ -52,23 +43,15 @@ var _particles: Array[Dictionary] = []
 @onready var replay_btn: Button = $ResultPanel/VBox/HBox/ReplayButton
 @onready var exit_btn: Button = $ResultPanel/VBox/HBox/ExitButton
 
-# ==============================================================================
-# ⚙️ LIFECYCLE
-# ==============================================================================
 func _ready() -> void:
 	custom_minimum_size = Vector2(236, 140)
 	mouse_filter = MOUSE_FILTER_STOP
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	
-	if close_btn:
-		close_btn.pressed.connect(_on_exit_pressed)
-	if replay_btn:
-		replay_btn.pressed.connect(start_new_game)
-	if exit_btn:
-		exit_btn.pressed.connect(_on_exit_pressed)
-		
-	if result_panel:
-		result_panel.visible = false
+	if close_btn: close_btn.pressed.connect(_on_exit_pressed)
+	if replay_btn: replay_btn.pressed.connect(start_new_game)
+	if exit_btn: exit_btn.pressed.connect(_on_exit_pressed)
+	if result_panel: result_panel.visible = false
 		
 	start_new_game()
 
@@ -78,303 +61,201 @@ func start_new_game() -> void:
 	_bloom_scales = [0.0, 0.0, 0.0, 0.0]
 	_particles.clear()
 	
-	if result_panel:
-		result_panel.visible = false
-		
-	start_round(0)
+	if result_panel: result_panel.visible = false
+	_start_round(0)
 
-func start_round(round_idx: int) -> void:
-	current_round = round_idx
+func _start_round(r_idx: int) -> void:
+	current_round = r_idx
 	player_step = 0
-	sequence.clear()
+	_seq_index = 0
+	_anim_timer = 0.0
+	_active_highlight_pot = -1
 	
-	var length: int = ROUND_LENGTHS[mini(round_idx, ROUND_LENGTHS.size() - 1)]
-	for i in range(length):
+	var length: int = ROUND_LENGTHS[current_round]
+	sequence.clear()
+	for _i in range(length):
 		sequence.append(randi() % 4)
 		
-	if round_label:
-		round_label.text = "🌿 Round %d/%d" % [current_round + 1, ROUND_LENGTHS.size()]
-	if status_label:
-		status_label.text = "👂 Listen to the melody..."
-		status_label.modulate = Color(0.96, 0.62, 0.04)
-		
+	if round_label: round_label.text = "ROUND %d / %d" % [current_round + 1, ROUND_LENGTHS.size()]
+	if status_label: status_label.text = "🎶 Listen closely..."
 	current_state = MinigameState.PLAYING_SEQUENCE
-	_seq_index = 0
-	_anim_timer = 0.6
 	queue_redraw()
 
 func _process(delta: float) -> void:
-	# 1. Update Highlight timers
+	# Update highlight timer
 	if _highlight_timer > 0.0:
 		_highlight_timer -= delta
 		if _highlight_timer <= 0.0:
 			_active_highlight_pot = -1
 			queue_redraw()
 			
-	# 2. Sequence Playback Machine
+	# Update bloom scales
+	for i in range(4):
+		var target: float = 1.0 if _bloomed_pots[i] else 0.0
+		_bloom_scales[i] = lerpf(_bloom_scales[i], target, delta * 8.0)
+		
+	# Update particles
+	var pt_idx: int = _particles.size() - 1
+	while pt_idx >= 0:
+		var pt: Dictionary = _particles[pt_idx]
+		pt["life"] -= delta
+		pt["pos"] += pt["vel"] * delta
+		if pt["life"] <= 0.0:
+			_particles.remove_at(pt_idx)
+		pt_idx -= 1
+		
+	# Sequence playback state machine
 	if current_state == MinigameState.PLAYING_SEQUENCE:
-		_anim_timer -= delta
-		if _anim_timer <= 0.0:
+		_anim_timer += delta
+		if _anim_timer >= 0.65:
+			_anim_timer = 0.0
 			if _seq_index < sequence.size():
 				var pot_id: int = sequence[_seq_index]
-				_flash_pot(pot_id, 0.4)
+				_play_pot_chime(pot_id)
 				_seq_index += 1
-				_anim_timer = 0.55
 			else:
-				# Sequence finished -> hand over to player
 				current_state = MinigameState.PLAYER_INPUT
-				if status_label:
-					status_label.text = "💧 Water the pots in order!"
-					status_label.modulate = Color(0.31, 0.82, 0.91)
-					
-	# 3. Animate Blooming Flowers
-	for i in range(4):
-		if _bloomed_pots[i]:
-			_bloom_scales[i] = lerpf(_bloom_scales[i], 1.0, 8.0 * delta)
-		else:
-			_bloom_scales[i] = lerpf(_bloom_scales[i], 0.0, 8.0 * delta)
-			
-	# 4. Animate Water Sparkle Particles
-	for i in range(_particles.size() - 1, -1, -1):
-		var p: Dictionary = _particles[i]
-		p["y"] += p["vy"] * delta
-		p["x"] += p["vx"] * delta
-		p["alpha"] -= 1.8 * delta
-		if p["alpha"] <= 0.0:
-			_particles.remove_at(i)
-			
+				if status_label: status_label.text = "💧 Your turn! Water the pots"
+				queue_redraw()
+				
 	queue_redraw()
 
-func _unhandled_input(event: InputEvent) -> void:
-	if current_state != MinigameState.PLAYER_INPUT:
-		return
-		
-	if event is InputEventKey and event.pressed:
-		match event.keycode:
-			KEY_1: _on_player_pot_clicked(0)
-			KEY_2: _on_player_pot_clicked(1)
-			KEY_3: _on_player_pot_clicked(2)
-			KEY_4: _on_player_pot_clicked(3)
-			
-	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		var local_pos: Vector2 = get_local_mouse_position()
-		var clicked_pot: int = _get_pot_at_pos(local_pos)
-		if clicked_pot >= 0:
-			_on_player_pot_clicked(clicked_pot)
-			get_viewport().set_input_as_handled()
+func _play_pot_chime(pot_id: int) -> void:
+	_active_highlight_pot = pot_id
+	_highlight_timer = 0.35
+	if AudioManager:
+		AudioManager.play_sfx("chime")
+	queue_redraw()
 
 func _gui_input(event: InputEvent) -> void:
 	if current_state != MinigameState.PLAYER_INPUT:
 		return
 		
-	if event is InputEventMouseButton:
-		var mb: InputEventMouseButton = event as InputEventMouseButton
-		if mb.button_index == MOUSE_BUTTON_LEFT and mb.pressed:
-			var clicked_pot: int = _get_pot_at_pos(mb.position)
-			if clicked_pot >= 0:
-				_on_player_pot_clicked(clicked_pot)
-				get_viewport().set_input_as_handled()
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.is_pressed():
+		var click_pos: Vector2 = event.position
+		var pot_clicked: int = _get_pot_at_pos(click_pos)
+		if pot_clicked != -1:
+			_on_pot_clicked(pot_clicked)
 
 func _get_pot_at_pos(pos: Vector2) -> int:
+	var pot_w: float = 38.0
+	var pot_h: float = 46.0
 	var start_x: float = 24.0
-	var pot_w: float = 44.0
-	var pot_gap: float = 6.0
-	var pot_y: float = 50.0
-	var pot_h: float = 75.0
+	var start_y: float = 46.0
+	var gap: float = 12.0
 	
 	for i in range(4):
-		var px: float = start_x + i * (pot_w + pot_gap)
-		if Rect2(px, pot_y, pot_w, pot_h).has_point(pos):
+		var px: float = start_x + i * (pot_w + gap)
+		var py: float = start_y
+		if pos.x >= px and pos.x <= px + pot_w and pos.y >= py and pos.y <= py + pot_h:
 			return i
 	return -1
 
-func _on_player_pot_clicked(pot_id: int) -> void:
-	_flash_pot(pot_id, 0.3)
-	_spawn_water_splash(pot_id)
-	
-	var expected_pot: int = sequence[player_step]
-	if pot_id == expected_pot:
-		# Correct note!
-		player_step += 1
-		if player_step >= sequence.size():
-			# Round Cleared!
-			_on_round_completed()
-	else:
-		# Mistake made!
-		_on_wrong_note()
-
-func _flash_pot(pot_id: int, duration: float) -> void:
-	_active_highlight_pot = pot_id
-	_highlight_timer = duration
+func _on_pot_clicked(pot_id: int) -> void:
 	_play_pot_chime(pot_id)
-	queue_redraw()
-
-func _play_pot_chime(pot_id: int) -> void:
-	if AudioManager:
-		# Play audio chime
-		match pot_id:
-			0: AudioManager.play_sfx("chime")
-			1: AudioManager.play_sfx("bell")
-			2: AudioManager.play_sfx("chirp")
-			3: AudioManager.play_sfx("coin")
-
-func _spawn_water_splash(pot_id: int) -> void:
-	var start_x: float = 24.0 + pot_id * 50.0 + 22.0
-	var pot_y: float = 78.0
-	for i in range(6):
-		_particles.append({
-			"x": start_x,
-			"y": pot_y,
-			"vx": randf_range(-30.0, 30.0),
-			"vy": randf_range(-40.0, -10.0),
-			"color": POT_COLORS[pot_id],
-			"alpha": 1.0
-		})
-
-func _on_round_completed() -> void:
-	current_state = MinigameState.ROUND_CLEAR
-	_bloomed_pots[current_round] = true
 	
-	if current_round + 1 < ROUND_LENGTHS.size():
-		if status_label:
-			status_label.text = "✨ Beautiful! Next round..."
-			status_label.modulate = Color(0.4, 0.85, 0.55)
-		get_tree().create_timer(1.2).timeout.connect(func():
-			start_round(current_round + 1)
-		)
+	if pot_id == sequence[player_step]:
+		# Correct step
+		player_step += 1
+		_bloomed_pots[pot_id] = true
+		
+		# Add spore particles
+		var pot_center: Vector2 = Vector2(24.0 + pot_id * 50.0 + 19.0, 60.0)
+		for _p in range(5):
+			_particles.append({
+				"pos": pot_center,
+				"vel": Vector2(randf_range(-25, 25), randf_range(-35, -5)),
+				"color": POT_COLORS[pot_id],
+				"life": 0.5,
+				"max_life": 0.5
+			})
+			
+		if player_step >= sequence.size():
+			_on_round_clear()
 	else:
-		# Grand Victory! All 3 rounds complete
-		_trigger_victory()
+		# Mistake
+		if AudioManager: AudioManager.play_sfx("click")
+		_on_game_over()
 
-func _on_wrong_note() -> void:
-	current_state = MinigameState.GAME_OVER
-	if status_label:
-		status_label.text = "❌ Oops! Wrong pot."
-		status_label.modulate = Color(0.9, 0.35, 0.35)
-		
-	if AudioManager:
-		AudioManager.play_sfx("click")
-		
-	get_tree().create_timer(1.0).timeout.connect(func():
-		_show_result_panel(false)
-	)
+func _on_round_clear() -> void:
+	if current_round + 1 < ROUND_LENGTHS.size():
+		current_state = MinigameState.ROUND_CLEAR
+		if status_label: status_label.text = "✨ Perfect! Next Round ✨"
+		var tween = create_tween()
+		tween.tween_interval(0.9)
+		tween.tween_callback(func(): _start_round(current_round + 1))
+	else:
+		_on_victory()
 
-func _trigger_victory() -> void:
+func _on_victory() -> void:
 	current_state = MinigameState.VICTORY
-	for i in range(4):
-		_bloomed_pots[i] = true
-		
-	var reward_coins: int = 75
-	var reward_exp: int = 40
+	if AudioManager: AudioManager.play_sfx("victory")
 	
 	if GameState:
-		GameState.add_coins(reward_coins, "plant_bloom_minigame")
-		GameState.add_exp(reward_exp)
-		GameState.add_energy(30.0) # Restores +30 Pet Energy!
+		GameState.add_coins(40, "minigame_plant_bloom")
+		GameState.add_knowledge_points(10, "minigame_plant_bloom")
+		GameState.modify_pet_joy(30.0)
+		GameState.record_minigame_score("plant_bloom", 100)
 		
-	if AudioManager:
-		AudioManager.play_sfx("chime")
-		
-	_show_result_panel(true)
+	if result_panel: result_panel.visible = true
+	if result_title_label: result_title_label.text = "🌸 BOTANICAL MASTERY!"
+	if result_desc_label: result_desc_label.text = "All melody sequences mastered in harmony!"
+	if result_reward_label: result_reward_label.text = "+40 🪙  +10 ⭐ KP  +30 💖 Joy"
 
-func _show_result_panel(is_victory: bool) -> void:
-	if not result_panel:
-		return
+func _on_game_over() -> void:
+	current_state = MinigameState.GAME_OVER
+	if GameState:
+		GameState.add_coins(10, "minigame_plant_bloom")
+		GameState.add_knowledge_points(3, "minigame_plant_bloom")
 		
-	if is_victory:
-		result_title_label.text = "🌸 ALL PLANTS BLOOMED!"
-		result_title_label.modulate = Color(0.96, 0.62, 0.04)
-		result_desc_label.text = "Your greenhouse is vibrant and flourishing!"
-		result_reward_label.text = "+75 G Coins  +40 XP  +30 Energy! ⚡"
-		result_reward_label.modulate = Color(0.4, 0.85, 0.55)
-	else:
-		result_title_label.text = "🌱 GOOD EFFORT!"
-		result_title_label.modulate = Color(0.7, 0.75, 0.85)
-		result_desc_label.text = "Reached Round %d of %d" % [current_round + 1, ROUND_LENGTHS.size()]
-		result_reward_label.text = "+15 G Coins  +10 XP"
-		result_reward_label.modulate = Color(0.96, 0.62, 0.04)
-		if GameState:
-			GameState.add_coins(15, "plant_bloom_minigame")
-			GameState.add_exp(10)
+	if result_panel: result_panel.visible = true
+	if result_title_label: result_title_label.text = "🥀 WILTED MELODY"
+	if result_desc_label: result_desc_label.text = "A missed note! The flowers need more rehearsal."
+	if result_reward_label: result_reward_label.text = "+10 🪙  +3 ⭐ KP"
+
+func _draw() -> void:
+	# Background
+	draw_rect(Rect2(0, 0, size.x, size.y), Color(0.04, 0.06, 0.08, 0.96))
+	
+	# Pot positions
+	var pot_w: float = 38.0
+	var pot_h: float = 46.0
+	var start_x: float = 24.0
+	var start_y: float = 46.0
+	var gap: float = 12.0
+	
+	for i in range(4):
+		var px: float = start_x + i * (pot_w + gap)
+		var py: float = start_y
+		var is_highlight: bool = (_active_highlight_pot == i)
+		var col: Color = POT_COLORS[i]
+		
+		# Pot body (Terracotta base)
+		var pot_body_col: Color = Color(0.72, 0.42, 0.22) if not is_highlight else Color(0.92, 0.62, 0.32)
+		draw_rect(Rect2(px + 4, py + 18, pot_w - 8, 22), pot_body_col)
+		draw_rect(Rect2(px + 2, py + 14, pot_w - 4, 6), Color(0.58, 0.30, 0.12)) # Rim
+		
+		# Plant stem & Blooming Flower
+		var stem_x: float = px + pot_w * 0.5
+		draw_line(Vector2(stem_x, py + 14), Vector2(stem_x, py + 4), Color(0.2, 0.65, 0.3), 2.0)
+		
+		# Flower Blossom (Scale with bloom scale)
+		var bloom_r: float = 8.0 * maxf(0.3, _bloom_scales[i])
+		if is_highlight:
+			bloom_r *= 1.25
+			draw_circle(Vector2(stem_x, py + 2), bloom_r + 3.0, Color(col.r, col.g, col.b, 0.4))
 			
-	result_panel.visible = true
-	queue_redraw()
+		draw_circle(Vector2(stem_x, py + 2), bloom_r, col)
+		draw_circle(Vector2(stem_x, py + 2), bloom_r * 0.4, Color(1.0, 0.9, 0.4)) # Center
+		
+	# Particles
+	for pt in _particles:
+		var p_alpha: float = clampf(pt["life"] / pt["max_life"], 0.0, 1.0)
+		var p_col: Color = pt["color"]
+		p_col.a = p_alpha
+		draw_rect(Rect2(pt["pos"].x, pt["pos"].y, 2, 2), p_col)
 
 func _on_exit_pressed() -> void:
-	if AudioManager:
-		AudioManager.play_sfx("click")
+	if AudioManager: AudioManager.play_sfx("click")
 	game_closed.emit()
 	queue_free()
-
-# ==============================================================================
-# 🎨 CANVAS DRAWING
-# ==============================================================================
-func _draw() -> void:
-	# 1. Greenhouse Botanical Glass Backdrop
-	draw_rect(Rect2(0, 0, size.x, size.y), Color(0.05, 0.11, 0.14, 0.95))
-	
-	# Translucent Sunbeam shafts
-	draw_colored_polygon(PackedVector2Array([Vector2(30, 0), Vector2(80, 0), Vector2(130, 140), Vector2(60, 140)]), Color(0.2, 0.8, 0.6, 0.06))
-	draw_colored_polygon(PackedVector2Array([Vector2(140, 0), Vector2(190, 0), Vector2(236, 140), Vector2(170, 140)]), Color(0.2, 0.8, 0.6, 0.06))
-	
-	# Potting Bench Table
-	draw_rect(Rect2(12, 118, 212, 18), Color(0.45, 0.22, 0.08))
-	draw_rect(Rect2(12, 118, 212, 3), Color(0.65, 0.35, 0.12)) # Highlight edge
-	
-	var font: Font = ThemeDB.fallback_font
-	var start_x: float = 24.0
-	var pot_w: float = 44.0
-	var pot_gap: float = 6.0
-	var pot_y: float = 78.0
-	var pot_h: float = 40.0
-	
-	# 2. Draw 4 Plant Pots
-	for i in range(4):
-		var px: float = start_x + i * (pot_w + pot_gap)
-		var is_active: bool = (_active_highlight_pot == i)
-		var p_col: Color = POT_COLORS[i]
-		
-		# Pot drop shadow
-		draw_custom_ellipse(Vector2(px + pot_w / 2, pot_y + pot_h + 2), Vector2(18, 4), Color(0, 0, 0, 0.3))
-		
-		# Glowing Aura if active
-		if is_active:
-			draw_circle(Vector2(px + pot_w / 2, pot_y + 12), 26.0, Color(p_col.r, p_col.g, p_col.b, 0.35))
-			
-		# Terracotta Pot Body
-		var pot_body_col: Color = Color(0.78, 0.36, 0.18) if not is_active else Color(0.92, 0.48, 0.25)
-		draw_rect(Rect2(px + 4, pot_y + 12, pot_w - 8, pot_h - 12), pot_body_col)
-		draw_rect(Rect2(px + 2, pot_y + 8, pot_w - 4, 6), Color(0.88, 0.45, 0.22)) # Pot Rim
-		draw_rect(Rect2(px + 6, pot_y + 10, pot_w - 12, 2), Color(0.25, 0.12, 0.05)) # Soil
-		
-		# Plant Sprout / Bloomed Flower
-		var scale_val: float = _bloom_scales[i]
-		if scale_val > 0.01:
-			# Fully Bloomed Flower
-			var flower_y: float = pot_y - 2.0 * scale_val
-			# Green Stem
-			draw_line(Vector2(px + pot_w / 2, pot_y + 8), Vector2(px + pot_w / 2, flower_y + 6), Color(0.2, 0.65, 0.3), 2.0)
-			# Flower Icon
-			draw_string(font, Vector2(px + pot_w / 2 - 8, flower_y), POT_ICONS[i], HORIZONTAL_ALIGNMENT_CENTER, -1, 14)
-		else:
-			# Small Green Sprout
-			draw_line(Vector2(px + pot_w / 2, pot_y + 8), Vector2(px + pot_w / 2, pot_y - 2), Color(0.2, 0.65, 0.3), 2.0)
-			draw_circle(Vector2(px + pot_w / 2 - 3, pot_y - 1), 2.5, Color(0.3, 0.8, 0.4))
-			draw_circle(Vector2(px + pot_w / 2 + 3, pot_y - 1), 2.5, Color(0.3, 0.8, 0.4))
-			
-		# Number Key Badge (1, 2, 3, 4)
-		var key_col: Color = Color(0.95, 0.95, 0.95, 0.8) if not is_active else Color(0.96, 0.62, 0.04)
-		draw_string(font, Vector2(px + pot_w / 2 - 3, pot_y + pot_h - 4), str(i + 1), HORIZONTAL_ALIGNMENT_CENTER, -1, 8, key_col)
-		
-	# 3. Draw Water Droplet Particles
-	for p in _particles:
-		var col: Color = p["color"]
-		col.a = p["alpha"]
-		draw_circle(Vector2(p["x"], p["y"]), 2.0, col)
-
-func draw_custom_ellipse(center: Vector2, radii: Vector2, color: Color) -> void:
-	var points: PackedVector2Array = PackedVector2Array()
-	for a in range(16):
-		var rad: float = (float(a) / 16.0) * TAU
-		points.append(center + Vector2(cos(rad) * radii.x, sin(rad) * radii.y))
-	draw_colored_polygon(points, color)

@@ -131,6 +131,8 @@ func _draw() -> void:
 				_draw_plaid_scarf(neck_pos, state)
 			"cosmetic_bell":
 				_draw_bell_collar(neck_pos, state)
+			"cosmetic_laurel_wreath":
+				_draw_laurel_wreath(head_pos, state)
 
 # ==============================================================================
 # 📍 DYNAMIC ANCHOR POSITIONS
@@ -447,3 +449,31 @@ func _draw_bell_collar(neck_pos: Vector2, _state: PetRenderer.AnimState) -> void
 	draw_rect(Rect2(bx - 1, by, 3, 3), col_gold)
 	draw_rect(Rect2(bx, by + 1, 1, 1), Color(0.3, 0.15, 0.0))
 	draw_rect(Rect2(bx, by - 1, 1, 1), col_gold) # Loop
+
+# ==============================================================================
+# 🌿 12. GOLDEN LAUREL WREATH
+# ==============================================================================
+func _draw_laurel_wreath(head_pos: Vector2, _state: PetRenderer.AnimState) -> void:
+	var lx: float = head_pos.x
+	var ly: float = head_pos.y - 1
+	var col_gold: Color = Color(1.0, 0.84, 0.0)
+	var col_gold_light: Color = Color(1.0, 0.96, 0.5)
+	var col_gold_shadow: Color = Color(0.78, 0.55, 0.0)
+	
+	# Circular Golden Crown Branch Band
+	draw_rect(Rect2(lx - 6, ly, 12, 1), col_gold_shadow)
+	
+	# Left Leaves
+	draw_rect(Rect2(lx - 7, ly - 2, 2, 2), col_gold)
+	draw_rect(Rect2(lx - 8, ly - 1, 1, 1), col_gold_light)
+	draw_rect(Rect2(lx - 5, ly - 3, 2, 2), col_gold)
+	draw_rect(Rect2(lx - 4, ly - 2, 1, 1), col_gold_light)
+	
+	# Right Leaves
+	draw_rect(Rect2(lx + 5, ly - 2, 2, 2), col_gold)
+	draw_rect(Rect2(lx + 7, ly - 1, 1, 1), col_gold_light)
+	draw_rect(Rect2(lx + 3, ly - 3, 2, 2), col_gold)
+	draw_rect(Rect2(lx + 3, ly - 2, 1, 1), col_gold_light)
+	
+	# Center Gem Ribbon
+	draw_rect(Rect2(lx - 1, ly - 1, 2, 2), Color(0.92, 0.15, 0.25))

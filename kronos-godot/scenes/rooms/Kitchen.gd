@@ -40,7 +40,7 @@ const RECT_SKIFF: Rect2 = Rect2(200, 70, 150, 70)
 func _ready() -> void:
 	super._ready()
 	room_id = "room_kitchen"
-	room_name = "Banks of the Styx"
+	room_name = "Chef's Kitchen"
 	room_width = 720.0
 	min_x = 220.0 # Skiff deck edge
 	max_x = 340.0 # Skiff deck edge

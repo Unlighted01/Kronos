@@ -231,6 +231,13 @@ func start_timer() -> void:
 	EventBus.timer_state_changed.emit(true, false)
 	EventBus.timer_started.emit()
 
+## Fast-forward cheat for testing: Instantly triggers sprint completion!
+func fast_forward_finish() -> void:
+	if status == TimerStatus.STOPPED:
+		start_timer()
+	time_left = 0.0
+	_on_phase_finished_naturally()
+
 ## Pauses the running timer
 func pause_timer() -> void:
 	if status != TimerStatus.RUNNING:

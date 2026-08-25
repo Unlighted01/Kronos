@@ -18,6 +18,12 @@ class_name LeftPanel
 @onready var buff_bonus_label: Label = $VBox/BuffBanner/HBox/BuffBonusLabel
 
 @onready var tab_container: TabContainer = $VBox/TabContainer
+@onready var tab_bar_scroll: ScrollContainer = $VBox/TabBarScroll
+@onready var tab_shop_btn: Button = $VBox/TabBarScroll/TabHBox/TabShopBtn
+@onready var tab_tasks_btn: Button = $VBox/TabBarScroll/TabHBox/TabTasksBtn
+@onready var tab_quests_btn: Button = $VBox/TabBarScroll/TabHBox/TabQuestsBtn
+@onready var tab_trophies_btn: Button = $VBox/TabBarScroll/TabHBox/TabTrophiesBtn
+
 
 # Shop Nodes
 @onready var shop_vbox: VBoxContainer = $VBox/TabContainer/SHOP/ShopScroll/ShopVBox
@@ -34,6 +40,8 @@ class_name LeftPanel
 
 # Quests Nodes
 @onready var quests_list: VBoxContainer = $VBox/TabContainer/QUESTS/QuestsVBox
+@onready var trophy_progress_label: Label = $VBox/TabContainer/TROPHIES/TrophyHeader/TrophyProgressLabel
+@onready var trophies_list: VBoxContainer = $VBox/TabContainer/TROPHIES/TrophiesScroll/TrophiesVBox
 
 var current_shop_category: String = "room"
 
@@ -46,10 +54,23 @@ func _ready() -> void:
 	_refresh_buff_banner()
 	_refresh_coins_badge()
 	_refresh_active_tab()
+	_on_tab_changed(0)
 
 func _connect_ui_signals() -> void:
 	if close_btn:
 		close_btn.pressed.connect(_on_close_pressed)
+		
+	if tab_bar_scroll:
+		tab_bar_scroll.gui_input.connect(_on_tab_bar_gui_input)
+		
+	if tab_shop_btn:
+		tab_shop_btn.pressed.connect(func(): _switch_left_tab(0))
+	if tab_tasks_btn:
+		tab_tasks_btn.pressed.connect(func(): _switch_left_tab(1))
+	if tab_quests_btn:
+		tab_quests_btn.pressed.connect(func(): _switch_left_tab(2))
+	if tab_trophies_btn:
+		tab_trophies_btn.pressed.connect(func(): _switch_left_tab(3))
 	if tab_container:
 		tab_container.tab_changed.connect(func(_idx): _refresh_active_tab())
 	if rooms_filter_btn:
@@ -80,6 +101,7 @@ func _connect_event_bus() -> void:
 	EventBus.task_deleted.connect(func(_id): _populate_tasks_tab())
 	EventBus.active_task_selected.connect(func(_id, _title): _populate_tasks_tab())
 	EventBus.quests_updated.connect(func(): _populate_quests_tab())
+	EventBus.achievement_unlocked.connect(func(_id, _d): _populate_trophies_tab())
 
 func _set_shop_category(category: String) -> void:
 	current_shop_category = category
@@ -98,6 +120,40 @@ func _update_filter_button_styles() -> void:
 	if decor_filter_btn:
 		decor_filter_btn.modulate = Color(0.40, 0.85, 0.55) if current_shop_category == "decor" else Color(0.7, 0.7, 0.7, 0.8)
 
+func _switch_left_tab(idx: int) -> void:
+	if AudioManager:
+		AudioManager.play_sfx("click")
+	if tab_container:
+		tab_container.current_tab = idx
+	_on_tab_changed(idx)
+
+func _on_tab_bar_gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.is_pressed():
+		if event.button_index == MOUSE_BUTTON_WHEEL_UP or event.button_index == MOUSE_BUTTON_WHEEL_LEFT:
+			if tab_bar_scroll:
+				tab_bar_scroll.scroll_horizontal -= 35
+			get_viewport().set_input_as_handled()
+		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN or event.button_index == MOUSE_BUTTON_WHEEL_RIGHT:
+			if tab_bar_scroll:
+				tab_bar_scroll.scroll_horizontal += 35
+			get_viewport().set_input_as_handled()
+
+func _on_tab_changed(tab_idx: int) -> void:
+	if title_label:
+		match tab_idx:
+			0: title_label.text = "◈ SHOP"
+			1: title_label.text = "◈ TASKS"
+			2: title_label.text = "◈ DAILY QUESTS"
+			3: title_label.text = "◈ TROPHIES"
+			
+	var buttons: Array = [tab_shop_btn, tab_tasks_btn, tab_quests_btn, tab_trophies_btn]
+	for i in range(buttons.size()):
+		var btn: Button = buttons[i]
+		if btn:
+			btn.modulate = Color(0.96, 0.62, 0.04) if i == tab_idx else Color(0.7, 0.7, 0.7, 0.8)
+			
+	_refresh_active_tab()
+
 func _refresh_active_tab() -> void:
 	if not tab_container:
 		return
@@ -108,6 +164,8 @@ func _refresh_active_tab() -> void:
 			_populate_tasks_tab()
 		2:
 			_populate_quests_tab()
+		3:
+			_populate_trophies_tab()
 
 # ==============================================================================
 # ⚡ ENERGY BUFF BANNER
@@ -216,25 +274,9 @@ func _create_shop_card(item: Dictionary) -> Control:
 	var sub_lbl: Label = Label.new()
 	sub_lbl.add_theme_font_size_override("font_size", 7)
 	
-	var prereq_met: bool = true
-	var prereq_name: String = ""
 	if category == "room":
-		if item_id == "room_library" or item_id == "room_kitchen":
-			if not GameState.is_room_unlocked("room_livingroom"):
-				prereq_met = false
-				prereq_name = "Living Room"
-		elif item_id == "room_greenhouse":
-			if not GameState.is_room_unlocked("room_kitchen"):
-				prereq_met = false
-				prereq_name = "Kitchen"
-				
-	if category == "room":
-		if not prereq_met:
-			sub_lbl.text = "🔒 Requires %s first" % prereq_name
-			sub_lbl.modulate = Color(0.95, 0.45, 0.45)
-		else:
-			sub_lbl.text = "🔑 Real Estate • Req. Lv. %d" % req_lvl
-			sub_lbl.modulate = Color(0.96, 0.62, 0.04) # Gold
+		sub_lbl.text = "🔑 Real Estate • Req. Lv. %d" % req_lvl
+		sub_lbl.modulate = Color(0.96, 0.62, 0.04) # Gold
 	elif category == "pet":
 		sub_lbl.text = "🐾 Household: %d / %d Slots (Lv. %d)" % [GameState.active_pets.size(), GameState.get_max_pet_slots(), req_lvl]
 		sub_lbl.modulate = Color(0.16, 0.82, 0.55) # Green
@@ -329,10 +371,7 @@ func _create_shop_card(item: Dictionary) -> Control:
 				buy_btn.text = "✓ OWNED"
 				buy_btn.disabled = true
 				buy_btn.modulate = Color(0.6, 0.6, 0.6, 0.8)
-		elif category == "room" and not prereq_met:
-			buy_btn.text = "🔒 NEEDS %s" % prereq_name.to_upper()
-			buy_btn.disabled = true
-			buy_btn.modulate = Color(0.5, 0.5, 0.5, 0.7)
+
 		elif not meets_level:
 			buy_btn.text = "🔒 UNLOCKS AT LV. %d" % req_lvl
 			buy_btn.disabled = true
@@ -640,3 +679,105 @@ func _find_window_controller() -> WindowController:
 			return cur as WindowController
 		cur = cur.get_parent()
 	return null
+
+# ==============================================================================
+# 🏆 TROPHIES & ACHIEVEMENTS TAB
+# ==============================================================================
+func _populate_trophies_tab() -> void:
+	if not trophies_list or not GameState:
+		return
+		
+	for child in trophies_list.get_children():
+		child.queue_free()
+		
+	var ach_list: Array[Dictionary] = GameState.get_achievement_list()
+	var unlocked_count: int = 0
+	
+	for ach in ach_list:
+		if ach.get("is_unlocked", false):
+			unlocked_count += 1
+			
+	var total_count: int = ach_list.size()
+	var pct: int = int((float(unlocked_count) / float(maxi(1, total_count))) * 100.0)
+	
+	if trophy_progress_label:
+		trophy_progress_label.text = "🏆 Trophies: %d / %d (%d%%)" % [unlocked_count, total_count, pct]
+		
+	for ach in ach_list:
+		var card: PanelContainer = _create_trophy_card(ach)
+		trophies_list.add_child(card)
+
+func _create_trophy_card(ach: Dictionary) -> PanelContainer:
+	var card: PanelContainer = PanelContainer.new()
+	card.custom_minimum_size = Vector2(0, 42)
+	
+	var is_unlocked: bool = ach.get("is_unlocked", false)
+	var title: String = ach.get("title", "Achievement")
+	var icon: String = ach.get("icon", "🏆")
+	var desc: String = ach.get("description", "")
+	var target_val: int = int(ach.get("target_value", 1))
+	var cur_val: int = int(ach.get("current_progress", 0))
+	var r_coins: int = int(ach.get("reward_coins", 0))
+	var r_xp: int = int(ach.get("reward_xp", 0))
+	var r_item: String = ach.get("reward_item", "")
+	
+	var margin: MarginContainer = MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 6)
+	margin.add_theme_constant_override("margin_top", 4)
+	margin.add_theme_constant_override("margin_right", 6)
+	margin.add_theme_constant_override("margin_bottom", 4)
+	card.add_child(margin)
+	
+	var hbox: HBoxContainer = HBoxContainer.new()
+	hbox.add_theme_constant_override("separation", 6)
+	margin.add_child(hbox)
+	
+	# Icon
+	var icon_lbl: Label = Label.new()
+	icon_lbl.text = icon if is_unlocked else "🔒"
+	icon_lbl.add_theme_font_size_override("font_size", 12)
+	icon_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	hbox.add_child(icon_lbl)
+	
+	# Center Details
+	var vbox: VBoxContainer = VBoxContainer.new()
+	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	vbox.add_theme_constant_override("separation", 1)
+	hbox.add_child(vbox)
+	
+	# Title
+	var title_lbl: Label = Label.new()
+	title_lbl.text = title if is_unlocked else "??? " + title
+	title_lbl.add_theme_font_size_override("font_size", 7)
+	if is_unlocked:
+		title_lbl.add_theme_color_override("font_color", Color(0.96, 0.78, 0.25))
+	else:
+		title_lbl.add_theme_color_override("font_color", Color(0.65, 0.70, 0.80))
+	vbox.add_child(title_lbl)
+	
+	# Description
+	var desc_lbl: Label = Label.new()
+	desc_lbl.text = desc
+	desc_lbl.add_theme_font_size_override("font_size", 6)
+	desc_lbl.add_theme_color_override("font_color", Color(0.85, 0.88, 0.92) if is_unlocked else Color(0.55, 0.60, 0.70))
+	vbox.add_child(desc_lbl)
+	
+	# Reward / Progress Row
+	if is_unlocked:
+		var reward_lbl: Label = Label.new()
+		var r_str: String = "Claimed: "
+		if r_coins > 0: r_str += "+%d 🪙 " % r_coins
+		if r_xp > 0: r_str += "+%d XP " % r_xp
+		if r_item != "": r_str += "🎁 %s" % r_item
+		reward_lbl.text = r_str
+		reward_lbl.add_theme_font_size_override("font_size", 6)
+		reward_lbl.add_theme_color_override("font_color", Color(0.31, 0.82, 0.91))
+		vbox.add_child(reward_lbl)
+	else:
+		var prog_lbl: Label = Label.new()
+		prog_lbl.text = "Progress: %d / %d" % [clampi(cur_val, 0, target_val), target_val]
+		prog_lbl.add_theme_font_size_override("font_size", 6)
+		prog_lbl.add_theme_color_override("font_color", Color(0.70, 0.75, 0.85))
+		vbox.add_child(prog_lbl)
+		
+	return card

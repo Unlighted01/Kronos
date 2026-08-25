@@ -114,7 +114,18 @@ const ITEM_DEFINITIONS: Dictionary = {
 		"joy_boost": 100.0,
 		"exp_boost": 25
 	},
-	# Wearable Cosmetics
+		"cosmetic_laurel_wreath": {
+		"id": "cosmetic_laurel_wreath",
+		"name": "Golden Laurel Wreath",
+		"icon": "🌿",
+		"category": "cosmetic",
+		"slot": "head",
+		"price": 0,
+		"unlock_level": 1,
+		"description": "Golden laurel wreath awarded to true Kindred Spirits.",
+		"joy_boost": 50.0
+	},
+# Wearable Cosmetics
 	# Head
 	"cosmetic_crown": {
 		"id": "cosmetic_crown",
@@ -246,7 +257,7 @@ const ITEM_DEFINITIONS: Dictionary = {
 		"icon": "📻",
 		"category": "decor",
 		"target_room": "room_livingroom",
-		"target_room_name": "Hearth of Hestia",
+		"target_room_name": "Cozy Living Room",
 		"price": 450,
 		"description": "Old-school cassette beatbox on the lounge credenza."
 	},
@@ -256,7 +267,7 @@ const ITEM_DEFINITIONS: Dictionary = {
 		"icon": "🎶",
 		"category": "decor",
 		"target_room": "room_livingroom",
-		"target_room_name": "Hearth of Hestia",
+		"target_room_name": "Cozy Living Room",
 		"price": 350,
 		"description": "Color-coded vintage vinyl albums stacked beside turntable."
 	},
@@ -267,7 +278,7 @@ const ITEM_DEFINITIONS: Dictionary = {
 		"icon": "🎮",
 		"category": "decor",
 		"target_room": "room_library",
-		"target_room_name": "Tower of Urania",
+		"target_room_name": "Grand Library",
 		"price": 1200,
 		"description": "Vintage tabletop pixel arcade cabinet with glowing demo screen."
 	},
@@ -277,7 +288,7 @@ const ITEM_DEFINITIONS: Dictionary = {
 		"icon": "🔭",
 		"category": "decor",
 		"target_room": "room_library",
-		"target_room_name": "Tower of Urania",
+		"target_room_name": "Grand Library",
 		"price": 500,
 		"description": "Antique brass stargazing telescope pointed out the rafter window."
 	},
@@ -288,7 +299,7 @@ const ITEM_DEFINITIONS: Dictionary = {
 		"icon": "🧂",
 		"category": "decor",
 		"target_room": "room_kitchen",
-		"target_room_name": "Banks of the Styx",
+		"target_room_name": "Chef's Kitchen",
 		"price": 380,
 		"description": "Handcrafted wooden spice rack with glass herb jars."
 	},
@@ -298,7 +309,7 @@ const ITEM_DEFINITIONS: Dictionary = {
 		"icon": "🧁",
 		"category": "decor",
 		"target_room": "room_kitchen",
-		"target_room_name": "Banks of the Styx",
+		"target_room_name": "Chef's Kitchen",
 		"price": 420,
 		"description": "Elegant glass display cloche with blueberry muffins."
 	},
@@ -309,7 +320,7 @@ const ITEM_DEFINITIONS: Dictionary = {
 		"icon": "🌿",
 		"category": "decor",
 		"target_room": "room_greenhouse",
-		"target_room_name": "Elysian Fields",
+		"target_room_name": "Zen Greenhouse",
 		"price": 450,
 		"description": "Geometric brass & crystal terrarium housing rare moss."
 	},
@@ -319,55 +330,55 @@ const ITEM_DEFINITIONS: Dictionary = {
 		"icon": "💡",
 		"category": "decor",
 		"target_room": "room_greenhouse",
-		"target_room_name": "Conservatory",
+		"target_room_name": "Zen Greenhouse",
 		"price": 360,
 		"description": "Hanging blown-glass lantern casting fairy light motes."
 	},
 	# Rooms / Real Estate
 	"room_bedroom": {
 		"id": "room_bedroom",
-		"name": "Temple of Morpheus",
-		"icon": "🌙",
+		"name": "Study Bedroom",
+		"icon": "🛏️",
 		"category": "room",
 		"price": 0,
 		"unlock_level": 1,
-		"description": "The sanctuary of sleep, featuring the Font of Lethe and the Hourglass Altar."
+		"description": "Cozy study bedroom with loft bay window, desk workstation, and fairy lights."
 	},
 	"room_livingroom": {
 		"id": "room_livingroom",
-		"name": "Hearth of Hestia",
-		"icon": "🔥",
+		"name": "Cozy Living Room",
+		"icon": "🛋️",
 		"category": "room",
 		"price": 250,
 		"unlock_level": 2,
-		"description": "A sacred marble hearth with a roaring fire pit and ancient study desk."
+		"description": "Dark walnut lounge with a crackling brick fireplace, vinyl turntable, and plush sofa."
 	},
 	"room_library": {
 		"id": "room_library",
-		"name": "Tower of Urania",
-		"icon": "🔭",
+		"name": "Grand Library",
+		"icon": "📚",
 		"category": "room",
-		"price": 500,
-		"unlock_level": 4,
-		"description": "An astronomical observatory overlooking the endless cosmos."
+		"price": 450,
+		"unlock_level": 3,
+		"description": "Cathedral bookshelves, stained glass windows, celestial globe, and candlelight."
 	},
 	"room_kitchen": {
 		"id": "room_kitchen",
-		"name": "Banks of the Styx",
-		"icon": "🛶",
+		"name": "Chef's Kitchen",
+		"icon": "🍳",
 		"category": "room",
-		"price": 750,
-		"unlock_level": 6,
-		"description": "The gloomy underworld dock featuring Asphodel meadows and a spectral forge."
+		"price": 700,
+		"unlock_level": 4,
+		"description": "Terracotta tiled kitchen with iron oven, hanging copper pans, and coffee station."
 	},
 	"room_greenhouse": {
 		"id": "room_greenhouse",
-		"name": "Elysian Fields",
-		"icon": "🌾",
+		"name": "Zen Greenhouse",
+		"icon": "🌿",
 		"category": "room",
-		"price": 1000,
-		"unlock_level": 8,
-		"description": "Endless golden wheat fields under a sunset sky of the Golden Age."
+		"price": 950,
+		"unlock_level": 5,
+		"description": "Sunlit glass conservatory with lush Monstera, blooming flowers, and floating butterflies."
 	},
 	# Adoptable Pets
 	"pet_shiba": {
@@ -424,6 +435,189 @@ const ITEM_DEFINITIONS: Dictionary = {
 		"price": 1200,
 		"unlock_level": 8,
 		"description": "Vibrant amber fox with a huge fluffy brush tail and curious leaps."
+	}
+}
+
+# ==============================================================================
+# 🏆 ACHIEVEMENT / TROPHY DEFINITIONS (Trophies of Olympus)
+# ==============================================================================
+const ACHIEVEMENT_DEFINITIONS: Dictionary = {
+	"ach_first_step": {
+		"id": "ach_first_step",
+		"title": "First Step",
+		"icon": "⏱️",
+		"category": "Focus",
+		"description": "Complete your 1st focus session.",
+		"target_stat": "focus_sprints",
+		"target_value": 1,
+		"reward_coins": 25,
+		"reward_xp": 50
+	},
+	"ach_deep_flow": {
+		"id": "ach_deep_flow",
+		"title": "Deep Flow",
+		"icon": "⚡",
+		"category": "Focus",
+		"description": "Complete a continuous 60-minute focus sprint.",
+		"target_stat": "max_single_sprint_minutes",
+		"target_value": 60,
+		"reward_coins": 50,
+		"reward_xp": 100
+	},
+	"ach_unstoppable": {
+		"id": "ach_unstoppable",
+		"title": "Unstoppable",
+		"icon": "🔥",
+		"category": "Focus",
+		"description": "Reach a 7-day focus streak.",
+		"target_stat": "streak",
+		"target_value": 7,
+		"reward_coins": 100,
+		"reward_xp": 250
+	},
+	"ach_century_club": {
+		"id": "ach_century_club",
+		"title": "Century Club",
+		"icon": "🏛️",
+		"category": "Focus",
+		"description": "Log 100 total hours of focus time.",
+		"target_stat": "total_focus_hours",
+		"target_value": 100,
+		"reward_coins": 500,
+		"reward_xp": 1000
+	},
+	"ach_night_owl": {
+		"id": "ach_night_owl",
+		"title": "Night Owl",
+		"icon": "🌙",
+		"category": "Focus",
+		"description": "Complete a focus sprint between 12:00 AM – 5:00 AM.",
+		"target_stat": "night_sprints",
+		"target_value": 1,
+		"reward_coins": 30,
+		"reward_xp": 60
+	},
+	"ach_card_initiate": {
+		"id": "ach_card_initiate",
+		"title": "Card Initiate",
+		"icon": "🃏",
+		"category": "Study",
+		"description": "Create your 1st flashcard.",
+		"target_stat": "cards_created",
+		"target_value": 1,
+		"reward_coins": 15,
+		"reward_xp": 30
+	},
+	"ach_scholar": {
+		"id": "ach_scholar",
+		"title": "Scholar of Alexandria",
+		"icon": "🧠",
+		"category": "Study",
+		"description": "Complete 50 Active Recall drill reviews.",
+		"target_stat": "drill_reviews",
+		"target_value": 50,
+		"reward_coins": 75,
+		"reward_xp": 150
+	},
+	"ach_perfect_recall": {
+		"id": "ach_perfect_recall",
+		"title": "Master of Recall",
+		"icon": "🎯",
+		"category": "Study",
+		"description": "Score 10 'Easy' drill ratings in a row.",
+		"target_stat": "perfect_recall_streak",
+		"target_value": 10,
+		"reward_coins": 50,
+		"reward_xp": 100
+	},
+	"ach_pet_lover": {
+		"id": "ach_pet_lover",
+		"title": "Pet Lover",
+		"icon": "🐾",
+		"category": "Companion",
+		"description": "Pet your companion 25 times.",
+		"target_stat": "pets_count",
+		"target_value": 25,
+		"reward_coins": 30,
+		"reward_xp": 60
+	},
+	"ach_gourmet": {
+		"id": "ach_gourmet",
+		"title": "Gourmet Feast",
+		"icon": "🥐",
+		"category": "Companion",
+		"description": "Feed your companion 20 treats.",
+		"target_stat": "snacks_fed",
+		"target_value": 20,
+		"reward_coins": 40,
+		"reward_xp": 80
+	},
+	"ach_kindred_spirit": {
+		"id": "ach_kindred_spirit",
+		"title": "Kindred Spirit",
+		"icon": "💖",
+		"category": "Companion",
+		"description": "Reach Max Friendship (Heart Rank 5) with any pet.",
+		"target_stat": "max_affection_level",
+		"target_value": 5,
+		"reward_coins": 100,
+		"reward_xp": 200,
+		"reward_item": "Golden Laurel Wreath"
+	},
+	"ach_fashion_icon": {
+		"id": "ach_fashion_icon",
+		"title": "Fashion Icon",
+		"icon": "🎩",
+		"category": "Companion",
+		"description": "Equip 3 cosmetics simultaneously.",
+		"target_stat": "equipped_cosmetics_count",
+		"target_value": 3,
+		"reward_coins": 30,
+		"reward_xp": 50
+	},
+	"ach_full_house": {
+		"id": "ach_full_house",
+		"title": "Ark of Olympus",
+		"icon": "🏡",
+		"category": "Companion",
+		"description": "Adopt all 5 companion species.",
+		"target_stat": "unlocked_pets_count",
+		"target_value": 5,
+		"reward_coins": 150,
+		"reward_xp": 300
+	},
+	"ach_midas_touch": {
+		"id": "ach_midas_touch",
+		"title": "Midas Touch",
+		"icon": "💰",
+		"category": "Economy",
+		"description": "Earn 1,000 lifetime focus coins.",
+		"target_stat": "lifetime_coins",
+		"target_value": 1000,
+		"reward_coins": 100,
+		"reward_xp": 200
+	},
+	"ach_cosmos_master": {
+		"id": "ach_cosmos_master",
+		"title": "Master of Cosmos",
+		"icon": "🌌",
+		"category": "Realm",
+		"description": "Unlock all 5 room domains.",
+		"target_stat": "unlocked_rooms_count",
+		"target_value": 5,
+		"reward_coins": 200,
+		"reward_xp": 400
+	},
+	"ach_styx_voyage": {
+		"id": "ach_styx_voyage",
+		"title": "Ferryman's Guest",
+		"icon": "🛶",
+		"category": "Realm",
+		"description": "Discover and visit the Banks of the Styx.",
+		"target_stat": "visited_styx",
+		"target_value": 1,
+		"reward_coins": 50,
+		"reward_xp": 100
 	}
 }
 
@@ -489,6 +683,14 @@ var daily_quests: Array[Dictionary] = []
 var quest_generation_date: String = ""
 
 # Flashcard Study Deck State
+
+# Achievements & Progression
+var unlocked_achievements: Array[String] = []
+var achievement_progress: Dictionary = {}
+var pet_friendship: Dictionary = {}
+var minigame_high_scores: Dictionary = {"snack_catch": 0, "plant_bloom": 0, "memory_match": 0}
+var daily_focus_history: Dictionary = {}
+var lifetime_focus_minutes: int = 0
 var flashcard_deck: Array[Dictionary] = [
 	{
 		"id": "card_1",
@@ -570,6 +772,7 @@ func _ready() -> void:
 	_last_checked_hour = Time.get_time_dict_from_system().get("hour", 12)
 	check_and_generate_daily_quests()
 	_connect_quest_listeners()
+	_connect_achievement_listeners()
 	_emit_all_stats()
 
 func _process(delta: float) -> void:
@@ -1243,6 +1446,23 @@ func _connect_quest_listeners() -> void:
 # ==============================================================================
 # 📚 FLASHCARD STUDY DECK MANAGEMENT
 # ==============================================================================
+## Edits an existing flashcard
+func edit_flashcard(card_id: String, new_q: String, new_a: String, new_subject: String = "General") -> bool:
+	var q_trimmed: String = new_q.strip_edges()
+	var a_trimmed: String = new_a.strip_edges()
+	if q_trimmed == "" or a_trimmed == "":
+		return false
+	for i in range(flashcard_deck.size()):
+		if flashcard_deck[i].get("id", "") == card_id:
+			flashcard_deck[i]["q"] = q_trimmed
+			flashcard_deck[i]["a"] = a_trimmed
+			flashcard_deck[i]["subject"] = new_subject.strip_edges() if new_subject.strip_edges() != "" else "General"
+			EventBus.flashcards_updated.emit()
+			if DatabaseManager:
+				DatabaseManager.save_game()
+			return true
+	return false
+
 ## Adds a new flashcard to the deck
 func add_flashcard(question: String, answer: String, subject: String = "General") -> String:
 	var q_trimmed: String = question.strip_edges()
@@ -1277,6 +1497,31 @@ func delete_flashcard(card_id: String) -> bool:
 func get_flashcards() -> Array[Dictionary]:
 	return flashcard_deck
 
+## Records a minigame score, returns true if a new high score was set
+func record_minigame_score(game_id: String, score: int) -> bool:
+	var prev: int = minigame_high_scores.get(game_id, 0)
+	if score > prev:
+		minigame_high_scores[game_id] = score
+		if DatabaseManager:
+			DatabaseManager.save_game()
+		return true
+	return false
+
+## Retrieves the current high score for a minigame
+func get_minigame_high_score(game_id: String) -> int:
+	return minigame_high_scores.get(game_id, 0)
+
+## Logs completed focus minutes to today's date in daily_focus_history
+func log_focus_minutes(minutes: int) -> void:
+	if minutes <= 0:
+		return
+	lifetime_focus_minutes += minutes
+	var date_str: String = Time.get_date_string_from_system()
+	var current: int = daily_focus_history.get(date_str, 0)
+	daily_focus_history[date_str] = current + minutes
+	if DatabaseManager:
+		DatabaseManager.save_game()
+
 # ==============================================================================
 # 💾 SERIALIZATION / DATA EXPORT
 # ==============================================================================
@@ -1310,6 +1555,12 @@ func serialize() -> Dictionary:
 		"daily_quests": daily_quests,
 		"quest_generation_date": quest_generation_date,
 		"flashcard_deck": flashcard_deck,
+		"unlocked_achievements": unlocked_achievements,
+		"achievement_progress": achievement_progress,
+		"pet_friendship": pet_friendship,
+		"minigame_high_scores": minigame_high_scores,
+		"daily_focus_history": daily_focus_history,
+		"lifetime_focus_minutes": lifetime_focus_minutes,
 		"last_saved_unix": Time.get_unix_time_from_system()
 	}
 
@@ -1325,10 +1576,9 @@ func deserialize(data: Dictionary) -> void:
 	joy = data.get("joy", 80.0)
 	streak = data.get("streak", 0)
 	
-	var raw_deck = data.get("flashcard_deck", null)
-	if raw_deck is Array and not raw_deck.is_empty():
+	if data.has("flashcard_deck") and data["flashcard_deck"] is Array:
 		flashcard_deck.clear()
-		for c in raw_deck:
+		for c in data["flashcard_deck"]:
 			if c is Dictionary:
 				flashcard_deck.append(c)
 	
@@ -1408,6 +1658,35 @@ func deserialize(data: Dictionary) -> void:
 			if q is Dictionary:
 				daily_quests.append(q)
 	quest_generation_date = data.get("quest_generation_date", "")
+	
+	var raw_achs = data.get("unlocked_achievements", [])
+	unlocked_achievements.clear()
+	if raw_achs is Array:
+		for a in raw_achs:
+			unlocked_achievements.append(str(a))
+			
+	var raw_prog = data.get("achievement_progress", {})
+	achievement_progress.clear()
+	if raw_prog is Dictionary:
+		for k in raw_prog.keys():
+			achievement_progress[k] = raw_prog[k]
+			
+	var raw_friend = data.get("pet_friendship", {})
+	pet_friendship.clear()
+	if raw_friend is Dictionary:
+		for k in raw_friend.keys():
+			pet_friendship[k] = raw_friend[k]
+
+	var raw_scores = data.get("minigame_high_scores", {})
+	minigame_high_scores = {"snack_catch": 0, "plant_bloom": 0, "memory_match": 0}
+	daily_focus_history = {}
+	lifetime_focus_minutes = 0
+	daily_focus_history = data.get("daily_focus_history", {})
+	lifetime_focus_minutes = data.get("lifetime_focus_minutes", 0)
+	if raw_scores is Dictionary:
+		for k in raw_scores.keys():
+			minigame_high_scores[k] = int(raw_scores[k])
+
 	check_and_generate_daily_quests()
 				
 	_emit_all_stats()
@@ -1435,3 +1714,251 @@ func _emit_all_stats() -> void:
 	EventBus.pet_room_changed.emit(pet_room)
 	EventBus.quests_updated.emit()
 	EventBus.stats_updated.emit(serialize())
+
+# ==============================================================================
+# 🏆 ACHIEVEMENTS & TROPHIES API
+# ==============================================================================
+## Returns the full list of achievements with unlock status and current progress
+func get_achievement_list() -> Array[Dictionary]:
+	var list: Array[Dictionary] = []
+	for ach_id in ACHIEVEMENT_DEFINITIONS.keys():
+		var ach = ACHIEVEMENT_DEFINITIONS[ach_id].duplicate()
+		ach["is_unlocked"] = unlocked_achievements.has(ach_id)
+		var stat_key: String = ach.get("target_stat", "")
+		ach["current_progress"] = get_achievement_stat(stat_key)
+		list.append(ach)
+	return list
+
+func is_achievement_unlocked(ach_id: String) -> bool:
+	return unlocked_achievements.has(ach_id)
+
+func get_achievement_stat(stat_name: String) -> int:
+	match stat_name:
+		"streak": return streak
+		"unlocked_rooms_count": return unlocked_rooms.size()
+		"unlocked_pets_count": return unlocked_pets.size()
+		"equipped_cosmetics_count": return equipped_cosmetics.size()
+		"max_affection_level":
+			var max_lvl: int = 1
+			for p_id in pet_friendship.keys():
+				max_lvl = maxi(max_lvl, pet_friendship[p_id].get("level", 1))
+			return max_lvl
+		_: return int(achievement_progress.get(stat_name, 0))
+
+## Updates progress on a tracked stat and triggers unlock if goal met
+func check_achievement_progress(stat_name: String, delta: int = 1, absolute_val: int = -1) -> void:
+	if absolute_val >= 0:
+		achievement_progress[stat_name] = absolute_val
+	else:
+		achievement_progress[stat_name] = int(achievement_progress.get(stat_name, 0)) + delta
+		
+	var cur_val: int = get_achievement_stat(stat_name)
+	
+	for ach_id in ACHIEVEMENT_DEFINITIONS.keys():
+		if unlocked_achievements.has(ach_id):
+			continue
+		var ach = ACHIEVEMENT_DEFINITIONS[ach_id]
+		if ach.get("target_stat", "") == stat_name:
+			var target_val: int = int(ach.get("target_value", 1))
+			if cur_val >= target_val:
+				unlock_achievement(ach_id)
+
+## Explicitly unlocks an achievement and grants rewards
+func unlock_achievement(ach_id: String) -> bool:
+	if unlocked_achievements.has(ach_id) or not ACHIEVEMENT_DEFINITIONS.has(ach_id):
+		return false
+		
+	unlocked_achievements.append(ach_id)
+	var ach = ACHIEVEMENT_DEFINITIONS[ach_id]
+	
+	# Grant rewards
+	var r_coins: int = int(ach.get("reward_coins", 0))
+	var r_xp: int = int(ach.get("reward_xp", 0))
+	var r_item: String = ach.get("reward_item", "")
+	
+	if r_coins > 0: add_coins(r_coins, "achievement")
+	if r_xp > 0: add_exp(r_xp)
+	if r_item == "Golden Laurel Wreath":
+		add_item("cosmetic_laurel_wreath", 1)
+		
+	EventBus.achievement_unlocked.emit(ach_id, ach)
+	if DatabaseManager:
+		DatabaseManager.save_game()
+	return true
+
+# ==============================================================================
+# 💖 PET FRIENDSHIP & AFFECTION API
+# ==============================================================================
+## Returns friendship data {level: int, xp: int, max_xp: int} for specified pet
+func get_pet_affection(p_id: String = "") -> Dictionary:
+	if p_id == "":
+		p_id = active_pets[0].get("id", "pet_shiba") if active_pets.size() > 0 else "pet_shiba"
+		
+	if not pet_friendship.has(p_id):
+		pet_friendship[p_id] = {"level": 1, "xp": 0}
+		
+	var data = pet_friendship[p_id]
+	var lvl: int = int(data.get("level", 1))
+	var xp_val: int = int(data.get("xp", 0))
+	var max_xp: int = get_affection_required_for_level(lvl)
+	return {"level": lvl, "xp": xp_val, "max_xp": max_xp}
+
+func get_affection_required_for_level(lvl: int) -> int:
+	match lvl:
+		1: return 50
+		2: return 100
+		3: return 180
+		4: return 300
+		_: return 500
+
+## Adds affection EXP to pet
+func add_pet_affection(p_id: String = "", amount: int = 5) -> void:
+	if p_id == "":
+		p_id = active_pets[0].get("id", "pet_shiba") if active_pets.size() > 0 else "pet_shiba"
+		
+	if not pet_friendship.has(p_id):
+		pet_friendship[p_id] = {"level": 1, "xp": 0}
+		
+	var data = pet_friendship[p_id]
+	var lvl: int = int(data.get("level", 1))
+	var cur_xp: int = int(data.get("xp", 0)) + amount
+	var max_xp: int = get_affection_required_for_level(lvl)
+	
+	if cur_xp >= max_xp and lvl < 5:
+		cur_xp -= max_xp
+		lvl += 1
+		data["level"] = lvl
+		data["xp"] = cur_xp
+		EventBus.affection_changed.emit(p_id, lvl, cur_xp, amount)
+		check_achievement_progress("max_affection_level", 0, lvl)
+		if NotificationManager:
+			NotificationManager.show_toast("💖 Friendship Increased! Level %d" % lvl, NotificationManager.ToastType.SUCCESS)
+	else:
+		data["xp"] = cur_xp
+		EventBus.affection_changed.emit(p_id, lvl, cur_xp, amount)
+		
+	if DatabaseManager:
+		DatabaseManager.save_game()
+
+func _connect_achievement_listeners() -> void:
+	EventBus.session_completed.connect(func(_type, _coins, _xp, _streak):
+		check_achievement_progress("focus_sprints", 1)
+		check_achievement_progress("streak", 0, streak)
+		var hour: int = Time.get_time_dict_from_system().get("hour", 12)
+		if hour >= 0 and hour < 5:
+			check_achievement_progress("night_sprints", 1)
+		add_pet_affection("", 10)
+	)
+	EventBus.coins_changed.connect(func(_bal, delta, _reason):
+		if delta > 0:
+			check_achievement_progress("lifetime_coins", delta)
+	)
+	EventBus.item_used.connect(func(_item_id, item_data):
+		if item_data.get("category", "") == "snack":
+			check_achievement_progress("snacks_fed", 1)
+			add_pet_affection("", 15)
+	)
+	EventBus.pet_interacted.connect(func(itype):
+		if itype == "pet":
+			check_achievement_progress("pets_count", 1)
+			add_pet_affection("", 5)
+	)
+	EventBus.flashcard_reviewed.connect(func(_card_id, rating):
+		check_achievement_progress("drill_reviews", 1)
+		if rating == "easy":
+			var cur_perfect = int(achievement_progress.get("perfect_recall_streak", 0)) + 1
+			check_achievement_progress("perfect_recall_streak", 0, cur_perfect)
+		else:
+			achievement_progress["perfect_recall_streak"] = 0
+	)
+	EventBus.flashcard_created.connect(func(_cid):
+		check_achievement_progress("cards_created", 1)
+	)
+	EventBus.cosmetic_equipped.connect(func(_slot, _cid):
+		check_achievement_progress("equipped_cosmetics_count", 0, equipped_cosmetics.size())
+	)
+	EventBus.pet_adopted.connect(func(_pdata, _as_h):
+		check_achievement_progress("unlocked_pets_count", 0, unlocked_pets.size())
+	)
+	EventBus.room_unlocked.connect(func(_rid):
+		check_achievement_progress("unlocked_rooms_count", 0, unlocked_rooms.size())
+	)
+	EventBus.room_changed.connect(func(rid):
+		if rid == "room_styx":
+			check_achievement_progress("visited_styx", 1)
+	)
+
+# ==============================================================================
+# 🧪 DEVELOPER CHEATS & RESET HELPER (For Fast Testing)
+# ==============================================================================
+func reset_to_defaults() -> void:
+	pet_name = "Kronos"
+	pet_species = "shiba"
+	level = 1
+	exp = 0
+	coins = 50
+	knowledge_points = 0
+	energy = 80.0
+	joy = 80.0
+	streak = 0
+	equipped_cosmetic = ""
+	equipped_cosmetics.clear()
+	active_view_room = "room_bedroom"
+	active_room = "room_bedroom"
+	pet_room = "room_bedroom"
+	inventory = [
+		{"item_id": "snack_coffee", "quantity": 2, "metadata": {}},
+		{"item_id": "snack_croissant", "quantity": 1, "metadata": {}}
+	]
+	placed_decor.clear()
+	unlocked_rooms = ["room_bedroom"]
+	unlocked_pets = ["pet_shiba"]
+	active_pets = [
+		{"id": "pet_shiba", "name": "Kronos", "species": "shiba", "room": "room_bedroom"}
+	]
+	unlocked_achievements.clear()
+	achievement_progress.clear()
+	pet_friendship = {
+		"pet_shiba": {"level": 1, "xp": 0}
+	}
+	minigame_high_scores = {"snack_catch": 0, "plant_bloom": 0, "memory_match": 0}
+	daily_focus_history = {}
+	lifetime_focus_minutes = 0
+	flashcard_deck = [
+		{"id": "card_1", "q": "What does UI stand for?", "a": "User Interface", "subject": "General Tech"},
+		{"id": "card_2", "q": "What is the main programming language used in Godot?", "a": "GDScript", "subject": "Godot"},
+		{"id": "card_3", "q": "What does API stand for?", "a": "Application Programming Interface", "subject": "General Tech"},
+		{"id": "card_4", "q": "What is 'Active Recall'?", "a": "Retrieving information from memory without looking at the answer.", "subject": "Study Methods"}
+	]
+	EventBus.flashcards_updated.emit()
+	_emit_all_stats()
+	EventBus.pet_list_changed.emit(active_pets)
+
+func dev_add_coins(amt: int = 500) -> void:
+	add_coins(amt, "dev_cheat")
+	if NotificationManager:
+		NotificationManager.show_toast("🧪 DEV: +%d Coins added!" % amt, NotificationManager.ToastType.SUCCESS)
+
+func dev_add_friendship(amt: int = 50) -> void:
+	add_pet_affection("", amt)
+	if NotificationManager:
+		NotificationManager.show_toast("🧪 DEV: +%d Pet Friendship XP added!" % amt, NotificationManager.ToastType.SUCCESS)
+
+func dev_simulate_drills(count: int = 10) -> void:
+	for i in range(count):
+		EventBus.flashcard_reviewed.emit("dev_card", "easy")
+	if NotificationManager:
+		NotificationManager.show_toast("🧪 DEV: Simulated %d Easy Drills!" % count, NotificationManager.ToastType.SUCCESS)
+
+func dev_simulate_pets(count: int = 10) -> void:
+	for i in range(count):
+		EventBus.pet_interacted.emit("pet")
+	if NotificationManager:
+		NotificationManager.show_toast("🧪 DEV: Simulated %d Pet Cuddles!" % count, NotificationManager.ToastType.SUCCESS)
+
+func dev_fill_vitals() -> void:
+	set_energy(100.0)
+	set_joy(100.0)
+	if NotificationManager:
+		NotificationManager.show_toast("🧪 DEV: Vitals restored to 100%!", NotificationManager.ToastType.SUCCESS)
+

@@ -76,7 +76,6 @@ func _process(delta: float) -> void:
 		var bounce: float = sin(_hover_timer) * 2.0
 		if indicator_container:
 			indicator_container.position.y = -44.0 + bounce
-	queue_redraw()
 
 func _update_label_text() -> void:
 	if indicator_label:

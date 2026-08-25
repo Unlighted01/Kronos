@@ -1,0 +1,73 @@
+[gd_scene load_steps=2 format=3 uid="uid://b8m3k2v1s9a7q"]
+
+[ext_resource type="Script" path="res://scenes/main/SplashIntro.gd" id="1_splash"]
+
+[node name="SplashIntro" type="Control"]
+z_index = 150
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_splash")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.027451, 0.0313726, 0.0588235, 1)
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="CenterContainer"]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="StudioLabel" type="Label" parent="CenterContainer/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.960784, 0.619608, 0.0431373, 1)
+theme_override_font_sizes/font_size = 8
+text = "✦ UNLIGHTED STUDIOS ✦"
+horizontal_alignment = 1
+
+[node name="LogoContainer" type="VBoxContainer" parent="CenterContainer/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+alignment = 1
+
+[node name="HourglassCanvas" type="Control" parent="CenterContainer/VBox/LogoContainer"]
+custom_minimum_size = Vector2(60, 60)
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="TitleLabel" type="Label" parent="CenterContainer/VBox/LogoContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.960784, 0.784314, 0.258824, 1)
+theme_override_font_sizes/font_size = 14
+text = "K R O N O S"
+horizontal_alignment = 1
+
+[node name="SubtitleLabel" type="Label" parent="CenterContainer/VBox/LogoContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.313726, 0.823529, 0.909804, 1)
+theme_override_font_sizes/font_size = 6
+text = "◈ WORKSPACE COMPANION & STUDY SANCTUARY ◈"
+horizontal_alignment = 1
+
+[node name="PromptLabel" type="Label" parent="CenterContainer/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.580392, 0.639216, 0.721569, 1)
+theme_override_font_sizes/font_size = 6
+text = "[ CLICK OR PRESS ANY KEY TO ENTER ]"
+horizontal_alignment = 1

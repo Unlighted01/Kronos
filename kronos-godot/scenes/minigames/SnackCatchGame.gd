@@ -1,44 +1,39 @@
 extends Control
 class_name SnackCatchGame
 
-## 🥐 Snack Catch — Cozy Break-Time Pixel Minigame for Kronos.
-## Catch falling croissants, boba, and sushi during break to earn Bonus Coins, EXP, and Pet Joy!
+## 🥐 Snack Catch 2.0 — Cozy Break-Time Pixel Minigame for Kronos.
+## Catch falling croissants, boba, sushi & golden stars with combo multipliers for Coins, EXP, KP, and physical Treat drops!
 
 signal game_closed()
 
-# ==============================================================================
-# 🎮 GAME CONSTANTS & REWARDS
-# ==============================================================================
-const GAME_DURATION: float = 30.0 # 30-second rapid break sprint
+const GAME_DURATION: float = 30.0
 const FLOOR_Y: float = 114.0
 const MIN_X: float = 24.0
 const MAX_X: float = 212.0
-const PLAYER_SPEED: float = 150.0
+const PLAYER_SPEED: float = 160.0
 
 const ITEM_TYPES: Array[Dictionary] = [
 	{ "name": "croissant", "icon": "🥐", "points": 10, "speed": 65.0, "color": Color(0.96, 0.62, 0.04) },
 	{ "name": "boba", "icon": "🧋", "points": 15, "speed": 80.0, "color": Color(0.93, 0.28, 0.60) },
-	{ "name": "sushi", "icon": "🍣", "points": 25, "speed": 100.0, "color": Color(0.31, 0.82, 0.91) },
-	{ "name": "alarm", "icon": "⏰", "points": -15, "speed": 90.0, "color": Color(0.9, 0.3, 0.3) }
+	{ "name": "sushi", "icon": "🍣", "points": 25, "speed": 95.0, "color": Color(0.31, 0.82, 0.91) },
+	{ "name": "star", "icon": "⭐", "points": 40, "speed": 110.0, "color": Color(1.0, 0.85, 0.2) },
+	{ "name": "alarm", "icon": "⏰", "points": -15, "speed": 85.0, "color": Color(0.95, 0.3, 0.3) }
 ]
 
-# ==============================================================================
-# 📊 GAME STATE
-# ==============================================================================
 var time_left: float = GAME_DURATION
 var score: int = 0
+var combo_streak: int = 0
 var is_playing: bool = false
 var is_game_over: bool = false
+var fever_timer: float = 0.0
 
 var player_x: float = 118.0
 var _spawn_timer: float = 0.0
-var _spawn_interval: float = 0.75
+var _spawn_interval: float = 0.65
 var _active_items: Array[Dictionary] = []
 var _popups: Array[Dictionary] = []
+var _particles: Array[Dictionary] = []
 
-# ==============================================================================
-# 🎛️ UI REFERENCES
-# ==============================================================================
 @onready var hud_timer_label: Label = $HUD/HBox/TimerLabel
 @onready var hud_score_label: Label = $HUD/HBox/ScoreLabel
 @onready var close_btn: Button = $HUD/HBox/CloseButton
@@ -49,62 +44,53 @@ var _popups: Array[Dictionary] = []
 @onready var replay_btn: Button = $GameOverPanel/VBox/HBox/ReplayButton
 @onready var exit_btn: Button = $GameOverPanel/VBox/HBox/ExitButton
 
-# ==============================================================================
-# ⚙️ LIFECYCLE
-# ==============================================================================
 func _ready() -> void:
 	custom_minimum_size = Vector2(236, 140)
 	mouse_filter = MOUSE_FILTER_STOP
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	
-	if close_btn:
-		close_btn.pressed.connect(_on_exit_pressed)
-	if replay_btn:
-		replay_btn.pressed.connect(start_game)
-	if exit_btn:
-		exit_btn.pressed.connect(_on_exit_pressed)
-		
-	if game_over_panel:
-		game_over_panel.visible = false
+	if close_btn: close_btn.pressed.connect(_on_exit_pressed)
+	if replay_btn: replay_btn.pressed.connect(start_game)
+	if exit_btn: exit_btn.pressed.connect(_on_exit_pressed)
+	if game_over_panel: game_over_panel.visible = false
 		
 	start_game()
 
 func start_game() -> void:
 	time_left = GAME_DURATION
 	score = 0
+	combo_streak = 0
+	fever_timer = 0.0
 	is_playing = true
 	is_game_over = false
 	player_x = 118.0
 	_spawn_timer = 0.0
-	_spawn_interval = 0.75
+	_spawn_interval = 0.65
 	_active_items.clear()
 	_popups.clear()
+	_particles.clear()
 	
 	if game_over_panel:
 		game_over_panel.visible = false
-		
 	if AudioManager:
 		AudioManager.play_sfx("chime")
-		
 	queue_redraw()
 
 func _process(delta: float) -> void:
 	if not is_playing or is_game_over:
 		return
 		
-	# 1. Timer Countdown
 	time_left -= delta
+	if fever_timer > 0.0:
+		fever_timer -= delta
+		
 	if hud_timer_label:
 		hud_timer_label.text = "⏱️ %02ds" % int(ceilf(time_left))
 	if hud_score_label:
-		hud_score_label.text = "🏆 %d" % score
+		var combo_txt: String = " (x%.1f)" % _get_combo_multiplier() if combo_streak >= 3 else ""
+		hud_score_label.text = "🏆 %d%s" % [score, combo_txt]
 		
-	if time_left <= 0.0:
-		time_left = 0.0
-		_trigger_game_over()
-		return
-		
-	# 2. Player Input Movement
+	# Keyboard movement
 	var move_dir: float = 0.0
 	if Input.is_action_pressed("ui_left") or Input.is_key_pressed(KEY_A):
 		move_dir -= 1.0
@@ -112,172 +98,215 @@ func _process(delta: float) -> void:
 		move_dir += 1.0
 		
 	if move_dir != 0.0:
-		player_x += move_dir * PLAYER_SPEED * delta
-	else:
-		# Smoothly track mouse cursor if hovering over canvas
-		var local_mouse_x: float = get_local_mouse_position().x
-		if local_mouse_x >= 0 and local_mouse_x <= size.x:
-			player_x = lerpf(player_x, local_mouse_x, 14.0 * delta)
-			
-	player_x = clampf(player_x, MIN_X, MAX_X)
-	
-	# 3. Item Spawning
+		player_x = clampf(player_x + move_dir * PLAYER_SPEED * delta, MIN_X, MAX_X)
+		
+	# Spawn falling items
 	_spawn_timer += delta
-	if _spawn_timer >= _spawn_interval:
+	var cur_interval: float = _spawn_interval * (0.5 if fever_timer > 0.0 else 1.0)
+	if _spawn_timer >= cur_interval:
 		_spawn_timer = 0.0
-		_spawn_random_item()
-		_spawn_interval = randf_range(0.45, 0.85)
+		_spawn_item()
 		
-	# 4. Item Falling & Catch Physics
-	for i in range(_active_items.size() - 1, -1, -1):
-		var item: Dictionary = _active_items[i]
-		item["y"] += item["speed"] * delta
+	# Update items
+	var basket_w: float = 24.0
+	var basket_y: float = FLOOR_Y - 8.0
+	var i: int = _active_items.size() - 1
+	while i >= 0:
+		var it: Dictionary = _active_items[i]
+		it["y"] += it["speed"] * delta
 		
-		# Check Catch Hitbox
-		if item["y"] >= (FLOOR_Y - 14.0) and item["y"] <= (FLOOR_Y + 4.0):
-			if absf(item["x"] - player_x) <= 18.0:
-				# Caught!
-				_on_item_caught(item)
+		# Collision check with player basket
+		if it["y"] >= basket_y - 4.0 and it["y"] <= basket_y + 8.0:
+			if absf(it["x"] - player_x) <= (basket_w * 0.5 + 4.0):
+				_catch_item(it)
 				_active_items.remove_at(i)
+				i -= 1
 				continue
 				
-		# Missed / Fallen off bottom
-		if item["y"] > size.y + 10.0:
+		# Missed floor check
+		if it["y"] >= FLOOR_Y + 12.0:
+			if it["name"] != "alarm":
+				combo_streak = 0
 			_active_items.remove_at(i)
+			i -= 1
+			continue
 			
-	# 5. Process Floating Score Popups
-	for i in range(_popups.size() - 1, -1, -1):
-		var p: Dictionary = _popups[i]
-		p["y"] -= 20.0 * delta
-		p["alpha"] -= 1.4 * delta
-		if p["alpha"] <= 0.0:
-			_popups.remove_at(i)
-			
+		i -= 1
+		
+	# Update popups
+	var p_idx: int = _popups.size() - 1
+	while p_idx >= 0:
+		var pop: Dictionary = _popups[p_idx]
+		pop["life"] -= delta
+		pop["y"] -= 18.0 * delta
+		if pop["life"] <= 0.0:
+			_popups.remove_at(p_idx)
+		p_idx -= 1
+		
+	# Update particles
+	var pt_idx: int = _particles.size() - 1
+	while pt_idx >= 0:
+		var pt: Dictionary = _particles[pt_idx]
+		pt["life"] -= delta
+		pt["pos"] += pt["vel"] * delta
+		if pt["life"] <= 0.0:
+			_particles.remove_at(pt_idx)
+		pt_idx -= 1
+		
+	if time_left <= 0.0:
+		_game_over()
+		
 	queue_redraw()
 
-func _spawn_random_item() -> void:
+func _gui_input(event: InputEvent) -> void:
+	if not is_playing or is_game_over:
+		return
+	if event is InputEventMouseMotion:
+		player_x = clampf(event.position.x, MIN_X, MAX_X)
+
+func _get_combo_multiplier() -> float:
+	if combo_streak >= 9: return 2.5
+	if combo_streak >= 6: return 2.0
+	if combo_streak >= 3: return 1.5
+	return 1.0
+
+func _spawn_item() -> void:
 	var roll: float = randf()
-	var tpl: Dictionary = ITEM_TYPES[0] # Croissant (45%)
-	if roll > 0.82:
-		tpl = ITEM_TYPES[3] # Alarm clock hazard (18%)
-	elif roll > 0.60:
-		tpl = ITEM_TYPES[2] # Sushi (22%)
-	elif roll > 0.35:
-		tpl = ITEM_TYPES[1] # Boba (25%)
-		
-	var item: Dictionary = {
-		"name": tpl["name"],
-		"icon": tpl["icon"],
-		"points": tpl["points"],
-		"speed": tpl["speed"] * randf_range(0.9, 1.2),
-		"color": tpl["color"],
-		"x": randf_range(MIN_X + 8.0, MAX_X - 8.0),
-		"y": 14.0
-	}
-	_active_items.append(item)
-
-func _on_item_caught(item: Dictionary) -> void:
-	var pts: int = item["points"]
-	score = maxi(0, score + pts)
+	var type_idx: int = 0
 	
-	if pts > 0:
-		if AudioManager:
-			AudioManager.play_sfx("munch")
-		_spawn_popup("+%d" % pts, item["x"], item["y"] - 10.0, item["color"])
+	if fever_timer > 0.0:
+		type_idx = 0 if randf() < 0.6 else 2 # Croissants & sushi during fever
 	else:
-		if AudioManager:
-			AudioManager.play_sfx("click")
-		_spawn_popup("%d" % pts, item["x"], item["y"] - 10.0, Color(0.95, 0.3, 0.3))
+		if roll < 0.40: type_idx = 0       # 40% Croissant
+		elif roll < 0.65: type_idx = 1     # 25% Boba
+		elif roll < 0.82: type_idx = 2     # 17% Sushi
+		elif roll < 0.90: type_idx = 3     # 8% Golden Star
+		else: type_idx = 4                 # 10% Red Alarm
+		
+	var item_template: Dictionary = ITEM_TYPES[type_idx]
+	var item_data: Dictionary = item_template.duplicate()
+	item_data["x"] = randf_range(MIN_X + 10.0, MAX_X - 10.0)
+	item_data["y"] = 16.0
+	_active_items.append(item_data)
 
-func _spawn_popup(text: String, x: float, y: float, col: Color) -> void:
+func _catch_item(it: Dictionary) -> void:
+	var is_alarm: bool = (it["name"] == "alarm")
+	if is_alarm:
+		combo_streak = 0
+		score = maxi(0, score + it["points"])
+		if AudioManager: AudioManager.play_sfx("click")
+		_add_popup(it["x"], it["y"] - 10.0, "-15 ⏰", Color(1.0, 0.4, 0.4))
+		return
+		
+	combo_streak += 1
+	var mult: float = _get_combo_multiplier()
+	var pts_earned: int = int(it["points"] * mult)
+	score += pts_earned
+	
+	if it["name"] == "star":
+		fever_timer = 4.0
+		if AudioManager: AudioManager.play_sfx("levelup")
+		_add_popup(it["x"], it["y"] - 12.0, "FEVER! ⭐ +%d" % pts_earned, Color(1.0, 0.9, 0.2))
+	else:
+		if AudioManager: AudioManager.play_sfx("chime")
+		var combo_str: String = " (x%.1f)" % mult if mult > 1.0 else ""
+		_add_popup(it["x"], it["y"] - 8.0, "+%d%s" % [pts_earned, combo_str], it["color"])
+		
+	# Spawn particle sparkles
+	for _p in range(4):
+		_particles.append({
+			"pos": Vector2(it["x"], it["y"]),
+			"vel": Vector2(randf_range(-30, 30), randf_range(-40, -10)),
+			"color": it["color"],
+			"life": 0.4,
+			"max_life": 0.4
+		})
+
+func _add_popup(px: float, py: float, txt: String, col: Color) -> void:
 	_popups.append({
-		"text": text,
-		"x": x,
-		"y": y,
+		"x": px,
+		"y": py,
+		"text": txt,
 		"color": col,
-		"alpha": 1.0
+		"life": 0.65
 	})
 
-func _trigger_game_over() -> void:
-	is_game_over = true
+func _game_over() -> void:
 	is_playing = false
+	is_game_over = true
 	
-	var reward_coins: int = maxi(10, int(score * 1.0))
-	var reward_exp: int = maxi(5, int(score * 0.5))
+	var coins_reward: int = maxi(15, int(score * 0.15))
+	var exp_reward: int = maxi(20, int(score * 0.20))
+	var got_snack: bool = (score >= 150)
 	
 	if GameState:
-		GameState.add_coins(reward_coins, "snack_catch_minigame")
-		GameState.add_exp(reward_exp)
-		GameState.add_joy(25.0)
+		GameState.add_coins(coins_reward, "minigame_snack_catch")
+		GameState.add_exp(exp_reward)
+		GameState.modify_pet_joy(25.0)
+		if got_snack:
+			GameState.add_item("snack_croissant", 1)
+			if NotificationManager:
+				NotificationManager.show_toast("Bonus Snack Earned! 🥐✨", NotificationManager.ToastType.SUCCESS)
+		GameState.record_minigame_score("snack_catch", score)
 		
 	if AudioManager:
-		AudioManager.play_sfx("chime")
-		
-	if final_score_label:
-		final_score_label.text = "🏆 Final Score: %d" % score
-	if reward_label:
-		reward_label.text = "+%d G  +%d XP  +25 Joy! 🐾" % [reward_coins, reward_exp]
+		AudioManager.play_sfx("victory")
 		
 	if game_over_panel:
 		game_over_panel.visible = true
+	if final_score_label:
+		final_score_label.text = "FINAL SCORE: %d" % score
+	if reward_label:
+		var bonus_txt: String = " + 🥐 CROISSANT" if got_snack else ""
+		reward_label.text = "+%d 🪙  +%d EXP  +25 💖%s" % [coins_reward, exp_reward, bonus_txt]
+
+func _draw() -> void:
+	# Background dim
+	draw_rect(Rect2(0, 0, size.x, size.y), Color(0.04, 0.05, 0.08, 0.96))
+	
+	# Floor line
+	draw_line(Vector2(MIN_X - 10, FLOOR_Y), Vector2(MAX_X + 10, FLOOR_Y), Color(0.2, 0.25, 0.35, 0.8), 2.0)
+	
+	# Fever background glow
+	if fever_timer > 0.0:
+		var fever_alpha: float = (sin(Time.get_ticks_msec() * 0.01) * 0.5 + 0.5) * 0.15
+		draw_rect(Rect2(0, 0, size.x, size.y), Color(1.0, 0.8, 0.2, fever_alpha))
 		
-	queue_redraw()
+	# Draw Falling Items
+	for it in _active_items:
+		var ix: float = it["x"]
+		var iy: float = it["y"]
+		draw_circle(Vector2(ix, iy), 8.0, it["color"])
+		draw_circle(Vector2(ix, iy), 6.0, Color(0.1, 0.1, 0.1, 0.85))
+		# Draw mini icon dot
+		draw_circle(Vector2(ix, iy), 3.0, it["color"])
+		
+	# Draw Player Shiba & Basket
+	var py: float = FLOOR_Y - 8.0
+	# Basket
+	draw_rect(Rect2(player_x - 12, py - 4, 24, 8), Color(0.72, 0.45, 0.20))
+	draw_rect(Rect2(player_x - 10, py - 2, 20, 4), Color(0.45, 0.25, 0.10))
+	# Shiba Head
+	draw_circle(Vector2(player_x, py + 3), 7.0, Color(0.96, 0.62, 0.04))
+	draw_circle(Vector2(player_x - 2, py + 2), 1.5, Color(0.1, 0.1, 0.1))
+	draw_circle(Vector2(player_x + 2, py + 2), 1.5, Color(0.1, 0.1, 0.1))
+	
+	# Draw Popups
+	var font: Font = ThemeDB.fallback_font
+	for pop in _popups:
+		var alpha: float = clampf(pop["life"] / 0.65, 0.0, 1.0)
+		var col: Color = pop["color"]
+		col.a = alpha
+		draw_string(font, Vector2(pop["x"] - 18, pop["y"]), pop["text"], HORIZONTAL_ALIGNMENT_CENTER, -1, 7, col)
+		
+	# Draw Particles
+	for pt in _particles:
+		var p_alpha: float = clampf(pt["life"] / pt["max_life"], 0.0, 1.0)
+		var p_col: Color = pt["color"]
+		p_col.a = p_alpha
+		draw_rect(Rect2(pt["pos"].x, pt["pos"].y, 2, 2), p_col)
 
 func _on_exit_pressed() -> void:
-	if AudioManager:
-		AudioManager.play_sfx("click")
+	if AudioManager: AudioManager.play_sfx("click")
 	game_closed.emit()
 	queue_free()
-
-# ==============================================================================
-# 🎨 CANVAS DRAWING
-# ==============================================================================
-func _draw() -> void:
-	# 1. Dark Backdrop
-	draw_rect(Rect2(0, 0, size.x, size.y), Color(0.06, 0.09, 0.16, 0.94))
-	
-	# 2. Floor Line
-	draw_line(Vector2(0, FLOOR_Y + 14.0), Vector2(size.x, FLOOR_Y + 14.0), Color(0.18, 0.24, 0.36), 2.0)
-	draw_line(Vector2(0, FLOOR_Y + 16.0), Vector2(size.x, FLOOR_Y + 16.0), Color(0.12, 0.16, 0.24), 1.0)
-	
-	# 3. Draw Falling Treats
-	var font: Font = ThemeDB.fallback_font
-	for item in _active_items:
-		var pos: Vector2 = Vector2(item["x"], item["y"])
-		# Item soft shadow
-		draw_circle(pos + Vector2(0, 4), 6.0, Color(0, 0, 0, 0.3))
-		# Draw item icon
-		draw_string(font, pos + Vector2(-6, 4), item["icon"], HORIZONTAL_ALIGNMENT_CENTER, -1, 11)
-		
-	# 4. Draw Shiba Player Basket / Catcher
-	var sx: float = player_x
-	var sy: float = FLOOR_Y
-	
-	# Shiba cozy shadow
-	draw_circle(Vector2(sx, sy + 12), 14.0, Color(0, 0, 0, 0.35))
-	
-	# Shiba body block (Honey gold #f59e0b)
-	draw_rect(Rect2(sx - 10, sy - 4, 20, 14), Color(0.96, 0.62, 0.04))
-	draw_rect(Rect2(sx - 8, sy - 14, 16, 11), Color(0.96, 0.62, 0.04)) # Head
-	
-	# Muzzle (Cream #fef3c7)
-	draw_rect(Rect2(sx - 5, sy - 7, 10, 5), Color(0.99, 0.95, 0.78))
-	draw_rect(Rect2(sx - 1, sy - 7, 2, 2), Color(0.1, 0.05, 0.0)) # Nose
-	
-	# Ears (Alert triangular)
-	draw_colored_polygon(PackedVector2Array([Vector2(sx - 8, sy - 14), Vector2(sx - 4, sy - 21), Vector2(sx - 1, sy - 14)]), Color(0.85, 0.47, 0.04))
-	draw_colored_polygon(PackedVector2Array([Vector2(sx + 1, sy - 14), Vector2(sx + 4, sy - 21), Vector2(sx + 8, sy - 14)]), Color(0.85, 0.47, 0.04))
-	
-	# Happy Catching Eyes (^ ^)
-	draw_string(font, Vector2(sx - 7, sy - 8), "^", HORIZONTAL_ALIGNMENT_CENTER, -1, 8, Color(0.1, 0.05, 0.0))
-	draw_string(font, Vector2(sx + 2, sy - 8), "^", HORIZONTAL_ALIGNMENT_CENTER, -1, 8, Color(0.1, 0.05, 0.0))
-	
-	# Catching Basket / Bowl (Carved Wood)
-	draw_rect(Rect2(sx - 14, sy - 16, 28, 6), Color(0.57, 0.25, 0.05)) # Bowl rim
-	draw_rect(Rect2(sx - 12, sy - 10, 24, 4), Color(0.45, 0.18, 0.03)) # Bowl base
-	
-	# 5. Draw Floating Popups
-	for p in _popups:
-		var p_col: Color = p["color"]
-		p_col.a = p["alpha"]
-		draw_string(font, Vector2(p["x"] - 10, p["y"]), p["text"], HORIZONTAL_ALIGNMENT_CENTER, -1, 9, p_col)

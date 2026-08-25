@@ -646,6 +646,77 @@ const GREENHOUSE_BEHAVIORS: Array[Dictionary] = [
 	}
 ]
 
+const KITCHEN_BEHAVIORS: Array[Dictionary] = [
+	# Common
+	{
+		"id": "kitchen_sniff_oven",
+		"rarity": "common",
+		"target": "min_x",
+		"primary": {
+			"anim": PetRenderer.AnimState.CHEF_SNIFF,
+			"duration": 3.5,
+			"thought": "Mmm... smells like warm cinnamon rolls! 🥐✨",
+			"particle": "heart"
+		},
+		"reaction": null
+	},
+	{
+		"id": "kitchen_watch_coffee",
+		"rarity": "common",
+		"target": "desk",
+		"primary": {
+			"anim": PetRenderer.AnimState.WINDOW_GAZE,
+			"duration": 3.0,
+			"thought": "Watching warm espresso steam curls rise ☕☁️",
+			"particle": "heart"
+		},
+		"reaction": null
+	},
+	{
+		"id": "kitchen_floor_nap",
+		"rarity": "common",
+		"target": "nap",
+		"primary": {
+			"anim": PetRenderer.AnimState.NAP,
+			"duration": 4.5,
+			"thought": "Warm terracotta tiles make the best napping spot! 🐾💤",
+			"particle": "zzz"
+		},
+		"reaction": null
+	},
+	# Uncommon
+	{
+		"id": "kitchen_pan_shimmer",
+		"rarity": "uncommon",
+		"target": "drink",
+		"primary": {
+			"anim": PetRenderer.AnimState.WINDOW_GAZE,
+			"duration": 2.8,
+			"thought": "Admiring the shiny hanging copper pans! 🍳✨",
+			"particle": "star"
+		},
+		"reaction": null
+	},
+	{
+		"id": "kitchen_pastry_crumb",
+		"rarity": "uncommon",
+		"target": "random_floor",
+		"primary": {
+			"anim": PetRenderer.AnimState.IDLE,
+			"duration": 2.0,
+			"thought": "Spotting a golden pastry crumb... 🧁",
+			"particle": null
+		},
+		"reaction": {
+			"anim": PetRenderer.AnimState.IDLE,
+			"duration": 2.2,
+			"thought": "Nom nom nom! Delicious treat! 😋💖",
+			"particle": "heart",
+			"tween": "happy_hop"
+		}
+	}
+]
+
 const STYX_BEHAVIORS: Array[Dictionary] = [
 	# Common
 	{
@@ -990,7 +1061,22 @@ func _try_room_specific_activity(room: String, profile: Dictionary) -> bool:
 				walk_to(desk_x, State.STUDY, floor_y)
 				return true
 				
-		"room_kitchen": # Banks of the Styx
+		"room_kitchen": # Chef's Kitchen
+			var roll: float = randf()
+			if roll < 0.35:
+				if thought_bubble and visible: thought_bubble.show_thought("Sniffing fresh baked croissants! 🥐✨", 3.5)
+				walk_to(min_x + 20.0, State.CHEF_SNIFF, floor_y)
+				return true
+			elif roll < 0.70:
+				if thought_bubble and visible: thought_bubble.show_thought("Watching espresso steam at the coffee bar ☕✨", 3.5)
+				walk_to(desk_x, State.WINDOW_GAZE, floor_y)
+				return true
+			elif roll < 0.90:
+				if thought_bubble and visible: thought_bubble.show_thought("Cozy nap on the bakery mat 💤", 3.5)
+				walk_to(nap_x, State.NAP, floor_y)
+				return true
+				
+		"room_styx": # Banks of the Styx
 			var roll: float = randf()
 			if roll < 0.35:
 				if thought_bubble and visible: thought_bubble.show_thought("Riding Charon's ferry... 🛶👻", 3.5)
@@ -1706,6 +1792,8 @@ func _try_start_weighted_idle_interaction() -> bool:
 		"room_greenhouse":
 			pool.append_array(GREENHOUSE_BEHAVIORS)
 		"room_kitchen":
+			pool.append_array(KITCHEN_BEHAVIORS)
+		"room_styx":
 			pool.append_array(STYX_BEHAVIORS)
 		
 	if pool.is_empty():

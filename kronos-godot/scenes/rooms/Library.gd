@@ -48,7 +48,7 @@ const RECT_GLOBE: Rect2 = Rect2(350, 70, 50, 50)
 func _ready() -> void:
 	super._ready()
 	room_id = "room_library"
-	room_name = "Tower of Urania"
+	room_name = "Grand Library"
 	room_width = 720.0
 	min_x = 80.0
 	max_x = 650.0

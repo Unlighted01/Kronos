@@ -63,10 +63,45 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 8
 text = "+20% COINS"
 
+[node name="TabBarScroll" type="ScrollContainer" parent="VBox"]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+horizontal_scroll_mode = 1
+vertical_scroll_mode = 0
+
+[node name="TabHBox" type="HBoxContainer" parent="VBox/TabBarScroll"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="TabShopBtn" type="Button" parent="VBox/TabBarScroll/TabHBox"]
+custom_minimum_size = Vector2(50, 20)
+layout_mode = 2
+theme_override_font_sizes/font_size = 7
+text = "🛒 SHOP"
+
+[node name="TabTasksBtn" type="Button" parent="VBox/TabBarScroll/TabHBox"]
+custom_minimum_size = Vector2(52, 20)
+layout_mode = 2
+theme_override_font_sizes/font_size = 7
+text = "📝 TASKS"
+
+[node name="TabQuestsBtn" type="Button" parent="VBox/TabBarScroll/TabHBox"]
+custom_minimum_size = Vector2(56, 20)
+layout_mode = 2
+theme_override_font_sizes/font_size = 7
+text = "📜 QUESTS"
+
+[node name="TabTrophiesBtn" type="Button" parent="VBox/TabBarScroll/TabHBox"]
+custom_minimum_size = Vector2(64, 20)
+layout_mode = 2
+theme_override_font_sizes/font_size = 7
+text = "🏆 TROPHIES"
+
 [node name="TabContainer" type="TabContainer" parent="VBox"]
 layout_mode = 2
 size_flags_vertical = 3
 current_tab = 0
+tabs_visible = false
 
 [node name="SHOP" type="VBoxContainer" parent="VBox/TabContainer"]
 layout_mode = 2
@@ -168,6 +203,38 @@ horizontal_scroll_mode = 0
 metadata/_tab_index = 2
 
 [node name="QuestsVBox" type="VBoxContainer" parent="VBox/TabContainer/QUESTS"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 4
+
+[node name="TROPHIES" type="VBoxContainer" parent="VBox/TabContainer"]
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 4
+metadata/_tab_index = 3
+
+[node name="TrophyHeader" type="HBoxContainer" parent="VBox/TabContainer/TROPHIES"]
+custom_minimum_size = Vector2(0, 18)
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="TrophyProgressLabel" type="Label" parent="VBox/TabContainer/TROPHIES/TrophyHeader"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.960784, 0.784314, 0.258824, 1)
+theme_override_font_sizes/font_size = 7
+text = "🏆 Trophies: 0 / 16 (0%)"
+
+[node name="TrophiesScroll" type="ScrollContainer" parent="VBox/TabContainer/TROPHIES"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="TrophiesVBox" type="VBoxContainer" parent="VBox/TabContainer/TROPHIES/TrophiesScroll"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3

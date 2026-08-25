@@ -1,0 +1,68 @@
+[gd_scene load_steps=3 format=3 uid="uid://c6j2m4v8s0a1q"]
+
+[ext_resource type="Theme" uid="uid://b5g2j8k1m3n4p" path="res://themes/pixel_theme.tres" id="1_theme"]
+[ext_resource type="Script" path="res://scenes/main/AchievementPopup.gd" id="2_popup"]
+
+[node name="AchievementPopup" type="Control"]
+layout_mode = 3
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 54.0
+grow_horizontal = 2
+theme = ExtResource("1_theme")
+script = ExtResource("2_popup")
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="PanelContainer" parent="CenterContainer"]
+custom_minimum_size = Vector2(210, 44)
+layout_mode = 2
+
+[node name="Margin" type="MarginContainer" parent="CenterContainer/Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 6
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 6
+theme_override_constants/margin_bottom = 4
+
+[node name="HBox" type="HBoxContainer" parent="CenterContainer/Panel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="IconLabel" type="Label" parent="CenterContainer/Panel/Margin/HBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "🏆"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/Panel/Margin/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 1
+alignment = 1
+
+[node name="TitleLabel" type="Label" parent="CenterContainer/Panel/Margin/HBox/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.960784, 0.784314, 0.258824, 1)
+theme_override_font_sizes/font_size = 7
+text = "🏆 UNLOCKED: First Step"
+
+[node name="DescLabel" type="Label" parent="CenterContainer/Panel/Margin/HBox/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.909804, 0.92549, 0.960784, 1)
+theme_override_font_sizes/font_size = 6
+text = "Complete your 1st focus session."
+
+[node name="RewardLabel" type="Label" parent="CenterContainer/Panel/Margin/HBox/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.313726, 0.823529, 0.909804, 1)
+theme_override_font_sizes/font_size = 6
+text = "+25 🪙  +50 XP"

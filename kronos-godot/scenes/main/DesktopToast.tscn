@@ -1,0 +1,37 @@
+[gd_scene load_steps=2 format=3 uid="uid://df7x8k1m3n4toast"]
+[ext_resource type="Script" path="res://scenes/main/DesktopToast.gd" id="1_toast"]
+[node name="DesktopToast" type="Window"]
+transparent_bg = true
+unfocusable = true
+always_on_top = true
+borderless = true
+transparent = true
+size = Vector2i(280, 80)
+script = ExtResource("1_toast")
+
+[node name="Card" type="PanelContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="Card"]
+layout_mode = 2
+theme_override_constants/separation = 4
+alignment = 1
+
+[node name="Title" type="Label" parent="Card/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 9
+text = "Notification"
+horizontal_alignment = 1
+
+[node name="Body" type="Label" parent="Card/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.75, 0.8, 1)
+theme_override_font_sizes/font_size = 8
+text = "This is a notification body."
+horizontal_alignment = 1
+autowrap_mode = 2

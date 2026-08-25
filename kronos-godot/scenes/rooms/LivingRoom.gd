@@ -81,7 +81,7 @@ const RECT_AMPHORA: Rect2 = Rect2(410, 70, 30, 40)
 func _ready() -> void:
 	super._ready()
 	room_id = "room_livingroom"
-	room_name = "Hearth of Hestia"
+	room_name = "Cozy Living Room"
 	room_width = 720.0
 	min_x = 120.0
 	max_x = 680.0
