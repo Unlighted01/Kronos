@@ -203,42 +203,6 @@ func _connect_ui_signals() -> void:
 	if deck_cancel_edit_btn:
 		deck_cancel_edit_btn.pressed.connect(_cancel_card_edit)
 
-	# Dev / Testing Cheat Buttons
-	if skip_sprint_btn:
-		skip_sprint_btn.pressed.connect(func():
-			if TimerEngine:
-				TimerEngine.fast_forward_finish()
-		)
-	if add_coins_dev_btn:
-		add_coins_dev_btn.pressed.connect(func():
-			if GameState:
-				GameState.dev_add_coins(500)
-		)
-	if add_friendship_dev_btn:
-		add_friendship_dev_btn.pressed.connect(func():
-			if GameState:
-				GameState.dev_add_friendship(50)
-		)
-	if simulate_drills_dev_btn:
-		simulate_drills_dev_btn.pressed.connect(func():
-			if GameState:
-				GameState.dev_simulate_drills(10)
-		)
-	if simulate_pets_dev_btn:
-		simulate_pets_dev_btn.pressed.connect(func():
-			if GameState:
-				GameState.dev_simulate_pets(10)
-		)
-	if fill_vitals_dev_btn:
-		fill_vitals_dev_btn.pressed.connect(func():
-			if GameState:
-				GameState.dev_fill_vitals()
-		)
-	if reset_save_dev_btn:
-		reset_save_dev_btn.pressed.connect(func():
-			if DatabaseManager:
-				DatabaseManager.reset_all_data()
-		)
 
 func _connect_event_bus() -> void:
 	EventBus.exp_changed.connect(_on_exp_changed)
