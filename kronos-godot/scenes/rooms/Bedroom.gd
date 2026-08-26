@@ -45,6 +45,8 @@ var _dreams: Array[Dictionary] = []
 # Interactables
 var is_waterfall_flowing: bool = true
 var _chime_swing: float = 0.0
+var _hourglass_magic_time: float = 0.0
+var _lethe_ripple_time: float = 0.0
 var _chime_vel: float = 0.0
 
 # The Starlight Weaver (Moth)
@@ -150,10 +152,15 @@ func _process(delta: float) -> void:
 				d["y"] = randf_range(130, 140)
 				d["x"] = randf_range(0, 720)
 			
+	if _hourglass_magic_time > 0.0:
+		_hourglass_magic_time -= delta
+	if _lethe_ripple_time > 0.0:
+		_lethe_ripple_time -= delta
+		
 	# Update Starlight Weaver (Moth)
 	if moth_active:
-		moth_x += 40.0 * delta
-		moth_y = 30.0 + sin(_anim_clock * 2.0) * 15.0
+		moth_x += (40.0 + sin(_anim_clock * 1.5) * 20.0) * delta
+		moth_y = 40.0 + sin(_anim_clock * 2.0) * 25.0 + cos(_anim_clock * 4.3) * 15.0
 		# Drop dream dust
 		if randf() < 0.05 and _dreams.size() < 40:
 			_spawn_dream_orb(moth_x, moth_y)
@@ -392,11 +399,24 @@ func _draw_lethe_waterfall(fx: float, fy: float) -> void:
 			var ly = fall_y_start + fmod(_anim_clock * speed + i * 37.0, fall_height)
 			draw_line(Vector2(lx, ly), Vector2(lx, ly + 25), COL_LETHE_FOAM, 2.0)
 			
+		# Water Ripples & Splash Enhancements
+		if _lethe_ripple_time > 0.0:
+			for r in range(4):
+				var r_time = _anim_clock * 3.0 + r * 1.5
+				var r_width = 15.0 + fmod(r_time * 20.0, 50.0)
+				var r_alpha = minf(1.0, _lethe_ripple_time) * (1.0 - (fmod(r_time * 20.0, 50.0) / 50.0))
+				var r_col = Color(COL_LETHE_FOAM.r, COL_LETHE_FOAM.g, COL_LETHE_FOAM.b, r_alpha)
+				draw_arc(Vector2(fx + 20, fall_y_start), r_width, 0, PI*2, 16, r_col, 2.0)
+				
 		# Animated Foam Splash
-		for i in range(5):
-			var splash_x = fx + 5 + i * 6
+		for i in range(12):
+			var splash_x = fx + 5 + i * 3
 			var splash_y = fall_y_start - 2 + sin(_anim_clock * 10.0 + i) * 3.0
-			draw_line(Vector2(splash_x, splash_y), Vector2(splash_x, splash_y - 8), COL_LETHE_FOAM, 1.5)
+			draw_line(Vector2(splash_x, splash_y), Vector2(splash_x, splash_y - 8), COL_LETHE_FOAM, 1.0)
+			if i % 3 == 0:
+				var sp_y2 = fall_y_start - 10 - fmod(_anim_clock * 40.0 + i * 15.0, 20.0)
+				var sp_a = 1.0 - (fmod(_anim_clock * 40.0 + i * 15.0, 20.0) / 20.0)
+				draw_circle(Vector2(splash_x, sp_y2), 1.5, Color(COL_LETHE_FOAM.r, COL_LETHE_FOAM.g, COL_LETHE_FOAM.b, sp_a))
 			draw_arc(Vector2(splash_x + 3, splash_y + 4), 6.0, PI, PI*2, 8, COL_LETHE_FOAM, 2.0)
 		
 		# Magical glow radiating from the fall
@@ -482,6 +502,14 @@ func _draw_hourglass_altar(ax: float, ay: float) -> void:
 	draw_circle(Vector2(hx, hy - 10), 8.0, COL_SAND)
 	draw_line(Vector2(hx, hy), Vector2(hx, hy + 10), COL_SAND, 2.0)
 	draw_circle(Vector2(hx, hy + 14), 6.0, COL_SAND)
+	
+	if _hourglass_magic_time > 0.0:
+		for i in range(12):
+			var r_time = _anim_clock * 4.0 + i * 2.0
+			var p_y = hy + 10 - fmod(r_time * 15.0, 40.0)
+			var p_x = hx + sin(r_time + i) * 15.0
+			var p_alpha = minf(1.0, _hourglass_magic_time) * (1.0 - fmod(r_time * 15.0, 40.0) / 40.0)
+			draw_circle(Vector2(p_x, p_y), 1.5, Color(COL_SAND.r, COL_SAND.g, COL_SAND.b, p_alpha))
 
 # ------------------------------------------------------------------------------
 # 6. INTERACTIVE CHIMES

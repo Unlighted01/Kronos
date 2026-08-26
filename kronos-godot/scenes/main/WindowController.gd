@@ -418,15 +418,15 @@ func _update_room_and_pet_hud() -> void:
 func _get_room_display_name(room_id: String) -> String:
 	match room_id:
 		"room_bedroom":
-			return "BEDROOM"
+			return "TEMPLE OF MORPHEUS"
 		"room_livingroom":
-			return "LIVING ROOM"
+			return "HEARTH OF HESTIA"
 		"room_library":
-			return "ATTIC LIBRARY"
+			return "TOWER OF URANIA"
 		"room_kitchen":
-			return "KITCHEN"
+			return "BANKS OF THE STYX"
 		"room_greenhouse":
-			return "GREENHOUSE"
+			return "DOMAIN ELYSIAN"
 		_:
 			return room_id.replace("room_", "").to_upper()
 

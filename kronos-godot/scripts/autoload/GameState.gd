@@ -257,7 +257,7 @@ const ITEM_DEFINITIONS: Dictionary = {
 		"icon": "📻",
 		"category": "decor",
 		"target_room": "room_livingroom",
-		"target_room_name": "Cozy Cafe",
+		"target_room_name": "Hearth of Hestia",
 		"price": 450,
 		"description": "Old-school cassette beatbox on the lounge credenza."
 	},
@@ -267,7 +267,7 @@ const ITEM_DEFINITIONS: Dictionary = {
 		"icon": "🎶",
 		"category": "decor",
 		"target_room": "room_livingroom",
-		"target_room_name": "Cozy Cafe",
+		"target_room_name": "Hearth of Hestia",
 		"price": 350,
 		"description": "Color-coded vintage vinyl albums stacked beside turntable."
 	},
@@ -278,7 +278,7 @@ const ITEM_DEFINITIONS: Dictionary = {
 		"icon": "🎮",
 		"category": "decor",
 		"target_room": "room_library",
-		"target_room_name": "Cosmic Observatory",
+		"target_room_name": "Tower of Urania",
 		"price": 1200,
 		"description": "Vintage tabletop pixel arcade cabinet with glowing demo screen."
 	},
@@ -288,7 +288,7 @@ const ITEM_DEFINITIONS: Dictionary = {
 		"icon": "🔭",
 		"category": "decor",
 		"target_room": "room_library",
-		"target_room_name": "Cosmic Observatory",
+		"target_room_name": "Tower of Urania",
 		"price": 500,
 		"description": "Antique brass stargazing telescope pointed out the rafter window."
 	},
@@ -299,7 +299,7 @@ const ITEM_DEFINITIONS: Dictionary = {
 		"icon": "🧂",
 		"category": "decor",
 		"target_room": "room_kitchen",
-		"target_room_name": "Chef's Kitchen",
+		"target_room_name": "Banks of the Styx",
 		"price": 380,
 		"description": "Handcrafted wooden spice rack with glass herb jars."
 	},
@@ -309,7 +309,7 @@ const ITEM_DEFINITIONS: Dictionary = {
 		"icon": "🧁",
 		"category": "decor",
 		"target_room": "room_kitchen",
-		"target_room_name": "Chef's Kitchen",
+		"target_room_name": "Banks of the Styx",
 		"price": 420,
 		"description": "Elegant glass display cloche with blueberry muffins."
 	},
@@ -320,7 +320,7 @@ const ITEM_DEFINITIONS: Dictionary = {
 		"icon": "🌿",
 		"category": "decor",
 		"target_room": "room_greenhouse",
-		"target_room_name": "Zen Dojo",
+		"target_room_name": "Domain Elysian",
 		"price": 450,
 		"description": "Geometric brass & crystal terrarium housing rare moss."
 	},
@@ -330,23 +330,23 @@ const ITEM_DEFINITIONS: Dictionary = {
 		"icon": "💡",
 		"category": "decor",
 		"target_room": "room_greenhouse",
-		"target_room_name": "Zen Dojo",
+		"target_room_name": "Domain Elysian",
 		"price": 360,
 		"description": "Hanging blown-glass lantern casting fairy light motes."
 	},
 	# Rooms / Real Estate
 	"room_bedroom": {
 		"id": "room_bedroom",
-		"name": "Study Bedroom",
+		"name": "Temple of Morpheus",
 		"icon": "🛏️",
 		"category": "room",
 		"price": 0,
 		"unlock_level": 1,
-		"description": "Cozy study bedroom with loft bay window, desk workstation, and fairy lights."
+		"description": "A tranquil domain of dreams, featuring the Font of Lethe and the Starlight Weaver."
 	},
 	"room_livingroom": {
 		"id": "room_livingroom",
-		"name": "Cozy Cafe",
+		"name": "Hearth of Hestia",
 		"icon": "🛋️",
 		"category": "room",
 		"price": 250,
@@ -355,7 +355,7 @@ const ITEM_DEFINITIONS: Dictionary = {
 	},
 	"room_library": {
 		"id": "room_library",
-		"name": "Cosmic Observatory",
+		"name": "Tower of Urania",
 		"icon": "📚",
 		"category": "room",
 		"price": 450,
@@ -364,7 +364,7 @@ const ITEM_DEFINITIONS: Dictionary = {
 	},
 	"room_kitchen": {
 		"id": "room_kitchen",
-		"name": "Chef's Kitchen",
+		"name": "Banks of the Styx",
 		"icon": "🍳",
 		"category": "room",
 		"price": 700,
@@ -373,7 +373,7 @@ const ITEM_DEFINITIONS: Dictionary = {
 	},
 	"room_greenhouse": {
 		"id": "room_greenhouse",
-		"name": "Zen Dojo",
+		"name": "Domain Elysian",
 		"icon": "🌿",
 		"category": "room",
 		"price": 950,

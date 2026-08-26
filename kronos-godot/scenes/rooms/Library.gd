@@ -35,6 +35,7 @@ const COL_CANDLE_FLAME: Color = Color(0.95, 0.8, 0.2, 1.0)
 var _anim_clock: float = 0.0
 var _stars: Array[Dictionary] = []
 var _shooting_stars: Array[Dictionary] = []
+var is_constellation_active: bool = false
 var _globe_spin_speed: float = 1.0
 var _globe_angle: float = 0.0
 
@@ -89,6 +90,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		var pos: Vector2 = mb.position + Vector2(cam_x, 0)
 		
 		if RECT_TELESCOPE.has_point(pos):
+			is_constellation_active = not is_constellation_active
 			# Shoot a shooting star!
 			_shooting_stars.append({
 				"x": randf_range(400, 700),
@@ -140,12 +142,19 @@ func _draw_cosmos() -> void:
 		draw_circle(Vector2(nx, 40 + sin(i)*20), 80.0, COL_NEBULA_PURPLE)
 		draw_circle(Vector2(nx + 40, 60 + cos(i)*20), 60.0, COL_NEBULA_TEAL)
 		
-	# Stars
+	# Stars (Rotating)
+	var rot_angle = _anim_clock * 0.05
 	for s in _stars:
-		var sx = fmod(s["x"] - p_offset, 720.0)
+		var dx = s["x"] - 360.0
+		var dy = s["y"] - 100.0
+		var r_dx = dx * cos(rot_angle) - dy * sin(rot_angle)
+		var r_dy = dx * sin(rot_angle) + dy * cos(rot_angle)
+		var sx = fmod(360.0 + r_dx - p_offset, 720.0)
 		if sx < 0: sx += 720.0
+		var sy = 100.0 + r_dy
+		if sy < 0 or sy > 100: continue
 		var flicker = sin(_anim_clock * 0.5 + s["phase"]) * 0.5 + 0.5 # Slower flicker
-		draw_rect(Rect2(sx, s["y"], s["size"], s["size"]), Color(1.0, 0.95, 0.9, 0.2 + 0.8 * flicker))
+		draw_rect(Rect2(sx, sy, s["size"], s["size"]), Color(1.0, 0.95, 0.9, 0.2 + 0.8 * flicker))
 		
 	# Shooting Stars
 	for s in _shooting_stars:
@@ -320,6 +329,15 @@ func _draw_clutter() -> void:
 	_draw_scroll(150, 105, 0.2)
 	_draw_scroll(170, 108, -0.1)
 	_draw_scroll(380, 112, 0.5)
+	
+	# Drifting Dust Motes
+	for i in range(30):
+		var mx = fmod(i * 147.0 + _anim_clock * 15.0 + sin(i) * 50.0, 720.0)
+		var my = fmod(i * 91.0 + _anim_clock * 5.0 + cos(i) * 30.0, 140.0)
+		if my > 100:
+			draw_rect(Rect2(mx, my, 1.5, 1.5), Color(1.0, 0.9, 0.6, 0.2))
+		else:
+			draw_rect(Rect2(mx, my, 1.5, 1.5), Color(0.8, 0.9, 1.0, 0.2))
 	
 	# Reading Stool
 	draw_rect(Rect2(280, 90, 20, 4), COL_WOOD_LIGHT)

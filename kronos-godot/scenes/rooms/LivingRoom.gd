@@ -171,14 +171,26 @@ func _unhandled_input(event: InputEvent) -> void:
 		var pos: Vector2 = mb.position + Vector2(cam_x, 0)
 		
 		if RECT_HEARTH.has_point(pos):
-			is_hearth_lit = not is_hearth_lit
-			if EventBus: EventBus.object_state_changed.emit("hearth_toggled", is_hearth_lit)
+			if is_hearth_lit:
+				# If lit, cycle color
+				target_fire_idx = (target_fire_idx + 1) % FIRE_PALETTES.size()
+				# Burst of sparks
+				for i in range(15):
+					_sparks.append({
+						"x": ember_x, "y": ember_y,
+						"vx": randf_range(-40.0, 40.0), "vy": randf_range(-60.0, -10.0),
+						"life": randf_range(1.0, 2.0)
+					})
+			else:
+				# If unlit, toggle lit
+				is_hearth_lit = true
+				if EventBus: EventBus.object_state_changed.emit("hearth_toggled", is_hearth_lit)
 			get_viewport().set_input_as_handled()
 			return
 			
-		if RECT_DESK.has_point(pos) and is_hearth_lit:
-			target_fire_idx = (target_fire_idx + 1) % FIRE_PALETTES.size()
-			# Burst of sparks
+		# Extinguish with a specific rect? Or just leave it cycling and use RECT_DESK as the toggle fallback if it's there.
+		if Rect2(20, 20, 20, 20).has_point(pos) and false: # Disable old RECT_DESK logic
+			pass
 			for i in range(15):
 				_sparks.append({
 					"x": ember_x, "y": ember_y,
@@ -228,6 +240,19 @@ func _draw_parallax_background() -> void:
 		draw_rect(Rect2(0, y, 720, 4), COL_SKY_TOP.lerp(COL_SKY_BOT, lerp_val))
 		
 	var cam_x: float = get_viewport().get_camera_2d().position.x - 120.0 if get_viewport().get_camera_2d() else 0.0
+	
+	# God Rays from setting sun
+	var sun_cx = 360.0 - cam_x * 0.05
+	var sun_cy = 90.0
+	for r in range(6):
+		var angle = (r * PI / 5.0) + _anim_clock * 0.05
+		var r_alpha = 0.15 + sin(_anim_clock + r) * 0.05
+		var pts = PackedVector2Array([
+			Vector2(sun_cx, sun_cy),
+			Vector2(sun_cx + 800 * cos(angle - 0.15), sun_cy - 800 * sin(angle - 0.15)),
+			Vector2(sun_cx + 800 * cos(angle + 0.15), sun_cy - 800 * sin(angle + 0.15))
+		])
+		draw_colored_polygon(pts, Color(1.0, 0.9, 0.7, r_alpha))
 	
 	# Distant Mountains (Heightmap via vertical slices)
 	var m_offset_far = cam_x * 0.1
@@ -300,7 +325,9 @@ func _draw_embers() -> void:
 	if not is_hearth_lit: return
 	for s in _sparks:
 		var alpha = clampf(s.get("life", 1.0), 0.0, 1.0)
-		draw_rect(Rect2(s["x"], s["y"], 1.5, 1.5), Color(cur_fire_core.r, cur_fire_core.g, cur_fire_core.b, alpha))
+		# Draw glowing ember core and outer glow
+		draw_circle(Vector2(s["x"], s["y"]), 2.0, Color(cur_fire_mid.r, cur_fire_mid.g, cur_fire_mid.b, alpha * 0.4))
+		draw_circle(Vector2(s["x"], s["y"]), 1.0, Color(cur_fire_core.r, cur_fire_core.g, cur_fire_core.b, alpha))
 
 func _draw_lounging_couch(cx: float, cy: float) -> void:
 	var w = 80.0

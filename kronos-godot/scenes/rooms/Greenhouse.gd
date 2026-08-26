@@ -36,6 +36,9 @@ const COL_SAIL: Color = Color(0.70, 0.65, 0.55, 1.0)
 var _anim_clock: float = 0.0
 var _clouds: Array[Dictionary] = []
 var _crows: Array[Dictionary] = []
+var _falling_petals: Array[Dictionary] = []
+var _chime_swing: float = 0.0
+var _chime_vel: float = 0.0
 var _crops: Array[Dictionary] = []
 var _windmill_angle: float = 0.0
 
@@ -97,6 +100,27 @@ func _process(delta: float) -> void:
 	_anim_clock += delta
 	_windmill_angle += 1.0 * delta
 	
+	# Chime Physics
+	_chime_vel -= _chime_swing * 15.0 * delta
+	_chime_vel *= 0.95
+	_chime_swing += _chime_vel * delta
+	
+	# Falling Petals
+	if _falling_petals.size() < 40:
+		if randf() < 0.2:
+			_falling_petals.append({
+				"x": randf_range(0, 1000), "y": -10,
+				"speed": randf_range(20.0, 40.0), "sway": randf_range(1.0, 3.0),
+				"phase": randf_range(0, PI*2), "color": Color(1.0, 0.8, 0.4) if randf() < 0.5 else Color(1.0, 0.6, 0.7)
+			})
+			
+	for i in range(_falling_petals.size() - 1, -1, -1):
+		var p = _falling_petals[i]
+		p["y"] += p["speed"] * delta
+		p["x"] += sin(_anim_clock * p["sway"] + p["phase"]) * 30.0 * delta
+		if p["y"] > 160:
+			_falling_petals.remove_at(i)
+			
 	# Update Crows
 	for i in range(_crows.size() - 1, -1, -1):
 		var c = _crows[i]
@@ -124,6 +148,13 @@ func _unhandled_input(event: InputEvent) -> void:
 		var cam_x: float = get_viewport().get_camera_2d().position.x - 120.0 if get_viewport().get_camera_2d() else 0.0
 		var pos: Vector2 = mb.position + Vector2(cam_x, 0)
 		
+		# Click Chimes
+		if Rect2(85, 45, 20, 30).has_point(pos):
+			_chime_vel += 4.0
+			if EventBus: EventBus.object_state_changed.emit("chimes_struck", true)
+			get_viewport().set_input_as_handled()
+			return
+			
 		# Click Scarecrow to scare away crows!
 		if RECT_SCARECROW.has_point(pos):
 			for i in range(3):
@@ -209,6 +240,14 @@ func _draw_background_hills_and_river() -> void:
 		var rx = fmod(i - r_offset + _anim_clock * 8.0, 720.0)
 		if rx < 0: rx += 720.0
 		draw_line(Vector2(rx, 78), Vector2(rx + 10, 78), COL_RIVER.lightened(0.2), 1.0)
+	
+	# Water Caustics
+	for i in range(12):
+		var cx = fmod(i * 60 - r_offset * 1.5 + _anim_clock * 12.0, 720.0)
+		if cx < 0: cx += 720.0
+		var c_alpha = 0.3 + sin(_anim_clock * 3.0 + i) * 0.2
+		draw_line(Vector2(cx, 80), Vector2(cx + 15, 80), Color(0.8, 1.0, 0.9, c_alpha), 1.0)
+		draw_line(Vector2(cx + 8, 82), Vector2(cx + 25, 82), Color(0.8, 1.0, 0.9, c_alpha), 1.0)
 
 	var h_offset_near = cam_x * 0.18
 	for mx in range(0, 720, 4):

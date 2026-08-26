@@ -138,9 +138,25 @@ func _draw() -> void:
 	_draw_hanging_chains()
 	_draw_prison_bars()
 	
-	# 5. Splash Effects
+	# 5. Splash Effects (Spectral Hand / Ripple)
 	for s in _splashes:
-		draw_arc(Vector2(s["x"], s["y"]), s["r"], 0, PI*2, 16, Color(COL_LANTERN_CORE.r, COL_LANTERN_CORE.g, COL_LANTERN_CORE.b, s["life"]), 2.0)
+		var alpha = maxf(0.0, s["life"])
+		var col = Color(COL_LANTERN_CORE.r, COL_LANTERN_CORE.g, COL_LANTERN_CORE.b, alpha)
+		# Expanding spectral ripple
+		draw_arc(Vector2(s["x"], s["y"]), s["r"], 0, PI*2, 16, col, 2.0)
+		draw_arc(Vector2(s["x"], s["y"]), s["r"] * 0.5, 0, PI*2, 16, Color(col.r, col.g, col.b, alpha * 0.5), 1.0)
+		# Ghostly spectral hand reaching up
+		var hand_y = s["y"] + 15 - s["r"] * 0.5
+		if hand_y > s["y"] - 10:
+			var pts = PackedVector2Array([
+				Vector2(s["x"] - 5, hand_y),
+				Vector2(s["x"] - 8, hand_y - 10),
+				Vector2(s["x"] - 2, hand_y - 15),
+				Vector2(s["x"] + 2, hand_y - 12),
+				Vector2(s["x"] + 6, hand_y - 8),
+				Vector2(s["x"] + 5, hand_y)
+			])
+			draw_colored_polygon(pts, Color(COL_LANTERN_CORE.r, COL_LANTERN_CORE.g, COL_LANTERN_CORE.b, alpha * 0.8))
 
 # ------------------------------------------------------------------------------
 # 2. RIVER AND FOG
@@ -161,15 +177,16 @@ func _draw_river_and_fog() -> void:
 		draw_line(Vector2(rx, 105), Vector2(rx + rw, 105), COL_RIVER.lightened(0.1), 1.0)
 		draw_line(Vector2(rx + 20, 115), Vector2(rx + 20 + rw, 115), COL_RIVER.lightened(0.1), 1.0)
 		
-	# Fog Banks (Volumetric Mist)
-	for f in _fog_banks:
+	# Fog Banks (Volumetric Mist with Sine-Wave Displacement)
+	for i in range(_fog_banks.size()):
+		var f = _fog_banks[i]
 		var fx = f["x"] - (cam_x * 0.15)
 		if fx + f["rx"] > 0 and fx - f["rx"] < 720:
-			# Stretched ellipses to simulate rolling mist
-			var rect = Rect2(fx - f["rx"], f["y"] - f["ry"], f["rx"] * 2.0, f["ry"] * 2.0)
-			# Fill an oval manually or use circle stretches. Since Godot 4 draw_circle doesn't scale,
-			# we can simulate it with a very thick rounded line or custom transform.
-			draw_set_transform(Vector2(fx, f["y"]), 0.0, Vector2(1.0, f["ry"]/f["rx"]))
+			# Dynamic sine displacement for rolling effect
+			var wave_offset = sin(_anim_clock * 1.5 + i) * 15.0
+			var scale_y = (f["ry"] + sin(_anim_clock * 2.0 + i*0.5) * 5.0) / f["rx"]
+			
+			draw_set_transform(Vector2(fx + wave_offset, f["y"]), 0.0, Vector2(1.0, scale_y))
 			draw_circle(Vector2.ZERO, f["rx"], COL_FOG)
 			draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
@@ -213,7 +230,8 @@ func _draw_charon_skiff(cx: float, cy: float) -> void:
 	
 	# Eerie Glowing Lantern hanging from the prow tip
 	var prow_tip = Vector2(80, -45)
-	var lantern_pos = prow_tip + Vector2(10, 15) # Dangles down and right
+	var swing = sin(_anim_clock * 2.5) * 8.0 # Swinging procedurally
+	var lantern_pos = prow_tip + Vector2(10 + swing, 15 + abs(swing) * 0.2) # Dangles down and right, with swing arcing slightly up
 	
 	# Lantern Chain
 	draw_line(prow_tip, lantern_pos, COL_IRON, 1.0)
