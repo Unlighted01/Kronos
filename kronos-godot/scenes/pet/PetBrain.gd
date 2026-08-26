@@ -108,8 +108,8 @@ func setup_pet(data: Dictionary) -> void:
 		thought_bubble.species = species
 	if not cosmetic_layer:
 		cosmetic_layer = get_node_or_null("CosmeticLayer")
-	if cosmetic_layer and cosmetic_layer.has_method("_sync_from_game_state"):
-		cosmetic_layer._sync_from_game_state()
+	if cosmetic_layer and cosmetic_layer.has_method("sync_from_data"):
+		cosmetic_layer.sync_from_data(pet_index, data)
 	# Re-evaluate visibility now that assigned_room is correctly set
 	_update_visibility_from_room_state()
 

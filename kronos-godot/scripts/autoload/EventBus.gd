@@ -98,11 +98,11 @@ signal item_removed(item_id: String, quantity: int)
 ## Emitted when inventory contents change
 signal inventory_changed(items: Array[Dictionary])
 
-## Emitted when a cosmetic accessory is equipped
-signal cosmetic_equipped(slot: String, cosmetic_id: String)
+## Emitted when a cosmetic item is equipped/unequipped
+signal cosmetic_equipped(pet_index: int, slot: String, cosmetic_id: String)
 
 ## Emitted when a cosmetic accessory is unequipped
-signal cosmetic_unequipped(slot: String)
+signal cosmetic_unequipped(pet_index: int, slot: String)
 
 ## Emitted when a room decoration is placed or stowed
 signal decor_placed(item_id: String, room_id: String, is_placed: bool)
@@ -133,6 +133,8 @@ signal max_pets_changed(new_max: int)
 
 ## Emitted when the household active pets list changes
 signal pet_list_changed(active_pets: Array)
+## Emitted when a pet is selected from the active list
+signal active_pet_selected(index: int, pet_data: Dictionary)
 
 ## Emitted when a room's light switch is toggled
 signal room_light_toggled(room_id: String, is_on: bool)

@@ -18,6 +18,10 @@ class_name RightPanel
 @onready var tab_deck_btn: Button = $VBox/TabBarScroll/TabHBox/TabDeckBtn
 @onready var tab_config_btn: Button = $VBox/TabBarScroll/TabHBox/TabConfigBtn
 
+@onready var pet_prev_btn: Button = $VBox/PetSelectorHBox/PetPrevBtn
+@onready var pet_next_btn: Button = $VBox/PetSelectorHBox/PetNextBtn
+@onready var pet_name_lbl: Label = $VBox/PetSelectorHBox/PetNameLbl
+
 
 # Vitals Tab References
 @onready var vitals_lvl_badge: Label = $VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox/HeaderCard/HBox/LevelBadge
@@ -109,6 +113,11 @@ var _editing_card_id: String = ""
 # ⚙️ LIFECYCLE
 # ==============================================================================
 func _ready() -> void:
+	if pet_prev_btn:
+		pet_prev_btn.queue_free()
+	if pet_next_btn:
+		pet_next_btn.queue_free()
+
 	if TimerEngine and mode_toggle_btn:
 		mode_toggle_btn.selected = TimerEngine.current_mode
 		
@@ -206,6 +215,9 @@ func _connect_ui_signals() -> void:
 
 func _connect_event_bus() -> void:
 	EventBus.exp_changed.connect(_on_exp_changed)
+	EventBus.active_pet_selected.connect(_on_active_pet_selected)
+	EventBus.pet_list_changed.connect(_on_pet_list_changed)
+
 	EventBus.level_up.connect(_on_level_up)
 	EventBus.energy_changed.connect(_on_energy_changed)
 	EventBus.joy_changed.connect(_on_joy_changed)
@@ -290,20 +302,20 @@ func _refresh_vitals_tab() -> void:
 	# Energy Bar & Buff Badge
 	var is_buffed: bool = GameState.is_energy_buffed()
 	if energy_val_label:
-		energy_val_label.text = "%d%%" % int(round(GameState.energy))
+		energy_val_label.text = "%d%%" % int(round(GameState.get_active_energy()))
 	if energy_buff_badge:
 		energy_buff_badge.visible = is_buffed
 	if energy_bar:
 		energy_bar.max_value = GameState.MAX_ENERGY
-		energy_bar.value = GameState.energy
+		energy_bar.value = GameState.get_active_energy()
 		energy_bar.modulate = Color(0.3, 1.0, 0.4) if is_buffed else Color(0.96, 0.62, 0.04)
 		
 	# Joy Bar
 	if joy_val_label:
-		joy_val_label.text = "%d%%" % int(round(GameState.joy))
+		joy_val_label.text = "%d%%" % int(round(GameState.get_active_joy()))
 	if joy_bar:
 		joy_bar.max_value = GameState.MAX_JOY
-		joy_bar.value = GameState.joy
+		joy_bar.value = GameState.get_active_joy()
 		
 	
 	# Friendship & Affection
@@ -415,22 +427,62 @@ func _create_inventory_slot(item_id: String, item_def: Dictionary, quantity: int
 	
 	# Action Button based on category
 	if category == "snack":
-		var feed_btn: Button = Button.new()
-		feed_btn.text = "FEED"
-		feed_btn.custom_minimum_size = Vector2(46, 20)
-		feed_btn.add_theme_font_size_override("font_size", 8)
-		feed_btn.modulate = Color(0.96, 0.62, 0.04) # Gold
-		feed_btn.pressed.connect(func(): _on_feed_item_pressed(item_id))
-		hbox.add_child(feed_btn)
+		if GameState.active_pets.size() <= 1:
+			var feed_btn: Button = Button.new()
+			feed_btn.text = "FEED"
+			feed_btn.custom_minimum_size = Vector2(46, 20)
+			feed_btn.add_theme_font_size_override("font_size", 8)
+			feed_btn.modulate = Color(0.96, 0.62, 0.04)
+			feed_btn.pressed.connect(func(): _on_feed_item_pressed(item_id))
+			hbox.add_child(feed_btn)
+		else:
+			var feed_btn: MenuButton = MenuButton.new()
+			feed_btn.text = "FEED ▾"
+			feed_btn.flat = false
+			feed_btn.custom_minimum_size = Vector2(56, 20)
+			feed_btn.add_theme_font_size_override("font_size", 8)
+			feed_btn.modulate = Color(0.96, 0.62, 0.04)
+			var popup = feed_btn.get_popup()
+			popup.add_theme_font_size_override("font_size", 8)
+			for i in range(GameState.active_pets.size()):
+				popup.add_item("Feed " + GameState.active_pets[i].get("name", "Pet"), i)
+			popup.id_pressed.connect(func(id: int):
+				GameState.set_selected_pet(id)
+				_on_feed_item_pressed(item_id)
+			)
+			hbox.add_child(feed_btn)
 	elif category == "cosmetic":
-		var is_equipped: bool = GameState.is_cosmetic_equipped(item_id)
-		var equip_btn: Button = Button.new()
-		equip_btn.text = "✓ ON" if is_equipped else "EQUIP"
-		equip_btn.custom_minimum_size = Vector2(46, 20)
-		equip_btn.add_theme_font_size_override("font_size", 8)
-		equip_btn.modulate = Color(0.31, 0.82, 0.91) if is_equipped else Color(1.0, 1.0, 1.0)
-		equip_btn.pressed.connect(func(): _on_equip_toggle_pressed(slot_type, item_id))
-		hbox.add_child(equip_btn)
+		if GameState.active_pets.size() <= 1:
+			var is_equipped: bool = GameState.is_cosmetic_equipped(item_id)
+			var equip_btn: Button = Button.new()
+			equip_btn.text = "✓ ON" if is_equipped else "EQUIP"
+			equip_btn.custom_minimum_size = Vector2(46, 20)
+			equip_btn.add_theme_font_size_override("font_size", 8)
+			equip_btn.modulate = Color(0.31, 0.82, 0.91) if is_equipped else Color(1.0, 1.0, 1.0)
+			equip_btn.pressed.connect(func(): _on_equip_toggle_pressed(slot_type, item_id))
+			hbox.add_child(equip_btn)
+		else:
+			var equip_btn: MenuButton = MenuButton.new()
+			equip_btn.text = "EQUIP ▾"
+			equip_btn.flat = false
+			equip_btn.custom_minimum_size = Vector2(56, 20)
+			equip_btn.add_theme_font_size_override("font_size", 8)
+			equip_btn.modulate = Color(0.31, 0.82, 0.91)
+			var popup = equip_btn.get_popup()
+			popup.add_theme_font_size_override("font_size", 8)
+			for i in range(GameState.active_pets.size()):
+				var p = GameState.active_pets[i]
+				var has_it = false
+				if p.has("equipped_cosmetics") and p["equipped_cosmetics"].has(slot_type):
+					if p["equipped_cosmetics"][slot_type] == item_id:
+						has_it = true
+				var prefix = "✓ " if has_it else ""
+				popup.add_item(prefix + p.get("name", "Pet"), i)
+			popup.id_pressed.connect(func(id: int):
+				GameState.set_selected_pet(id)
+				_on_equip_toggle_pressed(slot_type, item_id)
+			)
+			hbox.add_child(equip_btn)
 	elif category == "decor":
 		var is_placed: bool = GameState.is_decor_placed(item_id)
 		var decor_btn: Button = Button.new()
@@ -1148,3 +1200,33 @@ func _render_dtr_lifetime_stats() -> void:
 	if dtr_total_sprints_lbl:
 		var sprints: int = maxi(0, int(GameState.lifetime_focus_minutes / 25))
 		dtr_total_sprints_lbl.text = "⚡ %d sprints" % sprints
+
+
+func _on_pet_prev() -> void:
+	if not GameState or GameState.active_pets.is_empty(): return
+	if GameState.active_pets.size() <= 1:
+		NotificationManager.show_toast("🐾 You only have one companion! Adopt another from the Shop.", NotificationManager.ToastType.INFO)
+		return
+	var idx = GameState.selected_pet_index - 1
+	if idx < 0: idx = GameState.active_pets.size() - 1
+	GameState.set_selected_pet(idx)
+
+func _on_pet_next() -> void:
+	if not GameState or GameState.active_pets.is_empty(): return
+	if GameState.active_pets.size() <= 1:
+		NotificationManager.show_toast("🐾 You only have one companion! Adopt another from the Shop.", NotificationManager.ToastType.INFO)
+		return
+	var idx = GameState.selected_pet_index + 1
+	if idx >= GameState.active_pets.size(): idx = 0
+	GameState.set_selected_pet(idx)
+
+func _on_active_pet_selected(_idx: int, pet_data: Dictionary) -> void:
+	if pet_name_lbl:
+		pet_name_lbl.text = "🐾 " + pet_data.get("name", "Companion")
+	_refresh_vitals_tab()
+	_refresh_bag_tab()
+
+func _on_pet_list_changed(_pets: Array) -> void:
+	var sel = GameState.get_selected_pet()
+	if sel and pet_name_lbl:
+		pet_name_lbl.text = "🐾 " + sel.get("name", "Companion")

@@ -257,7 +257,7 @@ const ITEM_DEFINITIONS: Dictionary = {
 		"icon": "📻",
 		"category": "decor",
 		"target_room": "room_livingroom",
-		"target_room_name": "Cozy Living Room",
+		"target_room_name": "Cozy Cafe",
 		"price": 450,
 		"description": "Old-school cassette beatbox on the lounge credenza."
 	},
@@ -267,7 +267,7 @@ const ITEM_DEFINITIONS: Dictionary = {
 		"icon": "🎶",
 		"category": "decor",
 		"target_room": "room_livingroom",
-		"target_room_name": "Cozy Living Room",
+		"target_room_name": "Cozy Cafe",
 		"price": 350,
 		"description": "Color-coded vintage vinyl albums stacked beside turntable."
 	},
@@ -278,7 +278,7 @@ const ITEM_DEFINITIONS: Dictionary = {
 		"icon": "🎮",
 		"category": "decor",
 		"target_room": "room_library",
-		"target_room_name": "Grand Library",
+		"target_room_name": "Cosmic Observatory",
 		"price": 1200,
 		"description": "Vintage tabletop pixel arcade cabinet with glowing demo screen."
 	},
@@ -288,7 +288,7 @@ const ITEM_DEFINITIONS: Dictionary = {
 		"icon": "🔭",
 		"category": "decor",
 		"target_room": "room_library",
-		"target_room_name": "Grand Library",
+		"target_room_name": "Cosmic Observatory",
 		"price": 500,
 		"description": "Antique brass stargazing telescope pointed out the rafter window."
 	},
@@ -320,7 +320,7 @@ const ITEM_DEFINITIONS: Dictionary = {
 		"icon": "🌿",
 		"category": "decor",
 		"target_room": "room_greenhouse",
-		"target_room_name": "Zen Greenhouse",
+		"target_room_name": "Zen Dojo",
 		"price": 450,
 		"description": "Geometric brass & crystal terrarium housing rare moss."
 	},
@@ -330,7 +330,7 @@ const ITEM_DEFINITIONS: Dictionary = {
 		"icon": "💡",
 		"category": "decor",
 		"target_room": "room_greenhouse",
-		"target_room_name": "Zen Greenhouse",
+		"target_room_name": "Zen Dojo",
 		"price": 360,
 		"description": "Hanging blown-glass lantern casting fairy light motes."
 	},
@@ -346,7 +346,7 @@ const ITEM_DEFINITIONS: Dictionary = {
 	},
 	"room_livingroom": {
 		"id": "room_livingroom",
-		"name": "Cozy Living Room",
+		"name": "Cozy Cafe",
 		"icon": "🛋️",
 		"category": "room",
 		"price": 250,
@@ -355,7 +355,7 @@ const ITEM_DEFINITIONS: Dictionary = {
 	},
 	"room_library": {
 		"id": "room_library",
-		"name": "Grand Library",
+		"name": "Cosmic Observatory",
 		"icon": "📚",
 		"category": "room",
 		"price": 450,
@@ -373,7 +373,7 @@ const ITEM_DEFINITIONS: Dictionary = {
 	},
 	"room_greenhouse": {
 		"id": "room_greenhouse",
-		"name": "Zen Greenhouse",
+		"name": "Zen Dojo",
 		"icon": "🌿",
 		"category": "room",
 		"price": 950,
@@ -424,6 +424,134 @@ const ITEM_DEFINITIONS: Dictionary = {
 		"price": 900,
 		"unlock_level": 6,
 		"description": "Adorably round tuxedo penguin in a red scarf with a cute waddle."
+	},
+
+	"snack_energy_drink": {
+		"id": "snack_energy_drink",
+		"name": "Neon Energy Drink",
+		"icon": "⚡",
+		"category": "snack",
+		"price": 180,
+		"description": "Massive energy spike! +80 Energy.",
+		"energy_boost": 80.0,
+		"joy_boost": 0.0,
+		"exp_boost": 0
+	},
+	"snack_mystery_box": {
+		"id": "snack_mystery_box",
+		"name": "Mystery Treat Box",
+		"icon": "🎁",
+		"category": "snack",
+		"price": 250,
+		"description": "A gacha bundle! +50 Energy, +50 Joy, +20 EXP.",
+		"energy_boost": 50.0,
+		"joy_boost": 50.0,
+		"exp_boost": 20
+	},
+	"cosmetic_jacket": {
+		"id": "cosmetic_jacket",
+		"name": "Varsity Jacket",
+		"icon": "🧥",
+		"category": "cosmetic",
+		"slot": "body",
+		"price": 800,
+		"description": "Sporty retro jacket for the active companion."
+	},
+	"cosmetic_robe": {
+		"id": "cosmetic_robe",
+		"name": "Wizard Robe",
+		"icon": "🌌",
+		"category": "cosmetic",
+		"slot": "body",
+		"price": 1100,
+		"description": "Starry robes. Pairs perfectly with the Wizard Hat."
+	},
+	"cosmetic_cardigan": {
+		"id": "cosmetic_cardigan",
+		"name": "Cozy Cardigan",
+		"icon": "🧶",
+		"category": "cosmetic",
+		"slot": "body",
+		"price": 750,
+		"description": "Oversized knitted cardigan for late night study."
+	},
+	"cosmetic_headphones": {
+		"id": "cosmetic_headphones",
+		"name": "Lo-Fi Headphones",
+		"icon": "🎧",
+		"category": "cosmetic",
+		"slot": "head",
+		"price": 950,
+		"description": "Cancel out the noise and focus."
+	},
+	"cosmetic_beret": {
+		"id": "cosmetic_beret",
+		"name": "French Beret",
+		"icon": "🎨",
+		"category": "cosmetic",
+		"slot": "head",
+		"price": 400,
+		"description": "An artist's inspiration."
+	},
+	"cosmetic_halo": {
+		"id": "cosmetic_halo",
+		"name": "Angel Halo",
+		"icon": "👼",
+		"category": "cosmetic",
+		"slot": "head",
+		"price": 1500,
+		"description": "A floating ring of golden light."
+	},
+	"cosmetic_visor": {
+		"id": "cosmetic_visor",
+		"name": "Cyber Visor",
+		"icon": "🕶️",
+		"category": "cosmetic",
+		"slot": "face",
+		"price": 850,
+		"description": "Holographic tactical readout visor."
+	},
+	"cosmetic_blush": {
+		"id": "cosmetic_blush",
+		"name": "Rosy Blush Stickers",
+		"icon": "😊",
+		"category": "cosmetic",
+		"slot": "face",
+		"price": 300,
+		"description": "Permanent cute flushed cheeks."
+	},
+	"pet_redpanda": {
+		"id": "pet_redpanda",
+		"name": "Red Panda",
+		"default_name": "Rusty",
+		"icon": "🐼",
+		"category": "pet",
+		"species": "redpanda",
+		"price": 1500,
+		"unlock_level": 10,
+		"description": "Playful and rare! Loves apples and naps on high shelves."
+	},
+	"pet_capybara": {
+		"id": "pet_capybara",
+		"name": "Capybara",
+		"default_name": "Coconut",
+		"icon": "🥥",
+		"category": "pet",
+		"species": "capybara",
+		"price": 1800,
+		"unlock_level": 12,
+		"description": "The chillest companion. Unbothered by tight deadlines."
+	},
+	"pet_owl": {
+		"id": "pet_owl",
+		"name": "Barn Owl",
+		"default_name": "Archimedes",
+		"icon": "🦉",
+		"category": "pet",
+		"species": "owl",
+		"price": 2000,
+		"unlock_level": 15,
+		"description": "A wise night owl, perfect for late-night programming sessions."
 	},
 	"pet_fox": {
 		"id": "pet_fox",
@@ -644,6 +772,7 @@ var placed_decor: Dictionary = {} # {"decor_bonsai": true, "decor_boombox": true
 # Unlocked Progression Real Estate & Household Pets
 var unlocked_rooms: Array[String] = ["room_bedroom"]
 var unlocked_pets: Array[String] = ["pet_shiba"]
+var selected_pet_index: int = 0
 var active_pets: Array[Dictionary] = [
 	{"id": "pet_shiba", "name": "Kronos", "species": "shiba", "room": "room_bedroom"}
 ]
@@ -932,8 +1061,9 @@ func reset_to_clean_slate() -> void:
 	pet_room = "room_bedroom"
 	unlocked_rooms = ["room_bedroom"]
 	unlocked_pets = ["pet_shiba"]
+	selected_pet_index = 0
 	active_pets = [
-		{"id": "pet_shiba", "name": "Kronos", "species": "shiba", "room": "room_bedroom"}
+		{"id": "pet_shiba", "name": "Kronos", "species": "shiba", "room": "room_bedroom", "energy": 80.0, "joy": 50.0, "equipped_cosmetics": {}}
 	]
 	inventory.clear()
 	placed_decor.clear()
@@ -1161,17 +1291,19 @@ func use_item(item_id: String) -> bool:
 # ==============================================================================
 ## Equips a cosmetic item into a slot ("head", "neck", etc.)
 func equip_cosmetic(slot: String, cosmetic_id: String) -> void:
-	equipped_cosmetics[slot] = cosmetic_id
-	equipped_cosmetic = cosmetic_id # For backward compatibility with single slot
-	EventBus.cosmetic_equipped.emit(slot, cosmetic_id)
+	if active_pets.is_empty(): return
+	var p = active_pets[selected_pet_index]
+	if not p.has("equipped_cosmetics"): p["equipped_cosmetics"] = {}
+	p["equipped_cosmetics"][slot] = cosmetic_id
+	EventBus.cosmetic_equipped.emit(selected_pet_index, slot, cosmetic_id)
 
 ## Unequips cosmetic from slot
 func unequip_cosmetic(slot: String) -> void:
-	if equipped_cosmetics.has(slot):
-		equipped_cosmetics.erase(slot)
-	if equipped_cosmetic != "" and not equipped_cosmetics.values().has(equipped_cosmetic):
-		equipped_cosmetic = ""
-	EventBus.cosmetic_unequipped.emit(slot)
+	if active_pets.is_empty(): return
+	var p = active_pets[selected_pet_index]
+	if p.has("equipped_cosmetics") and p["equipped_cosmetics"].has(slot):
+		p["equipped_cosmetics"].erase(slot)
+		EventBus.cosmetic_unequipped.emit(selected_pet_index, slot)
 
 ## Checks if a specific cosmetic item is equipped
 func is_cosmetic_equipped(cosmetic_id: String) -> bool:
@@ -1534,14 +1666,15 @@ func serialize() -> Dictionary:
 		"exp": exp,
 		"coins": coins,
 		"knowledge_points": knowledge_points,
-		"energy": energy,
-		"joy": joy,
+		
+		
 		"streak": streak,
 		"unlocked_rooms": unlocked_rooms,
 		"unlocked_pets": unlocked_pets,
 		"active_pets": active_pets,
+		"selected_pet_index": selected_pet_index,
 		"equipped_cosmetic": equipped_cosmetic,
-		"equipped_cosmetics": equipped_cosmetics,
+		
 		"active_room": active_view_room,
 		"active_view_room": active_view_room,
 		"pet_room": pet_room,
@@ -1598,12 +1731,30 @@ func deserialize(data: Dictionary) -> void:
 	if not unlocked_pets.has("pet_shiba"):
 		unlocked_pets.append("pet_shiba")
 		
+	
+	selected_pet_index = data.get("selected_pet_index", 0)
+	
+	# LEGACY MIGRATION: If save has global energy/joy, grab them to migrate to first pet
+	var legacy_energy = data.get("energy", 80.0)
+	var legacy_joy = data.get("joy", 50.0)
+	var legacy_cosmetics = data.get("equipped_cosmetics", {})
+	
 	var raw_active_pets = data.get("active_pets", [])
 	active_pets.clear()
 	if raw_active_pets is Array and raw_active_pets.size() > 0:
+		var idx = 0
 		for ap in raw_active_pets:
 			if ap is Dictionary:
+				if not ap.has("energy") and idx == 0:
+					ap["energy"] = legacy_energy
+					ap["joy"] = legacy_joy
+					ap["equipped_cosmetics"] = legacy_cosmetics
+				if not ap.has("energy"):
+					ap["energy"] = 80.0
+					ap["joy"] = 50.0
+					ap["equipped_cosmetics"] = {}
 				active_pets.append(ap)
+				idx += 1
 	else:
 		active_pets.append({"id": "pet_shiba", "name": pet_name, "species": pet_species, "room": "room_bedroom"})
 		
@@ -1913,8 +2064,9 @@ func reset_to_defaults() -> void:
 	placed_decor.clear()
 	unlocked_rooms = ["room_bedroom"]
 	unlocked_pets = ["pet_shiba"]
+	selected_pet_index = 0
 	active_pets = [
-		{"id": "pet_shiba", "name": "Kronos", "species": "shiba", "room": "room_bedroom"}
+		{"id": "pet_shiba", "name": "Kronos", "species": "shiba", "room": "room_bedroom", "energy": 80.0, "joy": 50.0, "equipped_cosmetics": {}}
 	]
 	unlocked_achievements.clear()
 	achievement_progress.clear()

@@ -26,7 +26,7 @@ class_name LeftPanel
 
 
 # Shop Nodes
-@onready var shop_vbox: VBoxContainer = $VBox/TabContainer/SHOP/ShopScroll/ShopVBox
+@onready var shop_vbox: GridContainer = $VBox/TabContainer/SHOP/ShopScroll/ShopVBox
 @onready var rooms_filter_btn: Button = $VBox/TabContainer/SHOP/FilterHBox/RoomsFilterBtn
 @onready var pets_filter_btn: Button = $VBox/TabContainer/SHOP/FilterHBox/PetsFilterBtn
 @onready var treats_filter_btn: Button = $VBox/TabContainer/SHOP/FilterHBox/TreatsFilterBtn
@@ -198,7 +198,7 @@ func _do_populate_all_shop_tabs() -> void:
 	_is_shop_dirty = false
 	_refresh_active_tab()
 
-func _populate_category_list(container: VBoxContainer, category: String) -> void:
+func _populate_category_list(container: GridContainer, category: String) -> void:
 	if not container or not GameState:
 		return
 		
@@ -206,7 +206,18 @@ func _populate_category_list(container: VBoxContainer, category: String) -> void
 		child.queue_free()
 		
 	var items: Array[Dictionary] = GameState.get_items_by_category(category)
-	for item in items:
+	
+	# Determine Daily Deals using a daily seed
+	var daily_seed = Time.get_date_string_from_system().hash()
+	var deal_idx1 = daily_seed % max(1, items.size())
+	var deal_idx2 = (daily_seed + 7) % max(1, items.size())
+	
+	for i in range(items.size()):
+		var item = items[i].duplicate() # Duplicate so we don't modify the database!
+		if i == deal_idx1 or i == deal_idx2:
+			item["price"] = int(item.get("price", 0) * 0.7) # 30% off
+			item["name"] = "⭐ " + item.get("name", "") + " (-30%)"
+			
 		var card: Control = _create_shop_card(item)
 		container.add_child(card)
 
@@ -241,156 +252,119 @@ func _create_shop_card(item: Dictionary) -> Control:
 	var meets_level: bool = player_lvl >= req_lvl
 	
 	var card_panel: PanelContainer = PanelContainer.new()
-	card_panel.custom_minimum_size = Vector2(0, 54)
+	card_panel.custom_minimum_size = Vector2(105, 95) # Fits perfectly in 2-column grid
 	card_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	
+	# Apply rarity colors
+	var r_col = Color(0.18, 0.22, 0.28) # Default border
+	if item_price >= 1000: r_col = Color(1.0, 0.84, 0.0) # Legendary Gold
+	elif item_price >= 500: r_col = Color(0.6, 0.2, 0.8) # Epic Purple
+	elif item_price >= 200: r_col = Color(0.2, 0.6, 1.0) # Rare Blue
+	
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(0.08, 0.10, 0.14)
+	style.border_color = r_col
+	style.border_width_left = 1
+	style.border_width_right = 1
+	style.border_width_top = 1
+	style.border_width_bottom = 1
+	style.content_margin_left = 4
+	style.content_margin_right = 4
+	style.content_margin_top = 4
+	style.content_margin_bottom = 4
+	card_panel.add_theme_stylebox_override("panel", style)
 	
 	var vbox: VBoxContainer = VBoxContainer.new()
 	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	vbox.add_theme_constant_override("separation", 2)
 	card_panel.add_child(vbox)
 	
-	var top_hbox: HBoxContainer = HBoxContainer.new()
-	top_hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	top_hbox.add_theme_constant_override("separation", 4)
-	vbox.add_child(top_hbox)
-	
+	# Icon Centered
 	var icon_lbl: Label = Label.new()
 	icon_lbl.text = item_icon
-	icon_lbl.add_theme_font_size_override("font_size", 14)
-	icon_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	top_hbox.add_child(icon_lbl)
+	icon_lbl.add_theme_font_size_override("font_size", 20)
+	icon_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(icon_lbl)
 	
-	var info_vbox: VBoxContainer = VBoxContainer.new()
-	info_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	info_vbox.add_theme_constant_override("separation", 1)
-	top_hbox.add_child(info_vbox)
-	
+	# Name Label
 	var name_lbl: Label = Label.new()
 	name_lbl.text = item_name
 	name_lbl.add_theme_font_size_override("font_size", 8)
-	name_lbl.modulate = Color(1.0, 1.0, 1.0)
-	info_vbox.add_child(name_lbl)
+	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	name_lbl.custom_minimum_size = Vector2(0, 20)
+	vbox.add_child(name_lbl)
 	
-	var sub_lbl: Label = Label.new()
-	sub_lbl.add_theme_font_size_override("font_size", 7)
-	
-	if category == "room":
-		sub_lbl.text = "🔑 Real Estate • Req. Lv. %d" % req_lvl
-		sub_lbl.modulate = Color(0.96, 0.62, 0.04) # Gold
-	elif category == "pet":
-		sub_lbl.text = "🐾 Household: %d / %d Slots (Lv. %d)" % [GameState.active_pets.size(), GameState.get_max_pet_slots(), req_lvl]
-		sub_lbl.modulate = Color(0.16, 0.82, 0.55) # Green
-	elif category == "decor":
-		var r_tag: String = item.get("target_room_name", "Room")
-		sub_lbl.text = "📍 %s" % r_tag.to_upper()
-		sub_lbl.modulate = Color(0.40, 0.85, 0.55)
-	elif category == "cosmetic":
-		var slot_str: String = item.get("slot", "item").capitalize()
-		sub_lbl.text = "👗 %s Slot" % slot_str
-		sub_lbl.modulate = Color(0.93, 0.28, 0.60)
-	elif category == "snack":
-		var e_boost = item.get("energy_boost", 0)
-		var j_boost = item.get("joy_boost", 0)
-		sub_lbl.text = "⚡ +%d  ❤️ +%d" % [int(e_boost), int(j_boost)]
-		sub_lbl.modulate = Color(0.31, 0.82, 0.91)
-	info_vbox.add_child(sub_lbl)
-	
+	# Price / Level Label
 	var price_lbl: Label = Label.new()
-	price_lbl.text = "%d G" % item_price
-	price_lbl.add_theme_font_size_override("font_size", 8)
-	price_lbl.modulate = Color(0.96, 0.62, 0.04)
-	price_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	top_hbox.add_child(price_lbl)
-	
-	# Action Button / Buttons Row
-	if category == "pet" and not is_owned and meets_level and can_afford:
-		var is_unlocked: bool = GameState.is_pet_unlocked(item_id)
-		var price_text: String = "Owned" if is_unlocked else "%d G" % item_price
-		
-		# Double action row: Switch OR Add to Household!
-		var btn_hbox: HBoxContainer = HBoxContainer.new()
-		btn_hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		btn_hbox.add_theme_constant_override("separation", 2)
-		
-		var switch_btn: Button = Button.new()
-		switch_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		switch_btn.custom_minimum_size = Vector2(0, 18)
-		switch_btn.add_theme_font_size_override("font_size", 7)
-		switch_btn.text = "🔁 Switch (%s)" % price_text
-		switch_btn.modulate = Color(0.31, 0.82, 0.91)
-		switch_btn.pressed.connect(func():
-			if AudioManager:
-				AudioManager.play_sfx("click")
-			GameState.adopt_pet(item_id, false)
-		)
-		btn_hbox.add_child(switch_btn)
-		
-		var add_btn: Button = Button.new()
-		add_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		add_btn.custom_minimum_size = Vector2(0, 18)
-		add_btn.add_theme_font_size_override("font_size", 7)
-		var has_free_slot: bool = GameState.active_pets.size() < GameState.get_max_pet_slots()
-		add_btn.text = "➕ Add (+1 Pet)" if has_free_slot else "HOUSE FULL"
-		add_btn.disabled = not has_free_slot
-		add_btn.modulate = Color(0.16, 0.82, 0.55) if has_free_slot else Color(0.5, 0.5, 0.5, 0.7)
-		add_btn.pressed.connect(func():
-			if AudioManager:
-				AudioManager.play_sfx("click")
-			GameState.adopt_pet(item_id, true)
-		)
-		btn_hbox.add_child(add_btn)
-		vbox.add_child(btn_hbox)
+	if not meets_level:
+		price_lbl.text = "🔒 Lv. %d" % req_lvl
+		price_lbl.modulate = Color(0.8, 0.3, 0.3)
 	else:
-		var buy_btn: Button = Button.new()
-		buy_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		buy_btn.custom_minimum_size = Vector2(0, 18)
-		buy_btn.add_theme_font_size_override("font_size", 8)
-		
-		if is_owned:
+		price_lbl.text = "%d G" % item_price
+		price_lbl.modulate = Color(1.0, 0.84, 0.0)
+	price_lbl.add_theme_font_size_override("font_size", 8)
+	price_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(price_lbl)
+	
+	# Buy Button
+	var buy_btn: Button = Button.new()
+	buy_btn.custom_minimum_size = Vector2(0, 20)
+	buy_btn.add_theme_font_size_override("font_size", 8)
+	
+	if not meets_level:
+		buy_btn.text = "LOCKED"
+		buy_btn.disabled = true
+		buy_btn.modulate = Color(0.5, 0.5, 0.5, 0.7)
+	else:
+		if is_owned and category in ["room", "cosmetic"]:
 			if category == "room":
-				buy_btn.text = "🚪 VISIT ROOM"
-				buy_btn.disabled = false
-				buy_btn.modulate = Color(0.16, 0.82, 0.55) # Green
-				buy_btn.pressed.connect(func():
-					if AudioManager:
-						AudioManager.play_sfx("click")
-					EventBus.room_change_requested.emit(item_id)
-				)
-			elif category == "pet":
-				var can_remove: bool = GameState.active_pets.size() > 1
-				buy_btn.text = "➖ Return to Bag" if can_remove else "🏡 Main Pet"
-				buy_btn.disabled = not can_remove
-				buy_btn.modulate = Color(0.85, 0.40, 0.40) if can_remove else Color(0.6, 0.6, 0.6, 0.8)
-				if can_remove:
+				var is_active = (GameState.active_view_room == item_id)
+				buy_btn.text = "HERE" if is_active else "VISIT"
+				buy_btn.disabled = is_active
+				buy_btn.modulate = Color(0.40, 0.85, 0.55) if is_active else Color(0.31, 0.82, 0.91)
+				if not is_active:
 					buy_btn.pressed.connect(func():
-						if AudioManager:
-							AudioManager.play_sfx("click")
-						GameState.remove_pet(item_id)
+						EventBus.room_change_requested.emit(item_id)
+						_refresh_coins_badge()
 					)
 			else:
-				buy_btn.text = "✓ OWNED"
+				buy_btn.text = "OWNED"
 				buy_btn.disabled = true
-				buy_btn.modulate = Color(0.6, 0.6, 0.6, 0.8)
-
-		elif not meets_level:
-			buy_btn.text = "🔒 UNLOCKS AT LV. %d" % req_lvl
+				buy_btn.modulate = Color(0.40, 0.85, 0.55)
+		elif is_owned and category == "pet":
+			buy_btn.text = "IN HOUSE"
 			buy_btn.disabled = true
-			buy_btn.modulate = Color(0.5, 0.5, 0.5, 0.7)
-		elif not can_afford:
-			buy_btn.text = "NEED %d G" % item_price
-			buy_btn.disabled = true
-			buy_btn.modulate = Color(0.5, 0.5, 0.5, 0.7)
-		else:
-			buy_btn.text = "UNLOCK ROOM (%d G)" % item_price if category == "room" else "BUY (%d G)" % item_price
-			buy_btn.disabled = false
-			buy_btn.modulate = Color(0.96, 0.62, 0.04) if category == "room" else Color(0.31, 0.82, 0.91)
+			buy_btn.modulate = Color(0.40, 0.85, 0.55)
+		elif category == "pet" and GameState.is_pet_unlocked(item_id):
+			buy_btn.text = "ADOPT (+)"
+			buy_btn.disabled = not can_afford
+			buy_btn.modulate = Color(0.31, 0.82, 0.91)
 			buy_btn.pressed.connect(func():
-				if AudioManager:
-					AudioManager.play_sfx("click")
-				_on_buy_item_clicked(item)
+				GameState.adopt_pet(item_id, true)
+				_refresh_coins_badge()
+				_populate_all_shop_tabs()
 			)
-		vbox.add_child(buy_btn)
-		
+		else:
+			if not can_afford:
+				buy_btn.text = "NEED G"
+				buy_btn.disabled = true
+				buy_btn.modulate = Color(0.5, 0.5, 0.5, 0.7)
+			else:
+				buy_btn.text = "BUY"
+				buy_btn.disabled = false
+				buy_btn.modulate = Color(0.31, 0.82, 0.91)
+				buy_btn.pressed.connect(func():
+					if category == "pet":
+						GameState.adopt_pet(item_id, true)
+						_refresh_coins_badge()
+						_populate_all_shop_tabs()
+					else:
+						_on_buy_item_clicked(item)
+				)
+				
+	vbox.add_child(buy_btn)
 	return card_panel
 
 func _on_buy_item_clicked(item: Dictionary) -> void:

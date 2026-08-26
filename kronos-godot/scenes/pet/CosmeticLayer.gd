@@ -51,7 +51,6 @@ func _ready() -> void:
 	if not Engine.is_editor_hint():
 		EventBus.cosmetic_equipped.connect(_on_cosmetic_equipped)
 		EventBus.cosmetic_unequipped.connect(_on_cosmetic_unequipped)
-		_sync_from_game_state()
 		
 	if not pet_renderer:
 		pet_renderer = get_parent().get_node_or_null("PetRenderer")
@@ -63,28 +62,25 @@ func _process(delta: float) -> void:
 		_sparkle_frame = (_sparkle_frame + 1) % 4
 	queue_redraw()
 
-func _sync_from_game_state() -> void:
-	if not GameState:
-		return
+var _my_pet_index: int = -1
+
+func sync_from_data(index: int, pet_data: Dictionary) -> void:
+	_my_pet_index = index
 	equipped_items.clear()
-	for slot in GameState.equipped_cosmetics:
-		equipped_items[slot] = GameState.equipped_cosmetics[slot]
-		
-	# Check legacy single slot
-	if GameState.equipped_cosmetic != "" and not equipped_items.values().has(GameState.equipped_cosmetic):
-		var item_def = GameState.ITEM_DEFINITIONS.get(GameState.equipped_cosmetic, {})
-		var slot = item_def.get("slot", "head")
-		equipped_items[slot] = GameState.equipped_cosmetic
-		
+	var cosmetics = pet_data.get("equipped_cosmetics", {})
+	for slot in cosmetics:
+		equipped_items[slot] = cosmetics[slot]
 	queue_redraw()
 
-func _on_cosmetic_equipped(slot: String, cosmetic_id: String) -> void:
-	equipped_items[slot] = cosmetic_id
-	queue_redraw()
+func _on_cosmetic_equipped(p_idx: int, slot: String, cosmetic_id: String) -> void:
+	if p_idx == _my_pet_index:
+		equipped_items[slot] = cosmetic_id
+		queue_redraw()
 
-func _on_cosmetic_unequipped(slot: String) -> void:
-	equipped_items.erase(slot)
-	queue_redraw()
+func _on_cosmetic_unequipped(p_idx: int, slot: String) -> void:
+	if p_idx == _my_pet_index:
+		equipped_items.erase(slot)
+		queue_redraw()
 
 # ==============================================================================
 # 🎨 CUSTOM CANVAS DRAWING

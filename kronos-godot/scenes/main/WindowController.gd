@@ -399,7 +399,7 @@ func _update_room_and_pet_hud() -> void:
 		return
 		
 	var r_name: String = _get_room_display_name(GameState.active_view_room)
-	var is_here: bool = (GameState.pet_room == GameState.active_view_room)
+	var is_here: bool = (GameState.get_selected_pet().get("room", "room_bedroom") == GameState.active_view_room)
 	
 	if is_here:
 		room_label.text = "%s ● HERE" % r_name
@@ -407,7 +407,7 @@ func _update_room_and_pet_hud() -> void:
 		if call_pet_btn:
 			call_pet_btn.visible = false
 	else:
-		var pet_loc: String = _get_room_display_name(GameState.pet_room)
+		var pet_loc: String = _get_room_display_name(GameState.get_selected_pet().get("room", "room_bedroom"))
 		room_label.text = "%s" % r_name
 		room_label.add_theme_color_override("font_color", Color(0.95, 0.70, 0.35, 1.0))
 		if call_pet_btn:
