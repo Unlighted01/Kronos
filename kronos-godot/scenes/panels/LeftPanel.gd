@@ -333,17 +333,15 @@ func _create_shop_card(item: Dictionary) -> Control:
 				buy_btn.text = "OWNED"
 				buy_btn.disabled = true
 				buy_btn.modulate = Color(0.40, 0.85, 0.55)
-		elif is_owned and category == "pet":
-			buy_btn.text = "IN HOUSE"
-			buy_btn.disabled = true
-			buy_btn.modulate = Color(0.40, 0.85, 0.55)
+
 		elif category == "pet" and GameState.is_pet_unlocked(item_id):
 			buy_btn.queue_free()
 			var act_hbox = HBoxContainer.new()
 			act_hbox.custom_minimum_size = Vector2(0, 20)
+			act_hbox.add_theme_constant_override("separation", 2)
 			
 			var sw_btn = Button.new()
-			sw_btn.text = "SWITCH"
+			sw_btn.text = "SWAP"
 			sw_btn.add_theme_font_size_override("font_size", 7)
 			sw_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			sw_btn.modulate = Color(0.96, 0.62, 0.04)
@@ -354,17 +352,36 @@ func _create_shop_card(item: Dictionary) -> Control:
 			)
 			act_hbox.add_child(sw_btn)
 			
-			var add_btn = Button.new()
-			add_btn.text = "ADD (+)"
-			add_btn.add_theme_font_size_override("font_size", 7)
-			add_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			add_btn.modulate = Color(0.31, 0.82, 0.91)
-			add_btn.pressed.connect(func():
-				GameState.adopt_pet(item_id, true)
-				_refresh_coins_badge()
-				_populate_all_shop_tabs()
-			)
-			act_hbox.add_child(add_btn)
+			var in_house_count = 0
+			for p in GameState.active_pets:
+				if p.get("id", "") == item_id:
+					in_house_count += 1
+			
+			if in_house_count > 0 and GameState.active_pets.size() > 1:
+				var stow_btn = Button.new()
+				stow_btn.text = "STOW"
+				stow_btn.add_theme_font_size_override("font_size", 7)
+				stow_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+				stow_btn.modulate = Color(0.9, 0.4, 0.4)
+				stow_btn.pressed.connect(func():
+					GameState.stow_pet(item_id)
+					_populate_all_shop_tabs()
+				)
+				act_hbox.add_child(stow_btn)
+			
+			if GameState.active_pets.size() < GameState.get_max_pet_slots():
+				var add_btn = Button.new()
+				add_btn.text = "ADD"
+				add_btn.add_theme_font_size_override("font_size", 7)
+				add_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+				add_btn.modulate = Color(0.31, 0.82, 0.91)
+				add_btn.pressed.connect(func():
+					GameState.adopt_pet(item_id, true)
+					_refresh_coins_badge()
+					_populate_all_shop_tabs()
+				)
+				act_hbox.add_child(add_btn)
+				
 			vbox.add_child(act_hbox)
 			return card_panel
 		else:

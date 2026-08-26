@@ -974,6 +974,20 @@ func is_pet_unlocked(p_id: String) -> bool:
 		return true
 	return unlocked_pets.has(p_id)
 
+func stow_pet(p_id: String) -> bool:
+	if active_pets.size() <= 1:
+		return false
+	for i in range(active_pets.size() - 1, -1, -1):
+		if active_pets[i].get("id", "") == p_id:
+			active_pets.remove_at(i)
+			if selected_pet_index >= active_pets.size():
+				selected_pet_index = active_pets.size() - 1
+			EventBus.pet_list_changed.emit(active_pets)
+			if DatabaseManager:
+				DatabaseManager.save_game()
+			return true
+	return false
+
 func adopt_pet(p_id: String, as_household: bool, custom_name: String = "") -> bool:
 	var def = ITEM_DEFINITIONS.get(p_id, null)
 	if not def:
