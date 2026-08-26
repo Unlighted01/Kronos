@@ -652,6 +652,7 @@ func _draw_petted_anim() -> void:
 	var tail_wag: float = 3.0 if (anim_frame % 2 == 1) else -3.0
 	var fur_main: Color = _get_fur_main()
 	var fur_cream: Color = _get_fur_cream()
+	var fur_shadow: Color = _get_fur_shadow()
 	
 	match species:
 		"penguin":
@@ -696,6 +697,7 @@ func _draw_victory_anim() -> void:
 	var arms_up: bool = (anim_frame == 1 or anim_frame == 2 or anim_frame == 4)
 	var fur_main: Color = _get_fur_main()
 	var fur_cream: Color = _get_fur_cream()
+	var fur_shadow: Color = _get_fur_shadow()
 	
 	match species:
 		"penguin":
@@ -895,6 +897,7 @@ func _draw_head(pos: Vector2, ear_tilt: float, focused: bool = false, closed_eye
 	var hy: float = pos.y
 	var fur_main: Color = _get_fur_main()
 	var fur_cream: Color = _get_fur_cream()
+	var fur_shadow: Color = _get_fur_shadow()
 	
 	match species:
 		"bunny":
@@ -905,6 +908,12 @@ func _draw_head(pos: Vector2, ear_tilt: float, focused: bool = false, closed_eye
 			_draw_fox_head(hx, hy, ear_tilt, fur_main, fur_cream, closed_eyes, focused, blush, open_mouth)
 		"cat":
 			_draw_cat_head(hx, hy, ear_tilt, fur_main, fur_cream, closed_eyes, focused, blush, open_mouth)
+		"redpanda":
+			_draw_redpanda_head(hx, hy, ear_tilt, fur_main, fur_cream, fur_shadow, closed_eyes, focused, blush, open_mouth)
+		"capybara":
+			_draw_capybara_head(hx, hy, ear_tilt, fur_main, fur_cream, fur_shadow, closed_eyes, focused, blush, open_mouth)
+		"owl":
+			_draw_owl_head(hx, hy, ear_tilt, fur_main, fur_cream, fur_shadow, closed_eyes, focused, blush, open_mouth)
 		_:
 			_draw_shiba_head(hx, hy, ear_tilt, fur_main, fur_cream, closed_eyes, focused, blush, open_mouth)
 
@@ -1036,6 +1045,7 @@ func _draw_curled_tail(origin: Vector2, wag: float) -> void:
 	var ty: float = origin.y
 	var fur_main: Color = _get_fur_main()
 	var fur_cream: Color = _get_fur_cream()
+	var fur_shadow: Color = _get_fur_shadow()
 	
 	match species:
 		"cat":
@@ -1053,9 +1063,21 @@ func _draw_curled_tail(origin: Vector2, wag: float) -> void:
 			_draw_pixel_rect(Rect2(tx - 2, ty - 1, 3, 3), Color(0.08, 0.10, 0.16))
 		"fox":
 			# Huge fluffy brush tail with white tip
-			_draw_pixel_rect(Rect2(tx - 3, ty - 2, 5, 5), fur_main)
-			_draw_pixel_rect(Rect2(tx - 6, ty - 5, 6, 6), fur_main)
+			_draw_pixel_rect(Rect2(tx - 3, ty - 2, 5, 5), _get_fur_main())
+			_draw_pixel_rect(Rect2(tx - 6, ty - 5, 6, 6), _get_fur_main())
 			_draw_pixel_rect(Rect2(tx - 8, ty - 8, 6, 5), Color(0.99, 0.96, 0.89))
+		"redpanda":
+			# Thick striped tail
+			_draw_pixel_rect(Rect2(tx - 3, ty - 2, 6, 6), _get_fur_main())
+			_draw_pixel_rect(Rect2(tx - 7, ty - 4, 7, 7), _get_fur_shadow())
+			_draw_pixel_rect(Rect2(tx - 10, ty - 7, 7, 7), _get_fur_main())
+			_draw_pixel_rect(Rect2(tx - 13, ty - 9, 6, 6), _get_fur_shadow())
+		"capybara":
+			pass # Capybaras don't have visible tails
+		"owl":
+			# Tail feathers pointing down
+			_draw_pixel_rect(Rect2(tx - 2, ty, 4, 5), _get_fur_main())
+			_draw_pixel_rect(Rect2(tx - 3, ty + 2, 6, 2), _get_fur_shadow())
 		_:
 			# Shiba curled tail
 			_draw_pixel_rect(Rect2(tx, ty, 3, 4), fur_main)
@@ -1129,3 +1151,95 @@ func _draw_pixel_exclamation(pos: Vector2, alpha: float) -> void:
 	# 2x6 pixel exclamation mark !
 	_draw_pixel_rect(Rect2(pos.x, pos.y - 6, 2, 4), col)
 	_draw_pixel_rect(Rect2(pos.x, pos.y - 1, 2, 2), col)
+
+
+func _draw_redpanda_head(hx: float, hy: float, ear_tilt: float, fur_main: Color, fur_cream: Color, fur_shadow: Color, closed_eyes: bool, focused: bool, blush: bool, open_mouth: bool) -> void:
+	# Wide round face
+	_draw_pixel_rect(Rect2(hx - 7, hy - 4, 14, 10), fur_main)
+	# Cream cheeks and eyebrows
+	_draw_pixel_rect(Rect2(hx - 8, hy, 5, 5), fur_cream)
+	_draw_pixel_rect(Rect2(hx + 3, hy, 5, 5), fur_cream)
+	_draw_pixel_rect(Rect2(hx - 5, hy - 6, 3, 2), fur_cream)
+	_draw_pixel_rect(Rect2(hx + 2, hy - 6, 3, 2), fur_cream)
+	# Muzzle
+	_draw_pixel_rect(Rect2(hx - 3, hy + 2, 6, 4), fur_cream)
+	_draw_pixel_rect(Rect2(hx - 1, hy + 2, 2, 1), Color(0.1, 0.1, 0.1)) # nose
+	
+	# Ears (white tufts)
+	_draw_pixel_rect(Rect2(hx - 8, hy - 8 + ear_tilt, 4, 4), fur_cream)
+	_draw_pixel_rect(Rect2(hx - 7, hy - 7 + ear_tilt, 2, 2), fur_shadow)
+	_draw_pixel_rect(Rect2(hx + 4, hy - 8, 4, 4), fur_cream)
+	_draw_pixel_rect(Rect2(hx + 5, hy - 7, 2, 2), fur_shadow)
+	
+	if closed_eyes:
+		_draw_pixel_rect(Rect2(hx - 5, hy - 1, 3, 1), COL_DARK_EYE)
+		_draw_pixel_rect(Rect2(hx + 2, hy - 1, 3, 1), COL_DARK_EYE)
+	elif focused:
+		_draw_pixel_rect(Rect2(hx - 5, hy - 2, 3, 2), COL_DARK_EYE)
+		_draw_pixel_rect(Rect2(hx + 2, hy - 2, 3, 2), COL_DARK_EYE)
+	else:
+		_draw_pixel_rect(Rect2(hx - 5, hy - 2, 2, 3), COL_DARK_EYE)
+		_draw_pixel_rect(Rect2(hx + 3, hy - 2, 2, 3), COL_DARK_EYE)
+		
+	if blush:
+		_draw_pixel_rect(Rect2(hx - 7, hy + 1, 2, 2), COL_CHEEK_BLUSH)
+		_draw_pixel_rect(Rect2(hx + 5, hy + 1, 2, 2), COL_CHEEK_BLUSH)
+		
+	if open_mouth:
+		_draw_pixel_rect(Rect2(hx - 1, hy + 4, 2, 2), COL_DARK_EYE)
+
+func _draw_capybara_head(hx: float, hy: float, ear_tilt: float, fur_main: Color, fur_cream: Color, fur_shadow: Color, closed_eyes: bool, focused: bool, blush: bool, open_mouth: bool) -> void:
+	# Boxy heavy head
+	_draw_pixel_rect(Rect2(hx - 6, hy - 4, 12, 12), fur_main)
+	# Muzzle
+	_draw_pixel_rect(Rect2(hx - 5, hy + 3, 10, 6), fur_cream)
+	_draw_pixel_rect(Rect2(hx - 2, hy + 3, 4, 2), Color(0.2, 0.15, 0.1)) # nose
+	
+	# Small ears
+	_draw_pixel_rect(Rect2(hx - 7, hy - 4 + ear_tilt, 2, 3), fur_shadow)
+	_draw_pixel_rect(Rect2(hx + 5, hy - 4, 2, 3), fur_shadow)
+	
+	if closed_eyes:
+		_draw_pixel_rect(Rect2(hx - 5, hy - 1, 2, 1), COL_DARK_EYE)
+		_draw_pixel_rect(Rect2(hx + 3, hy - 1, 2, 1), COL_DARK_EYE)
+	else:
+		_draw_pixel_rect(Rect2(hx - 5, hy - 1, 2, 2), COL_DARK_EYE)
+		_draw_pixel_rect(Rect2(hx + 3, hy - 1, 2, 2), COL_DARK_EYE)
+		
+	if blush:
+		_draw_pixel_rect(Rect2(hx - 6, hy + 1, 2, 1), COL_CHEEK_BLUSH)
+		_draw_pixel_rect(Rect2(hx + 4, hy + 1, 2, 1), COL_CHEEK_BLUSH)
+		
+	if open_mouth:
+		_draw_pixel_rect(Rect2(hx - 2, hy + 6, 4, 2), COL_DARK_EYE)
+
+func _draw_owl_head(hx: float, hy: float, ear_tilt: float, fur_main: Color, fur_cream: Color, fur_shadow: Color, closed_eyes: bool, focused: bool, blush: bool, open_mouth: bool) -> void:
+	# Round feathery head
+	_draw_pixel_rect(Rect2(hx - 6, hy - 6, 12, 12), fur_main)
+	# Facial disc (heart shape)
+	_draw_pixel_rect(Rect2(hx - 7, hy - 4, 14, 9), fur_cream)
+	_draw_pixel_rect(Rect2(hx - 1, hy - 5, 2, 5), fur_main) # middle division
+	
+	# Small ear tufts
+	_draw_pixel_rect(Rect2(hx - 5, hy - 8 + ear_tilt, 2, 3), fur_shadow)
+	_draw_pixel_rect(Rect2(hx + 3, hy - 8, 2, 3), fur_shadow)
+	
+	# Beak
+	_draw_pixel_rect(Rect2(hx - 1, hy + 1, 2, 3), Color(0.9, 0.7, 0.1))
+	
+	if closed_eyes:
+		_draw_pixel_rect(Rect2(hx - 4, hy - 1, 3, 1), COL_DARK_EYE)
+		_draw_pixel_rect(Rect2(hx + 1, hy - 1, 3, 1), COL_DARK_EYE)
+	elif focused:
+		_draw_pixel_rect(Rect2(hx - 4, hy - 2, 3, 2), COL_DARK_EYE)
+		_draw_pixel_rect(Rect2(hx + 1, hy - 2, 3, 2), COL_DARK_EYE)
+	else:
+		# Big owl eyes
+		_draw_pixel_rect(Rect2(hx - 5, hy - 3, 4, 4), COL_DARK_EYE)
+		_draw_pixel_rect(Rect2(hx - 4, hy - 2, 1, 1), Color(1, 1, 1))
+		_draw_pixel_rect(Rect2(hx + 1, hy - 3, 4, 4), COL_DARK_EYE)
+		_draw_pixel_rect(Rect2(hx + 2, hy - 2, 1, 1), Color(1, 1, 1))
+		
+	if blush:
+		_draw_pixel_rect(Rect2(hx - 6, hy + 3, 2, 1), COL_CHEEK_BLUSH)
+		_draw_pixel_rect(Rect2(hx + 4, hy + 3, 2, 1), COL_CHEEK_BLUSH)

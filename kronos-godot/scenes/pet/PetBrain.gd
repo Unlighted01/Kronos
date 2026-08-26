@@ -1530,6 +1530,12 @@ func _join_work_session() -> void:
 			work_state = State.STUDY
 		"cat":
 			work_state = State.IDLE
+		"owl":
+			work_state = State.STUDY
+		"capybara":
+			work_state = State.NAP
+		"redpanda":
+			work_state = State.WINDOW_GAZE
 		_:
 			work_state = State.TYPE
 			
