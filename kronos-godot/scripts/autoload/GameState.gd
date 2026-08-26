@@ -941,11 +941,7 @@ func _check_morning_light_shutoff() -> void:
 # ==============================================================================
 ## Maximum allowed pets roaming in the household based on player Level
 func get_max_pet_slots() -> int:
-	if level >= 10: return 5
-	if level >= 7: return 4
-	if level >= 5: return 3
-	if level >= 3: return 2
-	return 1
+	return 5 # Unlock all 5 slots instantly as per user request
 
 func is_room_unlocked(r_id: String) -> bool:
 	if r_id == "room_bedroom":

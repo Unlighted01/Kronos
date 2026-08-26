@@ -338,14 +338,35 @@ func _create_shop_card(item: Dictionary) -> Control:
 			buy_btn.disabled = true
 			buy_btn.modulate = Color(0.40, 0.85, 0.55)
 		elif category == "pet" and GameState.is_pet_unlocked(item_id):
-			buy_btn.text = "ADOPT (+)"
-			buy_btn.disabled = not can_afford
-			buy_btn.modulate = Color(0.31, 0.82, 0.91)
-			buy_btn.pressed.connect(func():
+			buy_btn.queue_free()
+			var act_hbox = HBoxContainer.new()
+			act_hbox.custom_minimum_size = Vector2(0, 20)
+			
+			var sw_btn = Button.new()
+			sw_btn.text = "SWITCH"
+			sw_btn.add_theme_font_size_override("font_size", 7)
+			sw_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			sw_btn.modulate = Color(0.96, 0.62, 0.04)
+			sw_btn.pressed.connect(func():
+				GameState.adopt_pet(item_id, false)
+				_refresh_coins_badge()
+				_populate_all_shop_tabs()
+			)
+			act_hbox.add_child(sw_btn)
+			
+			var add_btn = Button.new()
+			add_btn.text = "ADD (+)"
+			add_btn.add_theme_font_size_override("font_size", 7)
+			add_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			add_btn.modulate = Color(0.31, 0.82, 0.91)
+			add_btn.pressed.connect(func():
 				GameState.adopt_pet(item_id, true)
 				_refresh_coins_badge()
 				_populate_all_shop_tabs()
 			)
+			act_hbox.add_child(add_btn)
+			vbox.add_child(act_hbox)
+			return card_panel
 		else:
 			if not can_afford:
 				buy_btn.text = "NEED G"
