@@ -399,21 +399,27 @@ func _update_room_and_pet_hud() -> void:
 		return
 		
 	var r_name: String = _get_room_display_name(GameState.active_view_room)
-	var is_here: bool = (GameState.get_selected_pet().get("room", "room_bedroom") == GameState.active_view_room)
-	
-	if is_here:
-		room_label.text = "%s ● HERE" % r_name
+	var any_pet_missing: bool = false
+	var missing_loc: String = ""
+	for p in GameState.active_pets:
+		var p_room = p.get("room", "room_bedroom")
+		if p_room != GameState.active_view_room:
+			any_pet_missing = true
+			missing_loc = _get_room_display_name(p_room)
+			break
+			
+	if not any_pet_missing:
+		room_label.text = "%s • HERE" % r_name
 		room_label.add_theme_color_override("font_color", Color(0.35, 0.85, 0.55, 1.0))
 		if call_pet_btn:
 			call_pet_btn.visible = false
 	else:
-		var pet_loc: String = _get_room_display_name(GameState.get_selected_pet().get("room", "room_bedroom"))
 		room_label.text = "%s" % r_name
 		room_label.add_theme_color_override("font_color", Color(0.95, 0.70, 0.35, 1.0))
 		if call_pet_btn:
 			call_pet_btn.visible = true
-			call_pet_btn.text = "Call Pet"
-			call_pet_btn.tooltip_text = "Kronos is in %s\nClick to call pet to this room!" % pet_loc
+			call_pet_btn.text = "Call Pets"
+			call_pet_btn.tooltip_text = "Some pets are away in %s\nClick to call everyone here!" % missing_loc
 
 func _get_room_display_name(room_id: String) -> String:
 	match room_id:

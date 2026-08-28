@@ -977,6 +977,23 @@ func _process_idle_state(delta: float) -> void:
 			if _try_start_weighted_idle_interaction():
 				return
 	
+	# 1.5 Weather Overrides
+	if state_timer > 2.0 and GameState:
+		var w = GameState.current_weather
+		if w == GameState.Weather.RAIN and randf() < 0.6:
+			# Seek shelter / nap
+			walk_to(nap_x + randf_range(-10, 10), State.NAP, floor_y)
+			return
+		elif w == GameState.Weather.SNOW and randf() < 0.5:
+			# Seek warmth
+			walk_to(180 + randf_range(-20, 20), State.WARM_PAWS, floor_y)
+			return
+		elif w == GameState.Weather.STAR_SHOWER and randf() < 0.4:
+			# Watch the stars
+			var tz = desk_x if cur_room != "room_bedroom" else nap_x
+			walk_to(tz, State.WINDOW_GAZE, floor_y)
+			return
+
 	# 2. Decide standard action after a few seconds of idle
 	if state_timer >= randf_range(4.0, 8.0):
 		state_timer = 0.0

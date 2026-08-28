@@ -769,6 +769,10 @@ var active_room: String = "room_bedroom" # Backwards compatibility alias for act
 var inventory: Array[Dictionary] = [] # Array of {"item_id": String, "quantity": int, "metadata": Dictionary}
 var placed_decor: Dictionary = {} # {"decor_bonsai": true, "decor_boombox": true}
 
+enum Weather { CLEAR, RAIN, SNOW, STAR_SHOWER }
+var current_weather: int = Weather.CLEAR
+var _weather_timer: float = 60.0
+
 # Unlocked Progression Real Estate & Household Pets
 var unlocked_rooms: Array[String] = ["room_bedroom"]
 var unlocked_pets: Array[String] = ["pet_shiba"]
@@ -1708,6 +1712,17 @@ func serialize() -> Dictionary:
 	}
 
 ## Loads state from a Dictionary
+func sanitize_active_pets() -> void:
+	var unique_ids = []
+	for i in range(active_pets.size() - 1, -1, -1):
+		var pid = active_pets[i].get("id", "")
+		if unique_ids.has(pid):
+			active_pets.remove_at(i)
+		else:
+			unique_ids.append(pid)
+	if selected_pet_index >= active_pets.size():
+		selected_pet_index = max(0, active_pets.size() - 1)
+
 func deserialize(data: Dictionary) -> void:
 	pet_name = data.get("pet_name", "Kronos")
 	pet_species = data.get("pet_species", "shiba")

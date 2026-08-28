@@ -44,10 +44,19 @@ const COL_SWITCH_LEVER_ON: Color = Color(0.96, 0.65, 0.15, 1.0)
 # ==============================================================================
 func _ready() -> void:
 	_update_ambient_lighting()
+	
+	# Inject Weather Renderer
+	var wr = Node2D.new()
+	var wr_script = load("res://scenes/rooms/WeatherRenderer.gd")
+	wr.set_script(wr_script)
+	add_child(wr)
+	
 	if EventBus and EventBus.has_signal("floor_y_offset_changed"):
 		EventBus.floor_y_offset_changed.emit(0.0)
 	EventBus.room_light_toggled.connect(_on_room_light_toggled)
 	EventBus.decor_placed.connect(_on_decor_placed)
+	if EventBus.has_signal("weather_changed"):
+		EventBus.weather_changed.connect(func(w): _update_ambient_lighting())
 
 func _on_room_light_toggled(toggled_room_id: String, _is_on: bool) -> void:
 	if toggled_room_id == room_id:
@@ -83,6 +92,12 @@ func _update_ambient_lighting() -> void:
 	else:
 		target_col = AMBIENT_NIGHT
 		
+	if GameState:
+		if GameState.current_weather == GameState.Weather.RAIN:
+			target_col = AMBIENT_DUSK.darkened(0.2)
+		elif GameState.current_weather == GameState.Weather.SNOW:
+			target_col = target_col.lerp(Color(0.8, 0.85, 0.95), 0.5)
+			
 	ambient_modulate.color = target_col
 
 ## Helper to draw standard 1-gang pixel light switch on wall

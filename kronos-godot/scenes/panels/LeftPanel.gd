@@ -369,7 +369,7 @@ func _create_shop_card(item: Dictionary) -> Control:
 				)
 				act_hbox.add_child(stow_btn)
 			
-			if GameState.active_pets.size() < GameState.get_max_pet_slots():
+			if in_house_count == 0 and GameState.active_pets.size() < GameState.get_max_pet_slots():
 				var add_btn = Button.new()
 				add_btn.text = "ADD"
 				add_btn.add_theme_font_size_override("font_size", 7)
