@@ -8,7 +8,7 @@ class_name WindowController
 # ==============================================================================
 # 📐 CONSTANTS & BASE DIMENSIONS (1x scale)
 # ==============================================================================
-const BASE_MIDDLE_WIDTH: int = 240
+const BASE_MIDDLE_WIDTH: int = 270
 const BASE_LEFT_WIDTH: int = 235
 const BASE_RIGHT_WIDTH: int = 200
 const BASE_HEIGHT: int = 320
@@ -59,7 +59,7 @@ const SCALE_LABELS: Array[String] = ["1.25x", "1.5x", "2x"]
 # ==============================================================================
 # 📊 INTERNAL STATE
 # ==============================================================================
-var studio_window: ProductivityStudio = null
+var studio_window: Window = null
 var current_scale_index: int = 0 # 0 -> 1.25x (Default), 1 -> 1.5x, 2 -> 2.0x
 var is_pinned: bool = false
 var is_position_locked: bool = false
@@ -112,11 +112,7 @@ func _setup_window() -> void:
 	if right_panel_container:
 		right_panel_container.visible = is_right_open
 		
-	# Instantiate Productivity Studio Window
-	var studio_scene = load("res://scenes/productivity/ProductivityStudio.tscn")
-	if studio_scene:
-		studio_window = studio_scene.instantiate() as ProductivityStudio
-		add_child(studio_window)
+	# Productivity Studio Window is created lazily on first open
 
 func _connect_signals() -> void:
 	# Header Dragging on HeaderBar and Title Label
@@ -493,7 +489,16 @@ func _update_preset_button_display() -> void:
 	var short_name = preset.get("short_name", "25/5")
 	preset_btn.text = "⚙ %s" % short_name
 
+func _ensure_studio_window() -> void:
+	if studio_window:
+		return
+	var studio_scene = load("res://scenes/productivity/ProductivityStudio.tscn")
+	if studio_scene:
+		studio_window = studio_scene.instantiate() as Window
+		add_child(studio_window)
+
 func toggle_productivity_studio(tab: String = "dtr") -> void:
+	_ensure_studio_window()
 	if not studio_window:
 		return
 	if studio_window.visible:
@@ -502,6 +507,7 @@ func toggle_productivity_studio(tab: String = "dtr") -> void:
 		open_productivity_studio(tab)
 
 func open_productivity_studio(tab: String = "dtr") -> void:
+	_ensure_studio_window()
 	if not studio_window:
 		return
 	if not studio_window.visible:
