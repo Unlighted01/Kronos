@@ -2,7 +2,7 @@ extends Control
 class_name SplashIntro
 
 ## 🎬 Retro Boot Animation Card for Kronos.
-## Plays an indie studio reveal, glowing celestial hourglass particle animation,
+## Plays an indie studio reveal, glowing Crowned Shiba Pet RPG emblem animation,
 ## and retro crystal chime fanfare on game launch.
 
 signal splash_finished()
@@ -10,7 +10,7 @@ signal splash_finished()
 @onready var bg_rect: ColorRect = $Background
 @onready var studio_label: Label = $CenterContainer/VBox/StudioLabel
 @onready var logo_container: VBoxContainer = $CenterContainer/VBox/LogoContainer
-@onready var hourglass_canvas: Control = $CenterContainer/VBox/LogoContainer/HourglassCanvas
+@onready var emblem_canvas: Control = $CenterContainer/VBox/LogoContainer/EmblemCanvas
 @onready var title_label: Label = $CenterContainer/VBox/LogoContainer/TitleLabel
 @onready var subtitle_label: Label = $CenterContainer/VBox/LogoContainer/SubtitleLabel
 @onready var prompt_label: Label = $CenterContainer/VBox/PromptLabel
@@ -24,9 +24,9 @@ func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	
-	# Connect hourglass drawing
-	if hourglass_canvas:
-		hourglass_canvas.draw.connect(_on_hourglass_draw)
+	# Connect emblem drawing
+	if emblem_canvas:
+		emblem_canvas.draw.connect(_on_emblem_draw)
 	
 	# Initial visibility states
 	if studio_label:
@@ -37,7 +37,7 @@ func _ready() -> void:
 		prompt_label.modulate.a = 0.0
 		
 	# Spawn initial sparkles
-	for i in range(16):
+	for i in range(18):
 		_spawn_sparkle()
 		
 	_start_boot_sequence()
@@ -57,8 +57,8 @@ func _process(delta: float) -> void:
 	if prompt_label and prompt_label.modulate.a > 0.1:
 		prompt_label.modulate.a = 0.4 + 0.6 * abs(sin(_time * 4.0))
 		
-	if hourglass_canvas:
-		hourglass_canvas.queue_redraw()
+	if emblem_canvas:
+		emblem_canvas.queue_redraw()
 
 func _start_boot_sequence() -> void:
 	# 1. Play grand crystal chime fanfare
@@ -72,7 +72,7 @@ func _start_boot_sequence() -> void:
 	tween.tween_interval(0.5)
 	tween.tween_property(studio_label, "modulate:a", 0.0, 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	
-	# Stage 2: Kronos Game Logo & Hourglass Reveal (1.2s - 2.8s)
+	# Stage 2: Kronos Game Logo & Pet RPG Emblem Reveal (1.2s - 2.8s)
 	tween.tween_callback(func():
 		if studio_label: studio_label.visible = false
 	)
@@ -98,73 +98,127 @@ func _finish_intro() -> void:
 	)
 
 # ==============================================================================
-# 🎨 PROCEDURAL PARTICLES & HOURGLASS DRAWING
+# 🎨 PROCEDURAL PARTICLES & SHIBA PET RPG EMBLEM DRAWING
 # ==============================================================================
 func _spawn_sparkle() -> void:
 	_particles.append({
-		"x": randf_range(-24, 24),
-		"y": randf_range(-16, 16),
-		"vx": randf_range(-5, 5),
-		"vy": randf_range(-12, -3),
-		"life": randf_range(0.8, 1.8),
-		"max_life": 1.8,
-		"size": randf_range(1.5, 3.0),
-		"color": Color(0.96, 0.78, 0.25) if randf() > 0.4 else Color(0.22, 0.74, 0.97)
+		"angle": randf_range(0, TAU),
+		"dist": randf_range(18, 36),
+		"speed": randf_range(0.8, 2.2),
+		"life": randf_range(1.0, 2.2),
+		"max_life": 2.2,
+		"size": randf_range(1.5, 3.5),
+		"color": Color(0.96, 0.78, 0.25) if randf() > 0.35 else Color(0.31, 0.82, 0.91)
 	})
 
 func _update_sparkles(delta: float) -> void:
 	for i in range(_particles.size() - 1, -1, -1):
 		var p = _particles[i]
 		p["life"] -= delta
-		p["x"] += p["vx"] * delta
-		p["y"] += p["vy"] * delta
+		p["angle"] += p["speed"] * delta
 		if p["life"] <= 0:
 			_particles.remove_at(i)
-			if _particles.size() < 12:
+			if _particles.size() < 16:
 				_spawn_sparkle()
 
-func _on_hourglass_draw() -> void:
-	if not hourglass_canvas:
+func _on_emblem_draw() -> void:
+	if not emblem_canvas:
 		return
-	var cx: float = hourglass_canvas.size.x * 0.5
-	var cy: float = hourglass_canvas.size.y * 0.5
+	var cx: float = emblem_canvas.size.x * 0.5
+	var cy: float = emblem_canvas.size.y * 0.5 + sin(_time * 3.0) * 1.5 # Gentle pet breathing bob
 	
-	# Top & Bottom Golden Pediments
-	hourglass_canvas.draw_rect(Rect2(cx - 20, cy - 26, 40, 5), Color(0.96, 0.62, 0.04)) # Top Base
-	hourglass_canvas.draw_rect(Rect2(cx - 18, cy - 28, 36, 2), Color(0.99, 0.94, 0.54)) # Top Highlight
-	hourglass_canvas.draw_rect(Rect2(cx - 20, cy + 21, 40, 5), Color(0.96, 0.62, 0.04)) # Bottom Base
-	hourglass_canvas.draw_rect(Rect2(cx - 18, cy + 21, 36, 2), Color(0.99, 0.94, 0.54)) # Bottom Highlight
+	# 1. Dark Celestial Crest Shield / Medallion
+	var crest_radius: float = 26.0
+	emblem_canvas.draw_circle(Vector2(cx, cy), crest_radius + 2.0, Color(0.96, 0.78, 0.25, 0.9)) # Gold Outer Rim
+	emblem_canvas.draw_circle(Vector2(cx, cy), crest_radius, Color(0.06, 0.07, 0.12, 0.95)) # Obsidian Center
+	emblem_canvas.draw_arc(Vector2(cx, cy), crest_radius - 2.0, 0, TAU, 32, Color(0.31, 0.82, 0.91, 0.4), 1.0)
 	
-	# Outer Pillars
-	hourglass_canvas.draw_rect(Rect2(cx - 19, cy - 21, 3, 42), Color(0.85, 0.47, 0.04))
-	hourglass_canvas.draw_rect(Rect2(cx + 16, cy - 21, 3, 42), Color(0.85, 0.47, 0.04))
+	# 2. Shiba Inu Pet Head & Ears
+	var ear_twitch: float = sin(_time * 5.0) * 1.0
 	
-	# Glass Bulbs
-	for y in range(int(cy - 20), int(cy + 20)):
-		var ny: float = (float(y) - cy) / 20.0
-		var hw: float = 14.0 * (ny * ny * 0.75 + 0.25)
-		hourglass_canvas.draw_rect(Rect2(cx - hw, y, hw * 2.0, 1), Color(0.08, 0.12, 0.24, 0.7))
+	# Left Ear (Honey Gold + Pink Inner)
+	var left_ear_pts: PackedVector2Array = [
+		Vector2(cx - 16, cy - 8 + ear_twitch),
+		Vector2(cx - 9, cy - 20 + ear_twitch),
+		Vector2(cx - 4, cy - 9 + ear_twitch)
+	]
+	emblem_canvas.draw_colored_polygon(left_ear_pts, Color(0.85, 0.47, 0.04))
+	var left_ear_inner: PackedVector2Array = [
+		Vector2(cx - 14, cy - 9 + ear_twitch),
+		Vector2(cx - 9, cy - 18 + ear_twitch),
+		Vector2(cx - 6, cy - 10 + ear_twitch)
+	]
+	emblem_canvas.draw_colored_polygon(left_ear_inner, Color(0.98, 0.55, 0.68))
+	
+	# Right Ear (Honey Gold + Pink Inner)
+	var right_ear_pts: PackedVector2Array = [
+		Vector2(cx + 4, cy - 9 - ear_twitch),
+		Vector2(cx + 9, cy - 20 - ear_twitch),
+		Vector2(cx + 16, cy - 8 - ear_twitch)
+	]
+	emblem_canvas.draw_colored_polygon(right_ear_pts, Color(0.85, 0.47, 0.04))
+	var right_ear_inner: PackedVector2Array = [
+		Vector2(cx + 6, cy - 10 - ear_twitch),
+		Vector2(cx + 9, cy - 18 - ear_twitch),
+		Vector2(cx + 14, cy - 9 - ear_twitch)
+	]
+	emblem_canvas.draw_colored_polygon(right_ear_inner, Color(0.98, 0.55, 0.68))
+	
+	# Head (Honey Gold Base)
+	emblem_canvas.draw_rect(Rect2(cx - 14, cy - 10, 28, 20), Color(0.96, 0.62, 0.04))
+	emblem_canvas.draw_circle(Vector2(cx, cy), 13.0, Color(0.96, 0.62, 0.04))
+	
+	# Cream Cheeks & Muzzle
+	emblem_canvas.draw_circle(Vector2(cx - 7, cy + 4), 6.0, Color(0.99, 0.95, 0.78))
+	emblem_canvas.draw_circle(Vector2(cx + 7, cy + 4), 6.0, Color(0.99, 0.95, 0.78))
+	emblem_canvas.draw_rect(Rect2(cx - 6, cy + 1, 12, 8), Color(0.99, 0.95, 0.78))
+	
+	# Tiny Black Nose
+	emblem_canvas.draw_rect(Rect2(cx - 2, cy + 2, 4, 3), Color(0.12, 0.06, 0.02))
+	
+	# Anime Eyes with Specular Sparkle (with periodic blink)
+	var is_blinking: bool = fmod(_time, 3.2) < 0.15
+	if is_blinking:
+		emblem_canvas.draw_rect(Rect2(cx - 9, cy - 2, 5, 2), Color(0.12, 0.06, 0.02))
+		emblem_canvas.draw_rect(Rect2(cx + 4, cy - 2, 5, 2), Color(0.12, 0.06, 0.02))
+	else:
+		# Left Eye
+		emblem_canvas.draw_rect(Rect2(cx - 9, cy - 4, 5, 5), Color(0.12, 0.06, 0.02))
+		emblem_canvas.draw_rect(Rect2(cx - 8, cy - 3, 2, 2), Color(1.0, 1.0, 1.0)) # Specular dot
+		# Right Eye
+		emblem_canvas.draw_rect(Rect2(cx + 4, cy - 4, 5, 5), Color(0.12, 0.06, 0.02))
+		emblem_canvas.draw_rect(Rect2(cx + 5, cy - 3, 2, 2), Color(1.0, 1.0, 1.0)) # Specular dot
 		
-		# Glowing Falling Sand
-		if y < cy - 2:
-			var sand_w: float = hw - 2.0
-			if sand_w > 0:
-				hourglass_canvas.draw_rect(Rect2(cx - sand_w, y, sand_w * 2.0, 1), Color(0.96, 0.62, 0.04, 0.9))
-		elif y >= cy - 2 and y <= cy + 6:
-			# Stream
-			hourglass_canvas.draw_rect(Rect2(cx - 1, y, 2, 1), Color(0.99, 0.94, 0.54))
-		elif y > cy + 6:
-			# Bottom Cyan Dune
-			var dune_w: float = (float(y) - (cy + 6)) / 14.0 * (hw - 1.0)
-			hourglass_canvas.draw_rect(Rect2(cx - dune_w, y, dune_w * 2.0, 1), Color(0.22, 0.74, 0.97, 0.9))
-			
-		# Glass Reflection
-		hourglass_canvas.draw_rect(Rect2(cx - hw, y, 1, 1), Color(0.73, 0.90, 0.99, 0.8))
-		hourglass_canvas.draw_rect(Rect2(cx + hw - 1, y, 1, 1), Color(0.05, 0.41, 0.63, 0.8))
-		
-	# Draw sparkle particles
+	# Rosy Blush Cheeks
+	emblem_canvas.draw_circle(Vector2(cx - 10, cy + 3), 3.0, Color(0.98, 0.45, 0.55, 0.7))
+	emblem_canvas.draw_circle(Vector2(cx + 10, cy + 3), 3.0, Color(0.98, 0.45, 0.55, 0.7))
+	
+	# 3. Golden Sovereign RPG Crown
+	var crown_y: float = cy - 14.0
+	var crown_pts: PackedVector2Array = [
+		Vector2(cx - 8, crown_y),
+		Vector2(cx - 10, crown_y - 8),
+		Vector2(cx - 4, crown_y - 4),
+		Vector2(cx, crown_y - 10),
+		Vector2(cx + 4, crown_y - 4),
+		Vector2(cx + 10, crown_y - 8),
+		Vector2(cx + 8, crown_y)
+	]
+	emblem_canvas.draw_colored_polygon(crown_pts, Color(0.96, 0.78, 0.25))
+	# Crown Rim & Ruby Gem
+	emblem_canvas.draw_rect(Rect2(cx - 7, crown_y - 1, 14, 2), Color(0.99, 0.94, 0.54))
+	emblem_canvas.draw_rect(Rect2(cx - 1.5, crown_y - 5, 3, 3), Color(0.95, 0.25, 0.35)) # Centered Ruby Gem
+	
+	# 4. Celestial Orbiting Sparkles & Magic Stars
 	for p in _particles:
 		var alpha: float = clampf(p["life"] / p["max_life"], 0.0, 1.0)
+		var px: float = cx + cos(p["angle"]) * p["dist"]
+		var py: float = cy + sin(p["angle"]) * p["dist"] * 0.7
 		var c: Color = p["color"]
 		c.a = alpha
-		hourglass_canvas.draw_rect(Rect2(cx + p["x"], cy + p["y"], p["size"], p["size"]), c)
+		
+		# Draw 4-point pixel star
+		var s: float = p["size"]
+		emblem_canvas.draw_rect(Rect2(px - s * 0.5, py - s * 0.5, s, s), c)
+		emblem_canvas.draw_rect(Rect2(px - s, py - 0.5, s * 2.0, 1.0), c)
+		emblem_canvas.draw_rect(Rect2(px - 0.5, py - s, 1.0, s * 2.0), c)

@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://b8m9k0p1q2r3s"]
+[gd_scene load_steps=8 format=3 uid="uid://b8m9k0p1q2r3s"]
 
 [ext_resource type="Theme" uid="uid://b5g2j8k1m3n4p" path="res://themes/pixel_theme.tres" id="1_theme"]
 [ext_resource type="Script" path="res://scenes/productivity/DTRStudioTab.gd" id="2_dtr"]
@@ -13,7 +13,7 @@ border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
-border_color = Color(0.160784, 0.192157, 0.262745, 1)
+border_color = Color(0.145098, 0.164706, 0.25098, 1)
 corner_radius_top_left = 4
 corner_radius_top_right = 4
 corner_radius_bottom_right = 4
@@ -39,13 +39,29 @@ border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.309804, 0.819608, 0.909804, 1)
+border_color = Color(0.145098, 0.164706, 0.25098, 1)
 corner_radius_top_left = 6
 corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
-shadow_color = Color(0, 0, 0, 0.6)
+shadow_color = Color(0, 0, 0, 0.7)
 shadow_size = 14
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_punch_badge"]
+content_margin_left = 10.0
+content_margin_top = 6.0
+content_margin_right = 10.0
+content_margin_bottom = 6.0
+bg_color = Color(0.0352941, 0.0431373, 0.0745098, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.207843, 0.235294, 0.360784, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
 
 [node name="DTRStudioTab" type="Control"]
 layout_mode = 3
@@ -72,32 +88,43 @@ horizontal_scroll_mode = 0
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_constants/separation = 10
+theme_override_constants/separation = 8
 
-[node name="StatsRow" type="HBoxContainer" parent="Scroll/ContentVBox"]
+[node name="GoalAndActionsRow" type="HBoxContainer" parent="Scroll/ContentVBox"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="GoalCard" type="PanelContainer" parent="Scroll/ContentVBox/StatsRow"]
+[node name="GoalCard" type="PanelContainer" parent="Scroll/ContentVBox/GoalAndActionsRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_styles/panel = SubResource("StyleBoxFlat_card")
 
-[node name="VBox" type="VBoxContainer" parent="Scroll/ContentVBox/StatsRow/GoalCard"]
+[node name="VBox" type="VBoxContainer" parent="Scroll/ContentVBox/GoalAndActionsRow/GoalCard"]
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="Title" type="Label" parent="Scroll/ContentVBox/StatsRow/GoalCard/VBox"]
+[node name="HeaderHBox" type="HBoxContainer" parent="Scroll/ContentVBox/GoalAndActionsRow/GoalCard/VBox"]
 layout_mode = 2
+
+[node name="Title" type="Label" parent="Scroll/ContentVBox/GoalAndActionsRow/GoalCard/VBox/HeaderHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.309804, 0.819608, 0.909804, 1)
-theme_override_font_sizes/font_size = 9
+theme_override_font_sizes/font_size = 10
 text = "🎯 DAILY FOCUS GOAL"
 
-[node name="HBox" type="HBoxContainer" parent="Scroll/ContentVBox/StatsRow/GoalCard/VBox"]
+[node name="GoalTargetOption" type="OptionButton" parent="Scroll/ContentVBox/GoalAndActionsRow/GoalCard/VBox/HeaderHBox"]
+custom_minimum_size = Vector2(90, 22)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 8
+
+[node name="HBox" type="HBoxContainer" parent="Scroll/ContentVBox/GoalAndActionsRow/GoalCard/VBox"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="GoalProgressBar" type="ProgressBar" parent="Scroll/ContentVBox/StatsRow/GoalCard/VBox/HBox"]
+[node name="GoalProgressBar" type="ProgressBar" parent="Scroll/ContentVBox/GoalAndActionsRow/GoalCard/VBox/HBox"]
 custom_minimum_size = Vector2(0, 10)
 layout_mode = 2
 size_flags_horizontal = 3
@@ -106,65 +133,98 @@ theme_override_styles/fill = SubResource("StyleBoxFlat_goal_fill")
 value = 75.0
 show_percentage = false
 
-[node name="GoalValueLabel" type="Label" parent="Scroll/ContentVBox/StatsRow/GoalCard/VBox/HBox"]
+[node name="GoalValueLabel" type="Label" parent="Scroll/ContentVBox/GoalAndActionsRow/GoalCard/VBox/HBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.960784, 0.803922, 0.47451, 1)
 theme_override_font_sizes/font_size = 9
 text = "3.0h / 4.0h (75%)"
 
-[node name="BadgesCard" type="PanelContainer" parent="Scroll/ContentVBox/StatsRow"]
+[node name="ActionsCard" type="PanelContainer" parent="Scroll/ContentVBox/GoalAndActionsRow"]
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_card")
 
-[node name="HBox" type="HBoxContainer" parent="Scroll/ContentVBox/StatsRow/BadgesCard"]
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="StreakLabel" type="Label" parent="Scroll/ContentVBox/StatsRow/BadgesCard/HBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.54902, 0.239216, 1)
-theme_override_font_sizes/font_size = 9
-text = "🔥 0 Days"
-
-[node name="TotalHoursLabel" type="Label" parent="Scroll/ContentVBox/StatsRow/BadgesCard/HBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.454902, 0.72549, 1, 1)
-theme_override_font_sizes/font_size = 9
-text = "⏱️ 0.0h Total"
-
-[node name="SprintsLabel" type="Label" parent="Scroll/ContentVBox/StatsRow/BadgesCard/HBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.305882, 0.8, 0.639216, 1)
-theme_override_font_sizes/font_size = 9
-text = "⚡ 0 Sprints"
-
-[node name="ActionsHBox" type="HBoxContainer" parent="Scroll/ContentVBox/StatsRow"]
+[node name="HBox" type="HBoxContainer" parent="Scroll/ContentVBox/GoalAndActionsRow/ActionsCard"]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="BtnCopyStandup" type="Button" parent="Scroll/ContentVBox/StatsRow/ActionsHBox"]
-custom_minimum_size = Vector2(95, 26)
+[node name="BtnCopyStandup" type="Button" parent="Scroll/ContentVBox/GoalAndActionsRow/ActionsCard/HBox"]
+custom_minimum_size = Vector2(80, 24)
 layout_mode = 2
 focus_mode = 0
 mouse_default_cursor_shape = 2
 theme_override_font_sizes/font_size = 9
 text = "📋 Standup"
 
-[node name="BtnExportCsv" type="Button" parent="Scroll/ContentVBox/StatsRow/ActionsHBox"]
-custom_minimum_size = Vector2(70, 26)
+[node name="BtnCopyRetro" type="Button" parent="Scroll/ContentVBox/GoalAndActionsRow/ActionsCard/HBox"]
+custom_minimum_size = Vector2(70, 24)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 9
+text = "📓 Retro"
+
+[node name="BtnExportCsv" type="Button" parent="Scroll/ContentVBox/GoalAndActionsRow/ActionsCard/HBox"]
+custom_minimum_size = Vector2(60, 24)
 layout_mode = 2
 focus_mode = 0
 mouse_default_cursor_shape = 2
 theme_override_font_sizes/font_size = 9
 text = "📊 CSV"
 
-[node name="BtnAddSession" type="Button" parent="Scroll/ContentVBox/StatsRow/ActionsHBox"]
-custom_minimum_size = Vector2(95, 26)
+[node name="BtnBackupJson" type="Button" parent="Scroll/ContentVBox/GoalAndActionsRow/ActionsCard/HBox"]
+custom_minimum_size = Vector2(60, 24)
 layout_mode = 2
 focus_mode = 0
 mouse_default_cursor_shape = 2
 theme_override_font_sizes/font_size = 9
-text = "➕ Add Record"
+text = "💾 Backup"
+
+[node name="BtnFocusNow" type="Button" parent="Scroll/ContentVBox/GoalAndActionsRow/ActionsCard/HBox"]
+custom_minimum_size = Vector2(70, 24)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 9
+text = "⏱️ Punch"
+
+[node name="BadgesCard" type="PanelContainer" parent="Scroll/ContentVBox"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="HBox" type="HBoxContainer" parent="Scroll/ContentVBox/BadgesCard"]
+layout_mode = 2
+theme_override_constants/separation = 14
+alignment = 1
+
+[node name="StreakLabel" type="Label" parent="Scroll/ContentVBox/BadgesCard/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.54902, 0.239216, 1)
+theme_override_font_sizes/font_size = 9
+text = "🔥 0 Days"
+
+[node name="WeeklyVelocityLabel" type="Label" parent="Scroll/ContentVBox/BadgesCard/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.96, 0.75, 0.2, 1)
+theme_override_font_sizes/font_size = 9
+text = "⚡ 0.0h (+0%)"
+
+[node name="PeakFlowLabel" type="Label" parent="Scroll/ContentVBox/BadgesCard/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.309804, 0.819608, 0.909804, 1)
+theme_override_font_sizes/font_size = 9
+text = "🕒 Peak: Afternoon Prime"
+
+[node name="TotalHoursLabel" type="Label" parent="Scroll/ContentVBox/BadgesCard/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.454902, 0.72549, 1, 1)
+theme_override_font_sizes/font_size = 9
+text = "⏱️ 0.0h Total"
+
+[node name="SprintsLabel" type="Label" parent="Scroll/ContentVBox/BadgesCard/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.305882, 0.8, 0.639216, 1)
+theme_override_font_sizes/font_size = 9
+text = "⚡ 0 Sprints"
 
 [node name="ChartsRow" type="HBoxContainer" parent="Scroll/ContentVBox"]
 layout_mode = 2
@@ -185,8 +245,8 @@ layout_mode = 2
 [node name="Title" type="Label" parent="Scroll/ContentVBox/ChartsRow/HeatmapCard/VBox/HeaderHBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.960784, 0.803922, 0.47451, 1)
-theme_override_font_sizes/font_size = 9
-text = "🗓️ 60-DAY FOCUS CONSISTENCY"
+theme_override_font_sizes/font_size = 10
+text = "🗓️ 60-DAY CONSISTENCY"
 
 [node name="Spacer" type="Control" parent="Scroll/ContentVBox/ChartsRow/HeatmapCard/VBox/HeaderHBox"]
 layout_mode = 2
@@ -194,23 +254,23 @@ size_flags_horizontal = 3
 
 [node name="BtnClearDayFilter" type="Button" parent="Scroll/ContentVBox/ChartsRow/HeatmapCard/VBox/HeaderHBox"]
 visible = false
-custom_minimum_size = Vector2(80, 20)
+custom_minimum_size = Vector2(70, 20)
 layout_mode = 2
 focus_mode = 0
 mouse_default_cursor_shape = 2
 theme_override_font_sizes/font_size = 8
-text = "✕ Clear Filter"
+text = "✕ Clear"
 
 [node name="LegendLabel" type="Label" parent="Scroll/ContentVBox/ChartsRow/HeatmapCard/VBox/HeaderHBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.55, 0.6, 0.7, 1)
 theme_override_font_sizes/font_size = 8
-text = "Less ░ ▒ ▓ █ More"
+text = "░ ▒ ▓ █"
 
 [node name="HeatmapGrid" type="GridContainer" parent="Scroll/ContentVBox/ChartsRow/HeatmapCard/VBox"]
 layout_mode = 2
-theme_override_constants/h_separation = 3
-theme_override_constants/v_separation = 3
+theme_override_constants/h_separation = 2
+theme_override_constants/v_separation = 2
 columns = 12
 
 [node name="SelectedDayLabel" type="Label" parent="Scroll/ContentVBox/ChartsRow/HeatmapCard/VBox"]
@@ -219,35 +279,50 @@ theme_override_colors/font_color = Color(0.54902, 0.6, 0.709804, 1)
 theme_override_font_sizes/font_size = 8
 text = "💡 Click any square above to filter sessions for that date."
 
-[node name="CategoryCard" type="PanelContainer" parent="Scroll/ContentVBox/ChartsRow"]
-custom_minimum_size = Vector2(240, 0)
+[node name="RightChartsCard" type="PanelContainer" parent="Scroll/ContentVBox/ChartsRow"]
 layout_mode = 2
+size_flags_horizontal = 3
 theme_override_styles/panel = SubResource("StyleBoxFlat_card")
 
-[node name="VBox" type="VBoxContainer" parent="Scroll/ContentVBox/ChartsRow/CategoryCard"]
+[node name="VBox" type="VBoxContainer" parent="Scroll/ContentVBox/ChartsRow/RightChartsCard"]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="HeaderHBox" type="HBoxContainer" parent="Scroll/ContentVBox/ChartsRow/CategoryCard/VBox"]
+[node name="HeaderHBox" type="HBoxContainer" parent="Scroll/ContentVBox/ChartsRow/RightChartsCard/VBox"]
 layout_mode = 2
 
-[node name="Title" type="Label" parent="Scroll/ContentVBox/ChartsRow/CategoryCard/VBox/HeaderHBox"]
+[node name="Title" type="Label" parent="Scroll/ContentVBox/ChartsRow/RightChartsCard/VBox/HeaderHBox"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.960784, 0.803922, 0.47451, 1)
-theme_override_font_sizes/font_size = 9
-text = "📊 CATEGORIES"
+theme_override_font_sizes/font_size = 10
+text = "📊 CATEGORIES & 24H FLOW"
 
-[node name="TimeframeOption" type="OptionButton" parent="Scroll/ContentVBox/ChartsRow/CategoryCard/VBox/HeaderHBox"]
-custom_minimum_size = Vector2(90, 22)
+[node name="TimeframeOption" type="OptionButton" parent="Scroll/ContentVBox/ChartsRow/RightChartsCard/VBox/HeaderHBox"]
+custom_minimum_size = Vector2(85, 22)
 layout_mode = 2
 focus_mode = 0
 mouse_default_cursor_shape = 2
 theme_override_font_sizes/font_size = 8
 
-[node name="CategoryBarsVBox" type="VBoxContainer" parent="Scroll/ContentVBox/ChartsRow/CategoryCard/VBox"]
+[node name="CategoryBarsVBox" type="VBoxContainer" parent="Scroll/ContentVBox/ChartsRow/RightChartsCard/VBox"]
 layout_mode = 2
-theme_override_constants/separation = 5
+theme_override_constants/separation = 3
+
+[node name="HourlySubVBox" type="VBoxContainer" parent="Scroll/ContentVBox/ChartsRow/RightChartsCard/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="SubTitle" type="Label" parent="Scroll/ContentVBox/ChartsRow/RightChartsCard/VBox/HourlySubVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.309804, 0.819608, 0.909804, 1)
+theme_override_font_sizes/font_size = 8
+text = "⚡ 24H Hourly Flow Distribution"
+
+[node name="HourlyBarsHBox" type="HBoxContainer" parent="Scroll/ContentVBox/ChartsRow/RightChartsCard/VBox/HourlySubVBox"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+theme_override_constants/separation = 1
 
 [node name="TableCard" type="PanelContainer" parent="Scroll/ContentVBox"]
 layout_mode = 2
@@ -265,43 +340,47 @@ theme_override_constants/separation = 8
 [node name="Title" type="Label" parent="Scroll/ContentVBox/TableCard/VBox/TableHeader"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.309804, 0.819608, 0.909804, 1)
-theme_override_font_sizes/font_size = 9
-text = "📝 SESSION HISTORY"
+theme_override_font_sizes/font_size = 10
+text = "📝 SESSIONS"
+
+[node name="CategoryFilterOption" type="OptionButton" parent="Scroll/ContentVBox/TableCard/VBox/TableHeader"]
+custom_minimum_size = Vector2(95, 22)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 8
 
 [node name="FilterStatusLabel" type="Label" parent="Scroll/ContentVBox/TableCard/VBox/TableHeader"]
 visible = false
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.843137, 0, 1)
 theme_override_font_sizes/font_size = 8
-text = "📅 [2026-08-29]"
+text = "📅 [2026-08-30]"
 
 [node name="SearchInput" type="LineEdit" parent="Scroll/ContentVBox/TableCard/VBox/TableHeader"]
-custom_minimum_size = Vector2(170, 24)
+custom_minimum_size = Vector2(140, 22)
 layout_mode = 2
+size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 8
-placeholder_text = "Search task or category..."
+placeholder_text = "Search task, tag, or note..."
 
 [node name="BtnResetFilter" type="Button" parent="Scroll/ContentVBox/TableCard/VBox/TableHeader"]
 visible = false
-custom_minimum_size = Vector2(65, 22)
+custom_minimum_size = Vector2(60, 20)
 layout_mode = 2
 focus_mode = 0
 mouse_default_cursor_shape = 2
 theme_override_font_sizes/font_size = 8
 text = "↺ Reset"
 
-[node name="Spacer" type="Control" parent="Scroll/ContentVBox/TableCard/VBox/TableHeader"]
-layout_mode = 2
-size_flags_horizontal = 3
-
 [node name="RecordCountLabel" type="Label" parent="Scroll/ContentVBox/TableCard/VBox/TableHeader"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.55, 0.6, 0.7, 1)
 theme_override_font_sizes/font_size = 8
-text = "0 Sessions"
+text = "0 Punches"
 
 [node name="TableScroll" type="ScrollContainer" parent="Scroll/ContentVBox/TableCard/VBox"]
-custom_minimum_size = Vector2(0, 140)
+custom_minimum_size = Vector2(0, 120)
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
@@ -325,79 +404,118 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_modal_bg")
 layout_mode = 2
 
 [node name="Card" type="PanelContainer" parent="ModalOverlay/Center"]
-custom_minimum_size = Vector2(320, 0)
+custom_minimum_size = Vector2(360, 0)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_modal_card")
 
 [node name="VBox" type="VBoxContainer" parent="ModalOverlay/Center/Card"]
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 6
 
 [node name="ModalTitle" type="Label" parent="ModalOverlay/Center/Card/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.960784, 0.803922, 0.47451, 1)
 theme_override_font_sizes/font_size = 11
-text = "✏️ Edit Focus Session"
+text = "📝 Session Accomplishments & Standup Notes"
 horizontal_alignment = 1
+
+[node name="PunchCard" type="PanelContainer" parent="ModalOverlay/Center/Card/VBox"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_punch_badge")
+
+[node name="VBox" type="VBoxContainer" parent="ModalOverlay/Center/Card/VBox/PunchCard"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="PunchBadgeLabel" type="Label" parent="ModalOverlay/Center/Card/VBox/PunchCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.309804, 0.819608, 0.909804, 1)
+theme_override_font_sizes/font_size = 8
+text = "🔒 BIOMETRIC VERIFIED TIME PUNCH"
+
+[node name="PunchTimeLabel" type="Label" parent="ModalOverlay/Center/Card/VBox/PunchCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.9, 0.95, 1)
+theme_override_font_sizes/font_size = 8
+text = "📅 2026-08-30  |  ⏱️ 14:00 - 14:25 (25 mins)"
+
+[node name="PunchRewardsLabel" type="Label" parent="ModalOverlay/Center/Card/VBox/PunchCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.96, 0.75, 0.2, 1)
+theme_override_font_sizes/font_size = 7
+text = "🪙 +50 Coins  |  ✨ +250 EXP  |  ✅ Status: Verified Complete"
 
 [node name="TaskLabel" type="Label" parent="ModalOverlay/Center/Card/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
 theme_override_font_sizes/font_size = 8
-text = "Task Description:"
+text = "Task Title / Summary:"
 
 [node name="TaskInput" type="LineEdit" parent="ModalOverlay/Center/Card/VBox"]
-custom_minimum_size = Vector2(0, 24)
+custom_minimum_size = Vector2(0, 22)
 layout_mode = 2
 theme_override_font_sizes/font_size = 8
-placeholder_text = "e.g. Build Auth System"
+placeholder_text = "e.g. Build Auth System #backend"
 
 [node name="CatLabel" type="Label" parent="ModalOverlay/Center/Card/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
 theme_override_font_sizes/font_size = 8
-text = "Category:"
+text = "Category / Department:"
 
 [node name="CategoryOption" type="OptionButton" parent="ModalOverlay/Center/Card/VBox"]
-custom_minimum_size = Vector2(0, 24)
+custom_minimum_size = Vector2(0, 22)
 layout_mode = 2
 theme_override_font_sizes/font_size = 8
 
-[node name="DateRow" type="HBoxContainer" parent="ModalOverlay/Center/Card/VBox"]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="DateVBox" type="VBoxContainer" parent="ModalOverlay/Center/Card/VBox/DateRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="DateLabel" type="Label" parent="ModalOverlay/Center/Card/VBox/DateRow/DateVBox"]
+[node name="NotesLabel" type="Label" parent="ModalOverlay/Center/Card/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
 theme_override_font_sizes/font_size = 8
-text = "Date (YYYY-MM-DD):"
+text = "📝 What did I do during this session? (Standup Notes):"
 
-[node name="DateInput" type="LineEdit" parent="ModalOverlay/Center/Card/VBox/DateRow/DateVBox"]
-custom_minimum_size = Vector2(0, 24)
+[node name="ShortcutsRow" type="HBoxContainer" parent="ModalOverlay/Center/Card/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="BtnDot" type="Button" parent="ModalOverlay/Center/Card/VBox/ShortcutsRow"]
+custom_minimum_size = Vector2(50, 18)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 7
+text = "• Bullet"
+
+[node name="BtnFeat" type="Button" parent="ModalOverlay/Center/Card/VBox/ShortcutsRow"]
+custom_minimum_size = Vector2(55, 18)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 7
+text = "✨ Feature"
+
+[node name="BtnFix" type="Button" parent="ModalOverlay/Center/Card/VBox/ShortcutsRow"]
+custom_minimum_size = Vector2(50, 18)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 7
+text = "🐛 Fix"
+
+[node name="BtnLearn" type="Button" parent="ModalOverlay/Center/Card/VBox/ShortcutsRow"]
+custom_minimum_size = Vector2(55, 18)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 7
+text = "📚 Learned"
+
+[node name="NotesTextEdit" type="TextEdit" parent="ModalOverlay/Center/Card/VBox"]
+custom_minimum_size = Vector2(0, 56)
 layout_mode = 2
 theme_override_font_sizes/font_size = 8
-
-[node name="DurVBox" type="VBoxContainer" parent="ModalOverlay/Center/Card/VBox/DateRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="DurLabel" type="Label" parent="ModalOverlay/Center/Card/VBox/DateRow/DurVBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
-theme_override_font_sizes/font_size = 8
-text = "Duration (Minutes):"
-
-[node name="DurationSpin" type="SpinBox" parent="ModalOverlay/Center/Card/VBox/DateRow/DurVBox"]
-custom_minimum_size = Vector2(0, 24)
-layout_mode = 2
-min_value = 1.0
-max_value = 360.0
-value = 25.0
+placeholder_text = "What was accomplished? Bullet points, key learnings, bug fixes..."
+wrap_mode = 1
 
 [node name="BtnRow" type="HBoxContainer" parent="ModalOverlay/Center/Card/VBox"]
 layout_mode = 2
@@ -405,15 +523,15 @@ theme_override_constants/separation = 8
 alignment = 1
 
 [node name="SaveBtn" type="Button" parent="ModalOverlay/Center/Card/VBox/BtnRow"]
-custom_minimum_size = Vector2(90, 26)
+custom_minimum_size = Vector2(95, 24)
 layout_mode = 2
 focus_mode = 0
 mouse_default_cursor_shape = 2
 theme_override_font_sizes/font_size = 9
-text = "💾 Save"
+text = "💾 Save Notes"
 
 [node name="DeleteBtn" type="Button" parent="ModalOverlay/Center/Card/VBox/BtnRow"]
-custom_minimum_size = Vector2(80, 26)
+custom_minimum_size = Vector2(80, 24)
 layout_mode = 2
 focus_mode = 0
 mouse_default_cursor_shape = 2
@@ -421,9 +539,9 @@ theme_override_font_sizes/font_size = 9
 text = "🗑️ Delete"
 
 [node name="CancelBtn" type="Button" parent="ModalOverlay/Center/Card/VBox/BtnRow"]
-custom_minimum_size = Vector2(70, 26)
+custom_minimum_size = Vector2(70, 24)
 layout_mode = 2
 focus_mode = 0
 mouse_default_cursor_shape = 2
 theme_override_font_sizes/font_size = 9
-text = "✕ Cancel"
+text = "✕ Close"

@@ -144,10 +144,19 @@ func log_session(session_record: Dictionary) -> void:
 	if EventBus:
 		EventBus.dtr_updated.emit()
 
-func update_session(created_unix: int, updated_record: Dictionary) -> bool:
+func update_session(created_unix: int, updated_fields: Dictionary) -> bool:
 	for i in range(_dtr_cache.size()):
 		if int(_dtr_cache[i].get("created_unix", 0)) == created_unix:
-			_dtr_cache[i] = updated_record
+			var record: Dictionary = _dtr_cache[i]
+			# Strictly update only reflection metadata (task title, category, notes)
+			if updated_fields.has("task_name"):
+				record["task_name"] = updated_fields["task_name"]
+			if updated_fields.has("category"):
+				record["category"] = updated_fields["category"]
+			if updated_fields.has("notes"):
+				record["notes"] = updated_fields["notes"]
+				
+			_dtr_cache[i] = record
 			save_dtr()
 			if EventBus:
 				EventBus.dtr_updated.emit()
@@ -315,6 +324,7 @@ func generate_standup_markdown(date_filter: String = "") -> String:
 			var cat: String = r.get("category", "General")
 			var task: String = r.get("task_name", "Focus Session")
 			var duration: int = r.get("duration_minutes", 25)
+			var notes: String = r.get("notes", "").strip_edges()
 			var time_str: String = r.get("start_time", "")
 			if not time_str.is_empty() and "T" in time_str:
 				var t_parts = time_str.split("T")[1].split(":")
@@ -324,24 +334,237 @@ func generate_standup_markdown(date_filter: String = "") -> String:
 				time_str = ""
 				
 			lines.append("- %s`[%s]` **%s** (%dm)" % [time_str, cat, task, duration])
+			if not notes.is_empty():
+				for n_line in notes.split("\n"):
+					var trimmed: String = n_line.strip_edges()
+					if not trimmed.is_empty():
+						if trimmed.begins_with("-") or trimmed.begins_with("*"):
+							lines.append("    %s" % trimmed)
+						else:
+							lines.append("    - %s" % trimmed)
 			
 	lines.append("\n*Generated automatically by Kronos Productivity Studio* ⏱️")
 	return "\n".join(lines)
+
+## Computes 24-hour focus distribution histogram (00:00 to 23:00)
+## Returns { "hours": Array[int](size 24), "peak_hour": int, "peak_minutes": int, "peak_label": String, "total_minutes": int }
+func get_hourly_focus_distribution(days: int = 30) -> Dictionary:
+	var hourly_mins: Array[int] = []
+	hourly_mins.resize(24)
+	hourly_mins.fill(0)
+	
+	var now_unix: int = int(Time.get_unix_time_from_system())
+	var cutoff_unix: int = now_unix - (days * 86400)
+	var total_period_min: int = 0
+	
+	for r in _dtr_cache:
+		var created_unix: int = int(r.get("created_unix", 0))
+		if created_unix < cutoff_unix:
+			continue
+			
+		var dur: int = r.get("duration_minutes", 25)
+		total_period_min += dur
+		
+		var start_time: String = r.get("start_time", "")
+		var hour: int = 12 # fallback noon
+		if not start_time.is_empty() and "T" in start_time:
+			var t_parts = start_time.split("T")[1].split(":")
+			if t_parts.size() >= 1:
+				hour = clampi(int(t_parts[0]), 0, 23)
+		else:
+			var dt = Time.get_datetime_dict_from_unix_time(created_unix)
+			hour = clampi(dt.get("hour", 12), 0, 23)
+			
+		hourly_mins[hour] += dur
+		
+	# Find peak hour
+	var peak_hour: int = 0
+	var peak_minutes: int = 0
+	for h in range(24):
+		if hourly_mins[h] > peak_minutes:
+			peak_minutes = hourly_mins[h]
+			peak_hour = h
+			
+	var peak_label: String = "Balanced Flow"
+	if peak_hour >= 5 and peak_hour < 12:
+		peak_label = "Morning Deep Work (%02d:00 - %02d:00)" % [peak_hour, (peak_hour + 1) % 24]
+	elif peak_hour >= 12 and peak_hour < 18:
+		peak_label = "Afternoon Prime (%02d:00 - %02d:00)" % [peak_hour, (peak_hour + 1) % 24]
+	elif peak_hour >= 18 and peak_hour < 23:
+		peak_label = "Evening Sprint (%02d:00 - %02d:00)" % [peak_hour, (peak_hour + 1) % 24]
+	else:
+		peak_label = "Night Owl Flow (%02d:00 - %02d:00)" % [peak_hour, (peak_hour + 1) % 24]
+		
+	return {
+		"hours": hourly_mins,
+		"peak_hour": peak_hour,
+		"peak_minutes": peak_minutes,
+		"peak_label": peak_label,
+		"total_minutes": total_period_min
+	}
+
+## Calculates weekly velocity comparison and productive day of week
+func get_weekly_velocity_stats() -> Dictionary:
+	var now_unix: int = int(Time.get_unix_time_from_system())
+	var this_week_start: int = now_unix - (7 * 86400)
+	var last_week_start: int = now_unix - (14 * 86400)
+	
+	var this_week_mins: int = 0
+	var last_week_mins: int = 0
+	var weekday_mins: Dictionary = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0} # Sunday(0) to Saturday(6) or Godot weekday
+	var active_days: Dictionary = {}
+	
+	for r in _dtr_cache:
+		var unix: int = int(r.get("created_unix", 0))
+		var dur: int = r.get("duration_minutes", 0)
+		var date_k: String = r.get("date_key", "")
+		
+		if unix >= this_week_start:
+			this_week_mins += dur
+			active_days[date_k] = true
+			
+			var dt = Time.get_date_dict_from_unix_time(unix)
+			var wday = dt.get("weekday", 0)
+			weekday_mins[wday] = weekday_mins.get(wday, 0) + dur
+		elif unix >= last_week_start and unix < this_week_start:
+			last_week_mins += dur
+			
+	var diff_mins: int = this_week_mins - last_week_mins
+	var pct_change: float = 0.0
+	if last_week_mins > 0:
+		pct_change = (float(diff_mins) / float(last_week_mins)) * 100.0
+	elif this_week_mins > 0:
+		pct_change = 100.0
+		
+	# Find most productive day of week
+	var best_wday: int = 1
+	var best_wday_mins: int = 0
+	for w in weekday_mins.keys():
+		if weekday_mins[w] > best_wday_mins:
+			best_wday_mins = weekday_mins[w]
+			best_wday = w
+			
+	var day_names = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+	var best_day_name = day_names[best_wday % day_names.size()]
+	
+	var active_count: int = maxi(1, active_days.size())
+	var daily_avg: float = (float(this_week_mins) / 60.0) / float(active_count)
+	
+	return {
+		"this_week_minutes": this_week_mins,
+		"this_week_hours": float(this_week_mins) / 60.0,
+		"last_week_minutes": last_week_mins,
+		"last_week_hours": float(last_week_mins) / 60.0,
+		"diff_minutes": diff_mins,
+		"pct_change": pct_change,
+		"best_day_name": best_day_name,
+		"best_day_minutes": best_wday_mins,
+		"daily_avg_hours": daily_avg
+	}
+
+## Generates formatted Weekly Retrospective Report markdown
+func generate_weekly_retrospective_markdown() -> String:
+	var velocity: Dictionary = get_weekly_velocity_stats()
+	var cat_dist: Dictionary = get_category_distribution("week")
+	var cat_mins: Dictionary = cat_dist.get("categories", {})
+	
+	var now_unix: int = int(Time.get_unix_time_from_system())
+	var week_ago_unix: int = now_unix - (7 * 86400)
+	var recent_records: Array[Dictionary] = []
+	for r in _dtr_cache:
+		if int(r.get("created_unix", 0)) >= week_ago_unix:
+			recent_records.append(r)
+			
+	var lines: PackedStringArray = PackedStringArray()
+	lines.append("## 📈 Weekly Productivity Retrospective")
+	lines.append("**Period:** Past 7 Days • Generated on %s\n" % Time.get_date_string_from_system())
+	
+	lines.append("### ⚡ Executive Summary")
+	lines.append("- **Total Focus Time:** %.1fh (%d minutes • %d sprints)" % [velocity.get("this_week_hours", 0.0), velocity.get("this_week_minutes", 0), recent_records.size()])
+	var change_str = "+%.1f%%" % velocity.get("pct_change", 0.0) if velocity.get("pct_change", 0.0) >= 0 else "%.1f%%" % velocity.get("pct_change", 0.0)
+	lines.append("- **Velocity vs Last Week:** %s (Last week: %.1fh)" % [change_str, velocity.get("last_week_hours", 0.0)])
+	lines.append("- **Daily Average:** %.1fh / active day" % velocity.get("daily_avg_hours", 0.0))
+	lines.append("- **Peak Day:** %s (%dm)\n" % [velocity.get("best_day_name", "N/A"), velocity.get("best_day_minutes", 0)])
+	
+	lines.append("### 📊 Category Distribution")
+	if cat_mins.is_empty():
+		lines.append("- *(No category records this week)*")
+	else:
+		var total_m: int = cat_dist.get("total_minutes", 1)
+		for cat in cat_mins.keys():
+			var m = cat_mins[cat]
+			var pct = int((float(m) / float(total_m)) * 100.0)
+			lines.append("- **%s**: %.1fh (%dm • %d%%)" % [cat, float(m) / 60.0, m, pct])
+			
+	lines.append("\n### 🎯 Completed Key Tasks")
+	if recent_records.is_empty():
+		lines.append("- *(No completed sessions recorded this week)*")
+	else:
+		for r in recent_records:
+			var cat = r.get("category", "General")
+			var task = r.get("task_name", "Focus Session")
+			var dur = r.get("duration_minutes", 25)
+			var date_k = r.get("date_key", "")
+			var notes = r.get("notes", "").strip_edges()
+			if not notes.is_empty():
+				var first_line = notes.split("\n")[0].strip_edges()
+				lines.append("- `[%s]` **%s** — %s (%dm): *\"%s\"*" % [date_k, task, cat, dur, first_line])
+			else:
+				lines.append("- `[%s]` **%s** — %s (%dm)" % [date_k, task, cat, dur])
+			
+	lines.append("\n*Generated by Kronos Productivity Studio* ⏱️⚡")
+	return "\n".join(lines)
+
+## Exports full DTR JSON string for backup
+func export_dtr_json() -> String:
+	return JSON.stringify(_dtr_cache, "\t")
+
+## Imports and restores/merges DTR records from JSON
+func import_dtr_json(json_string: String) -> Dictionary:
+	var json: JSON = JSON.new()
+	var err = json.parse(json_string)
+	if err != OK:
+		return {"success": false, "error": "Invalid JSON format."}
+		
+	var data = json.get_data()
+	if not data is Array:
+		return {"success": false, "error": "JSON data must be an array of session records."}
+		
+	var imported_count: int = 0
+	var existing_timestamps: Dictionary = {}
+	for r in _dtr_cache:
+		existing_timestamps[int(r.get("created_unix", 0))] = true
+		
+	for item in data:
+		if item is Dictionary:
+			var unix: int = int(item.get("created_unix", 0))
+			if not existing_timestamps.has(unix):
+				_dtr_cache.append(item)
+				existing_timestamps[unix] = true
+				imported_count += 1
+				
+	if imported_count > 0:
+		save_dtr()
+		if EventBus:
+			EventBus.dtr_updated.emit()
+			
+	return {"success": true, "imported_count": imported_count, "total_count": _dtr_cache.size()}
 
 ## Exports DTR history to standard CSV format.
 ## Attempts to write to Desktop, then Downloads, then user://
 func export_dtr_to_csv(custom_folder: String = "") -> Dictionary:
 	var lines: PackedStringArray = PackedStringArray()
-	lines.append("ID,Date,Task,Category,Duration (min),Status,Coins,EXP,Start Time,End Time")
+	lines.append("ID,Date,Task,Category,Duration (min),Notes,Status,Coins,EXP,Start Time,End Time")
 	
 	for i in range(_dtr_cache.size()):
 		var r: Dictionary = _dtr_cache[i]
-		var line: String = "%d,%s,\"%s\",\"%s\",%d,%s,%d,%d,%s,%s" % [
+		var line: String = "%d,%s,\"%s\",\"%s\",%d,\"%s\",%s,%d,%d,%s,%s" % [
 			i + 1,
 			r.get("date_key", ""),
 			r.get("task_name", "General Work").replace("\"", "\"\""),
 			r.get("category", "General").replace("\"", "\"\""),
 			r.get("duration_minutes", 0),
+			r.get("notes", "").replace("\"", "\"\""),
 			r.get("status", "completed"),
 			r.get("coins_earned", 0),
 			r.get("exp_earned", 0),

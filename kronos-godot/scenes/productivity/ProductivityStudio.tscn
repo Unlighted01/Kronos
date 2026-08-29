@@ -5,38 +5,41 @@
 [ext_resource type="PackedScene" uid="uid://b8m9k0p1q2r3s" path="res://scenes/productivity/DTRStudioTab.tscn" id="2_dtr_tab"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_root"]
-bg_color = Color(0.054902, 0.062745, 0.101961, 0.98)
+bg_color = Color(0.027451, 0.0313726, 0.0588235, 0.98)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.309804, 0.819608, 0.909804, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
-shadow_color = Color(0, 0, 0, 0.6)
+border_color = Color(0.145098, 0.164706, 0.25098, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+shadow_color = Color(0, 0, 0, 0.7)
 shadow_size = 12
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_header"]
-bg_color = Color(0.0862745, 0.101961, 0.160784, 1)
+bg_color = Color(0.0509804, 0.0588235, 0.101961, 1)
 border_width_bottom = 2
-border_color = Color(0.176471, 0.207843, 0.282353, 1)
+border_color = Color(0.145098, 0.164706, 0.25098, 1)
 corner_radius_top_left = 4
 corner_radius_top_right = 4
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_status"]
-bg_color = Color(0.0392157, 0.0470588, 0.0784314, 1)
+bg_color = Color(0.027451, 0.0313726, 0.0588235, 1)
 border_width_top = 1
-border_color = Color(0.137255, 0.160784, 0.223529, 1)
+border_color = Color(0.145098, 0.164706, 0.25098, 1)
 corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 
 [node name="ProductivityStudio" type="Window"]
 title = "📊 Kronos Productivity Studio"
 initial_position = 2
-size = Vector2i(720, 460)
-min_size = Vector2i(640, 400)
+size = Vector2i(780, 500)
+min_size = Vector2i(720, 460)
+content_scale_size = Vector2i(780, 500)
+content_scale_mode = 1
+content_scale_aspect = 4
 unresizable = true
 borderless = true
 transparent = true
@@ -72,7 +75,7 @@ layout_mode = 2
 [node name="TitleLabel" type="Label" parent="RootPanel/VBox/HeaderBar/HBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.960784, 0.803922, 0.47451, 1)
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 12
 text = "📊 KRONOS PRODUCTIVITY STUDIO"
 
 [node name="Spacer" type="Control" parent="RootPanel/VBox/HeaderBar/HBox"]
@@ -88,7 +91,7 @@ custom_minimum_size = Vector2(130, 24)
 layout_mode = 2
 focus_mode = 0
 mouse_default_cursor_shape = 2
-theme_override_font_sizes/font_size = 9
+theme_override_font_sizes/font_size = 10
 text = "📊 DTR & Analytics"
 
 [node name="BtnDeck" type="Button" parent="RootPanel/VBox/HeaderBar/HBox/TabBar"]
@@ -96,7 +99,7 @@ custom_minimum_size = Vector2(130, 24)
 layout_mode = 2
 focus_mode = 0
 mouse_default_cursor_shape = 2
-theme_override_font_sizes/font_size = 9
+theme_override_font_sizes/font_size = 10
 text = "🧠 Study Deck & SRS"
 
 [node name="BtnTasks" type="Button" parent="RootPanel/VBox/HeaderBar/HBox/TabBar"]
@@ -104,15 +107,43 @@ custom_minimum_size = Vector2(130, 24)
 layout_mode = 2
 focus_mode = 0
 mouse_default_cursor_shape = 2
-theme_override_font_sizes/font_size = 9
+theme_override_font_sizes/font_size = 10
 text = "📋 Tasks & Forecast"
+
+[node name="ScaleHBox" type="HBoxContainer" parent="RootPanel/VBox/HeaderBar/HBox"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="BtnScale125" type="Button" parent="RootPanel/VBox/HeaderBar/HBox/ScaleHBox"]
+custom_minimum_size = Vector2(36, 22)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 8
+text = "1.25x"
+
+[node name="BtnScale150" type="Button" parent="RootPanel/VBox/HeaderBar/HBox/ScaleHBox"]
+custom_minimum_size = Vector2(36, 22)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 8
+text = "1.5x"
+
+[node name="BtnScale200" type="Button" parent="RootPanel/VBox/HeaderBar/HBox/ScaleHBox"]
+custom_minimum_size = Vector2(36, 22)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 8
+text = "2.0x"
 
 [node name="CloseButton" type="Button" parent="RootPanel/VBox/HeaderBar/HBox"]
 custom_minimum_size = Vector2(26, 24)
 layout_mode = 2
 focus_mode = 0
 mouse_default_cursor_shape = 2
-theme_override_font_sizes/font_size = 10
+theme_override_font_sizes/font_size = 11
 text = "✕"
 
 [node name="MarginEnd" type="Control" parent="RootPanel/VBox/HeaderBar/HBox"]
@@ -142,56 +173,70 @@ layout_mode = 2
 visible = false
 layout_mode = 2
 
-[node name="DeckPlaceholder" type="VBoxContainer" parent="RootPanel/VBox/ContentArea/TabContainer/DeckTab"]
+[node name="DeckPlaceholder" type="PanelContainer" parent="RootPanel/VBox/ContentArea/TabContainer/DeckTab"]
 layout_mode = 2
+
+[node name="Center" type="CenterContainer" parent="RootPanel/VBox/ContentArea/TabContainer/DeckTab/DeckPlaceholder"]
+layout_mode = 2
+
+[node name="VBox" type="VBoxContainer" parent="RootPanel/VBox/ContentArea/TabContainer/DeckTab/DeckPlaceholder/Center"]
+layout_mode = 2
+theme_override_constants/separation = 8
 alignment = 1
 
-[node name="Icon" type="Label" parent="RootPanel/VBox/ContentArea/TabContainer/DeckTab/DeckPlaceholder"]
+[node name="Icon" type="Label" parent="RootPanel/VBox/ContentArea/TabContainer/DeckTab/DeckPlaceholder/Center/VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 24
 text = "🧠"
 horizontal_alignment = 1
 
-[node name="Title" type="Label" parent="RootPanel/VBox/ContentArea/TabContainer/DeckTab/DeckPlaceholder"]
+[node name="Title" type="Label" parent="RootPanel/VBox/ContentArea/TabContainer/DeckTab/DeckPlaceholder/Center/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.3, 0.7, 1, 1)
-theme_override_font_sizes/font_size = 14
-text = "Active Recall & SuperMemo SM-2 Study Deck"
+theme_override_colors/font_color = Color(0.309804, 0.819608, 0.909804, 1)
+theme_override_font_sizes/font_size = 12
+text = "SUPERMEMO SM-2 FLASHCARD DECK & QUIZ ARENA"
 horizontal_alignment = 1
 
-[node name="Desc" type="Label" parent="RootPanel/VBox/ContentArea/TabContainer/DeckTab/DeckPlaceholder"]
+[node name="Desc" type="Label" parent="RootPanel/VBox/ContentArea/TabContainer/DeckTab/DeckPlaceholder/Center/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
-theme_override_font_sizes/font_size = 9
-text = "SuperMemo SM-2 Spaced Repetition • Due-Today Queue • Smart PDF/Doc & Paste Importer"
+theme_override_colors/font_color = Color(0.580392, 0.639216, 0.721569, 1)
+theme_override_font_sizes/font_size = 8
+text = "Spaced repetition study deck with smart document import and card flip arena."
 horizontal_alignment = 1
 
 [node name="TasksTab" type="MarginContainer" parent="RootPanel/VBox/ContentArea/TabContainer"]
 visible = false
 layout_mode = 2
 
-[node name="TasksPlaceholder" type="VBoxContainer" parent="RootPanel/VBox/ContentArea/TabContainer/TasksTab"]
+[node name="TasksPlaceholder" type="PanelContainer" parent="RootPanel/VBox/ContentArea/TabContainer/TasksTab"]
 layout_mode = 2
+
+[node name="Center" type="CenterContainer" parent="RootPanel/VBox/ContentArea/TabContainer/TasksTab/TasksPlaceholder"]
+layout_mode = 2
+
+[node name="VBox" type="VBoxContainer" parent="RootPanel/VBox/ContentArea/TabContainer/TasksTab/TasksPlaceholder/Center"]
+layout_mode = 2
+theme_override_constants/separation = 8
 alignment = 1
 
-[node name="Icon" type="Label" parent="RootPanel/VBox/ContentArea/TabContainer/TasksTab/TasksPlaceholder"]
+[node name="Icon" type="Label" parent="RootPanel/VBox/ContentArea/TabContainer/TasksTab/TasksPlaceholder/Center/VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 24
 text = "📋"
 horizontal_alignment = 1
 
-[node name="Title" type="Label" parent="RootPanel/VBox/ContentArea/TabContainer/TasksTab/TasksPlaceholder"]
+[node name="Title" type="Label" parent="RootPanel/VBox/ContentArea/TabContainer/TasksTab/TasksPlaceholder/Center/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.7, 0.2, 1)
-theme_override_font_sizes/font_size = 14
-text = "Sprint Tasks & Pomodoro Forecast"
+theme_override_colors/font_color = Color(0.960784, 0.784314, 0.258824, 1)
+theme_override_font_sizes/font_size = 12
+text = "SPRINT COMMAND BOARD & CAPACITY FORECASTER"
 horizontal_alignment = 1
 
-[node name="Desc" type="Label" parent="RootPanel/VBox/ContentArea/TabContainer/TasksTab/TasksPlaceholder"]
+[node name="Desc" type="Label" parent="RootPanel/VBox/ContentArea/TabContainer/TasksTab/TasksPlaceholder/Center/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
-theme_override_font_sizes/font_size = 9
-text = "Category Color Tags • Estimated Pomodoros (🍅) • Finish-By Time Predictor • Instant Sprint Binding"
+theme_override_colors/font_color = Color(0.580392, 0.639216, 0.721569, 1)
+theme_override_font_sizes/font_size = 8
+text = "Interactive task boards with Pomodoro budget estimations and focus velocity tracking."
 horizontal_alignment = 1
 
 [node name="StatusBar" type="PanelContainer" parent="RootPanel/VBox"]
@@ -201,34 +246,32 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_status")
 
 [node name="HBox" type="HBoxContainer" parent="RootPanel/VBox/StatusBar"]
 layout_mode = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 12
 
 [node name="MarginStart" type="Control" parent="RootPanel/VBox/StatusBar/HBox"]
-custom_minimum_size = Vector2(4, 0)
+custom_minimum_size = Vector2(6, 0)
 layout_mode = 2
 
 [node name="SprintStatusLabel" type="Label" parent="RootPanel/VBox/StatusBar/HBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.305882, 0.8, 0.639216, 1)
+theme_override_colors/font_color = Color(0.309804, 0.819608, 0.909804, 1)
 theme_override_font_sizes/font_size = 8
-text = "🎯 Active Sprint: General Deep Work"
-
-[node name="Spacer" type="Control" parent="RootPanel/VBox/StatusBar/HBox"]
-layout_mode = 2
-size_flags_horizontal = 3
+text = "🎯 General Deep Work [Development]"
 
 [node name="StatsBadgeLabel" type="Label" parent="RootPanel/VBox/StatusBar/HBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.960784, 0.803922, 0.47451, 1)
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.960784, 0.784314, 0.258824, 1)
 theme_override_font_sizes/font_size = 8
-text = "🪙 0 G  |  Lv.1  |  Streak: 0 🔥"
+text = "👑 LVL 1  •  🪙 0 G  •  ⭐ 0 KP"
+horizontal_alignment = 1
 
 [node name="TimerStatusLabel" type="Label" parent="RootPanel/VBox/StatusBar/HBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.454902, 0.72549, 1, 1)
+theme_override_colors/font_color = Color(0.309804, 0.819608, 0.909804, 1)
 theme_override_font_sizes/font_size = 8
-text = "⏱️ [25/5] Work: 25:00"
+text = "⏱️ FOCUS: 25:00 (STOPPED)"
 
 [node name="MarginEnd" type="Control" parent="RootPanel/VBox/StatusBar/HBox"]
-custom_minimum_size = Vector2(4, 0)
+custom_minimum_size = Vector2(6, 0)
 layout_mode = 2

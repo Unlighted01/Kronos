@@ -46,8 +46,8 @@ layout_mode = 2
 theme_override_constants/separation = 4
 alignment = 1
 
-[node name="HourglassCanvas" type="Control" parent="CenterContainer/VBox/LogoContainer"]
-custom_minimum_size = Vector2(60, 60)
+[node name="EmblemCanvas" type="Control" parent="CenterContainer/VBox/LogoContainer"]
+custom_minimum_size = Vector2(70, 70)
 layout_mode = 2
 size_flags_horizontal = 4
 
@@ -62,7 +62,7 @@ horizontal_alignment = 1
 layout_mode = 2
 theme_override_colors/font_color = Color(0.313726, 0.823529, 0.909804, 1)
 theme_override_font_sizes/font_size = 6
-text = "◈ WORKSPACE COMPANION & STUDY SANCTUARY ◈"
+text = "◈ VIRTUAL PET RPG & PRODUCTIVITY SANCTUARY ◈"
 horizontal_alignment = 1
 
 [node name="PromptLabel" type="Label" parent="CenterContainer/VBox"]

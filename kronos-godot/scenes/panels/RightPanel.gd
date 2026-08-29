@@ -2,8 +2,8 @@ extends PanelContainer
 class_name RightPanel
 
 ## Right Panel for Kronos Desktop Workspace.
-## Handles Pet Vitals ([VITALS]), Inventory Bag ([BAG] with Feed/Equip actions),
-## and Daily Time Records ([DTR] with filtering, session logs, and CSV export).
+## Handles Pet Vitals ([VITALS]), Inventory Bag ([BAG] with Feed/Equip/Decor actions),
+## and Workspace Settings & Audio Controls ([CONFIG]).
 
 # ==============================================================================
 # 🎛️ NODE REFERENCES
@@ -14,14 +14,11 @@ class_name RightPanel
 @onready var tab_bar_scroll: ScrollContainer = $VBox/TabBarScroll
 @onready var tab_vitals_btn: Button = $VBox/TabBarScroll/TabHBox/TabVitalsBtn
 @onready var tab_bag_btn: Button = $VBox/TabBarScroll/TabHBox/TabBagBtn
-@onready var tab_dtr_btn: Button = $VBox/TabBarScroll/TabHBox/TabDtrBtn
-@onready var tab_deck_btn: Button = $VBox/TabBarScroll/TabHBox/TabDeckBtn
 @onready var tab_config_btn: Button = $VBox/TabBarScroll/TabHBox/TabConfigBtn
 
 @onready var pet_prev_btn: Button = $VBox/PetSelectorHBox/PetPrevBtn
 @onready var pet_next_btn: Button = $VBox/PetSelectorHBox/PetNextBtn
 @onready var pet_name_lbl: Label = $VBox/PetSelectorHBox/PetNameLbl
-
 
 # Vitals Tab References
 @onready var vitals_lvl_badge: Label = $VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox/HeaderCard/HBox/LevelBadge
@@ -41,30 +38,6 @@ class_name RightPanel
 # Bag Tab References
 @onready var bag_list_vbox: VBoxContainer = $VBox/TabContainer/BAG/ScrollContainer/BagVBox
 
-# DTR Tab References
-@onready var dtr_heatmap_grid: GridContainer = $VBox/TabContainer/DTR/ScrollContainer/DtrVBox/HeatmapCard/VBox/HeatmapGrid
-@onready var dtr_total_hours_lbl: Label = $VBox/TabContainer/DTR/ScrollContainer/DtrVBox/LifetimeStatsCard/HBox/TotalHoursLabel
-@onready var dtr_total_sprints_lbl: Label = $VBox/TabContainer/DTR/ScrollContainer/DtrVBox/LifetimeStatsCard/HBox/TotalSprintsLabel
-@onready var total_time_label: Label = $VBox/TabContainer/DTR/ScrollContainer/DtrVBox/MetricsRow/TimeCard/VBox/TimeVal
-@onready var total_coins_label: Label = $VBox/TabContainer/DTR/ScrollContainer/DtrVBox/MetricsRow/CoinsCard/VBox/CoinsVal
-@onready var date_filter_input: LineEdit = $VBox/TabContainer/DTR/ScrollContainer/DtrVBox/ControlsRow/DateInput
-@onready var date_toggle_btn: Button = $VBox/TabContainer/DTR/ScrollContainer/DtrVBox/ControlsRow/DateToggleBtn
-@onready var export_csv_btn: Button = $VBox/TabContainer/DTR/ScrollContainer/DtrVBox/ControlsRow/ExportCsvBtn
-@onready var add_entry_btn: Button = $VBox/TabContainer/DTR/ScrollContainer/DtrVBox/AddEntryBtn
-@onready var dtr_export_status_label: Label = $VBox/TabContainer/DTR/ScrollContainer/DtrVBox/ExportStatusLabel
-@onready var dtr_list_vbox: VBoxContainer = $VBox/TabContainer/DTR/ScrollContainer/DtrVBox/SessionsListVBox
-
-# DTR Modal References (Optional)
-@onready var dtr_modal: PanelContainer = get_node_or_null("DTRModal")
-@onready var dtr_task_input: LineEdit = get_node_or_null("DTRModal/Center/Card/VBox/TaskInput")
-@onready var dtr_cat_input: LineEdit = get_node_or_null("DTRModal/Center/Card/VBox/CategoryInput")
-@onready var dtr_start_input: LineEdit = get_node_or_null("DTRModal/Center/Card/VBox/HBox/StartVBox/StartInput")
-@onready var dtr_end_input: LineEdit = get_node_or_null("DTRModal/Center/Card/VBox/HBox/EndVBox/EndInput")
-@onready var dtr_date_input: LineEdit = get_node_or_null("DTRModal/Center/Card/VBox/DateInput")
-@onready var dtr_save_btn: Button = get_node_or_null("DTRModal/Center/Card/VBox/SaveBtn")
-@onready var dtr_delete_btn: Button = get_node_or_null("DTRModal/Center/Card/VBox/DeleteBtn")
-@onready var dtr_cancel_btn: Button = get_node_or_null("DTRModal/Center/Card/VBox/CancelBtn")
-
 # Audio & Alerts References
 @onready var master_slider: HSlider = $VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/AudioCard/VBox/MasterRow/MasterSlider
 @onready var mute_btn: Button = $VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/AudioCard/VBox/MasterRow/MuteBtn
@@ -74,18 +47,6 @@ class_name RightPanel
 @onready var test_sfx_btn: Button = $VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/AudioCard/VBox/SfxRow/TestSfxBtn
 @onready var timer_notif_btn: Button = $VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/AudioCard/VBox/NotifsRow/TimerNotifBtn
 @onready var pet_nudge_btn: Button = $VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/AudioCard/VBox/NotifsRow/PetNudgeBtn
-
-# Study Deck References
-@onready var deck_count_badge: Label = $VBox/TabContainer/DECK/ScrollContainer/DeckVBox/HeaderCard/HBox/CountBadge
-@onready var deck_kp_badge: Label = $VBox/TabContainer/DECK/ScrollContainer/DeckVBox/HeaderCard/HBox/KpBadge
-@onready var deck_start_drill_btn: Button = $VBox/TabContainer/DECK/ScrollContainer/DeckVBox/StartDrillBtn
-@onready var deck_q_input: LineEdit = $VBox/TabContainer/DECK/ScrollContainer/DeckVBox/AddCardPanel/VBox/QuestionInput
-@onready var deck_a_input: LineEdit = $VBox/TabContainer/DECK/ScrollContainer/DeckVBox/AddCardPanel/VBox/AnswerInput
-@onready var deck_subject_input: LineEdit = $VBox/TabContainer/DECK/ScrollContainer/DeckVBox/AddCardPanel/VBox/SubjectInput
-@onready var deck_form_title: Label = $VBox/TabContainer/DECK/ScrollContainer/DeckVBox/AddCardPanel/VBox/TitleLabel
-@onready var deck_add_btn: Button = $VBox/TabContainer/DECK/ScrollContainer/DeckVBox/AddCardPanel/VBox/ButtonHBox/AddBtn
-@onready var deck_cancel_edit_btn: Button = $VBox/TabContainer/DECK/ScrollContainer/DeckVBox/AddCardPanel/VBox/ButtonHBox/CancelEditBtn
-@onready var deck_cards_list_vbox: VBoxContainer = $VBox/TabContainer/DECK/ScrollContainer/DeckVBox/CardsListVBox
 
 # Config Tab UI references
 @onready var scale_dropdown: OptionButton = $VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/ScaleCard/VBox/ScaleDropdown
@@ -98,16 +59,10 @@ class_name RightPanel
 @onready var manual_save_btn: Button = $VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/SaveCard/VBox/ManualSaveBtn
 @onready var save_status_label: Label = $VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/SaveCard/VBox/SaveStatusLabel
 
-# Dev Cheats UI References (Optional)
-@onready var skip_sprint_btn: Button = get_node_or_null("VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/DevToolsCard/VBox/SkipSprintBtn")
-
 # ==============================================================================
 # 📊 INTERNAL STATE
 # ==============================================================================
-var _is_today_filter: bool = true
 var _current_scale_preset: float = 1.25
-var _editing_dtr_unix: int = 0
-var _editing_card_id: String = ""
 
 # ==============================================================================
 # ⚙️ LIFECYCLE
@@ -130,8 +85,6 @@ func _ready() -> void:
 	# Initial UI updates
 	_refresh_vitals_tab()
 	_refresh_bag_tab()
-	_refresh_dtr_tab()
-	_refresh_deck_tab()
 	_refresh_config_ui()
 	_on_tab_changed(0)
 
@@ -146,25 +99,8 @@ func _connect_ui_signals() -> void:
 		tab_vitals_btn.pressed.connect(func(): _switch_tab(0))
 	if tab_bag_btn:
 		tab_bag_btn.pressed.connect(func(): _switch_tab(1))
-	if tab_dtr_btn:
-		tab_dtr_btn.pressed.connect(func(): _switch_tab(2))
-	if tab_deck_btn:
-		tab_deck_btn.pressed.connect(func(): _switch_tab(3))
 	if tab_config_btn:
-		tab_config_btn.pressed.connect(func(): _switch_tab(4))
-		
-	if date_toggle_btn:
-		date_toggle_btn.pressed.connect(_on_date_toggle_pressed)
-		
-	if date_filter_input:
-		date_filter_input.text = Time.get_date_string_from_system()
-		date_filter_input.text_changed.connect(func(_new_text: String): _refresh_dtr_sessions())
-		
-	if export_csv_btn:
-		export_csv_btn.pressed.connect(_on_export_csv_pressed)
-		
-	if add_entry_btn:
-		add_entry_btn.pressed.connect(_on_add_entry_pressed)
+		tab_config_btn.pressed.connect(func(): _switch_tab(2))
 		
 	# Audio & Notification Controls
 	if master_slider:
@@ -198,20 +134,6 @@ func _connect_ui_signals() -> void:
 		
 	if manual_save_btn:
 		manual_save_btn.pressed.connect(_on_manual_save_pressed)
-		
-	if dtr_save_btn:
-		dtr_save_btn.pressed.connect(_on_dtr_modal_save)
-	if dtr_delete_btn:
-		dtr_delete_btn.pressed.connect(_on_dtr_modal_delete)
-	if dtr_cancel_btn:
-		dtr_cancel_btn.pressed.connect(func(): dtr_modal.hide())
-	if deck_start_drill_btn:
-		deck_start_drill_btn.pressed.connect(_on_start_study_drill_pressed)
-	if deck_add_btn:
-		deck_add_btn.pressed.connect(_on_add_card_pressed)
-	if deck_cancel_edit_btn:
-		deck_cancel_edit_btn.pressed.connect(_cancel_card_edit)
-
 
 func _connect_event_bus() -> void:
 	EventBus.exp_changed.connect(_on_exp_changed)
@@ -237,7 +159,6 @@ func _connect_event_bus() -> void:
 	EventBus.window_scale_changed.connect(_on_window_scale_changed)
 	EventBus.window_pin_toggled.connect(_on_window_pin_toggled)
 	EventBus.save_completed.connect(_on_save_completed)
-	EventBus.flashcards_updated.connect(_refresh_deck_tab)
 	EventBus.affection_changed.connect(func(_p, _l, _x, _d): _refresh_vitals_tab())
 
 func _switch_tab(idx: int) -> void:
@@ -264,11 +185,9 @@ func _on_tab_changed(tab_idx: int) -> void:
 	match tab_idx:
 		0: title_label.text = "◈ VITALS"
 		1: title_label.text = "◈ INVENTORY BAG"
-		2: title_label.text = "◈ DAILY TIME RECORD"
-		3: title_label.text = "◈ STUDY DECK"
-		4: title_label.text = "◈ SETTINGS"
+		2: title_label.text = "◈ SETTINGS"
 		
-	var buttons: Array = [tab_vitals_btn, tab_bag_btn, tab_dtr_btn, tab_deck_btn, tab_config_btn]
+	var buttons: Array = [tab_vitals_btn, tab_bag_btn, tab_config_btn]
 	for i in range(buttons.size()):
 		var btn: Button = buttons[i]
 		if btn:
@@ -317,44 +236,41 @@ func _refresh_vitals_tab() -> void:
 		joy_bar.max_value = GameState.MAX_JOY
 		joy_bar.value = GameState.get_active_joy()
 		
-	
-	# Friendship & Affection
-	var aff_data = GameState.get_pet_affection()
-	var aff_lvl: int = int(aff_data.get("level", 1))
-	var aff_xp: int = int(aff_data.get("xp", 0))
-	var aff_max: int = int(aff_data.get("max_xp", 50))
+	# Friendship / Affection
+	var pet = GameState.active_pets[GameState.selected_pet_index] if GameState.selected_pet_index < GameState.active_pets.size() else null
+	var affection_lvl: int = pet.get("affection_level", 1) if pet else 1
+	var affection_exp: int = pet.get("affection_exp", 0) if pet else 0
+	var req_aff_exp: int = affection_lvl * 50
 	
 	if friendship_hearts_label:
 		var hearts_str: String = ""
-		for h in range(1, 6):
-			hearts_str += "💖 " if h <= aff_lvl else "🤍 "
-		hearts_str += "Lv.%d" % aff_lvl if aff_lvl < 5 else "MAX 👑"
-		friendship_hearts_label.text = hearts_str
+		for h in range(min(5, affection_lvl)):
+			hearts_str += "♥ "
+		friendship_hearts_label.text = hearts_str + "Lv.%d" % affection_lvl
 		
 	if friendship_bar:
-		friendship_bar.max_value = float(aff_max)
-		friendship_bar.value = float(aff_xp)
-
+		friendship_bar.max_value = float(req_aff_exp)
+		friendship_bar.value = float(affection_exp)
+		
 	# Streak
 	if streak_badge:
-		streak_badge.text = "🔥 %d FOCUS STREAK" % GameState.streak
-		streak_badge.visible = GameState.streak > 0
+		streak_badge.text = "%d 🔥" % GameState.streak
 
 # ==============================================================================
-# 🎒 TAB 2: BAG (INVENTORY)
+# 🎒 TAB 2: INVENTORY BAG
 # ==============================================================================
 func _refresh_bag_tab() -> void:
 	if not bag_list_vbox or not GameState:
 		return
 		
-	# Clear previous slots
 	for child in bag_list_vbox.get_children():
 		child.queue_free()
 		
 	var inv: Array[Dictionary] = GameState.inventory
+	
 	if inv.is_empty():
 		var empty_card: PanelContainer = PanelContainer.new()
-		empty_card.custom_minimum_size = Vector2(0, 48)
+		empty_card.custom_minimum_size = Vector2(0, 50)
 		empty_card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		
 		var center: CenterContainer = CenterContainer.new()
@@ -363,7 +279,7 @@ func _refresh_bag_tab() -> void:
 		empty_card.add_child(center)
 		
 		var empty_lbl: Label = Label.new()
-		empty_lbl.text = "🎒 BAG EMPTY\n(Visit Shop to buy treats)"
+		empty_lbl.text = "BAG IS EMPTY\nVisit Shop (Left Panel)!"
 		empty_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		empty_lbl.add_theme_font_size_override("font_size", 8)
 		empty_lbl.modulate = Color(0.58, 0.64, 0.72)
@@ -372,130 +288,84 @@ func _refresh_bag_tab() -> void:
 		bag_list_vbox.add_child(empty_card)
 		return
 		
-	# Populate items
-	for item_entry in inv:
-		var item_id: String = item_entry.get("item_id", "")
-		var quantity: int = item_entry.get("quantity", 1)
-		var item_def: Dictionary = GameState.get_item_def(item_id)
-		
-		var slot_card: Control = _create_inventory_slot(item_id, item_def, quantity)
-		bag_list_vbox.add_child(slot_card)
+	for item in inv:
+		var card: PanelContainer = _create_bag_item_card(item)
+		bag_list_vbox.add_child(card)
 
-func _create_inventory_slot(item_id: String, item_def: Dictionary, quantity: int) -> Control:
-	var item_name: String = item_def.get("name", item_id)
-	var item_icon: String = item_def.get("icon", "📦")
-	var category: String = item_def.get("category", "snack")
-	var slot_type: String = item_def.get("slot", "head")
+func _create_bag_item_card(item: Dictionary) -> PanelContainer:
+	var item_id: String = item.get("id", "")
+	var count: int = item.get("count", 1)
+	var item_def: Dictionary = GameState.get_item_def(item_id)
+	var item_name: String = item_def.get("name", item_id.capitalize())
+	var item_type: String = item_def.get("type", "consumable")
+	var icon: String = item_def.get("icon", "📦")
+	var description: String = item_def.get("description", "")
 	
-	var slot_panel: PanelContainer = PanelContainer.new()
-	slot_panel.custom_minimum_size = Vector2(0, 36)
-	slot_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var card: PanelContainer = PanelContainer.new()
+	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	
-	var hbox: HBoxContainer = HBoxContainer.new()
-	hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	hbox.add_theme_constant_override("separation", 6)
-	slot_panel.add_child(hbox)
+	var main_vbox: VBoxContainer = VBoxContainer.new()
+	main_vbox.add_theme_constant_override("separation", 3)
+	card.add_child(main_vbox)
 	
-	# Icon
+	var top_hbox: HBoxContainer = HBoxContainer.new()
+	top_hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	top_hbox.add_theme_constant_override("separation", 4)
+	main_vbox.add_child(top_hbox)
+	
 	var icon_lbl: Label = Label.new()
-	icon_lbl.text = item_icon
-	icon_lbl.add_theme_font_size_override("font_size", 16)
-	icon_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	hbox.add_child(icon_lbl)
-	
-	# Item Info
-	var info_vbox: VBoxContainer = VBoxContainer.new()
-	info_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	info_vbox.add_theme_constant_override("separation", 1)
-	hbox.add_child(info_vbox)
+	icon_lbl.text = icon
+	icon_lbl.add_theme_font_size_override("font_size", 10)
+	top_hbox.add_child(icon_lbl)
 	
 	var name_lbl: Label = Label.new()
-	name_lbl.text = "%s %s" % [item_name, ("(x%d)" % quantity) if quantity > 1 else ""]
-	name_lbl.add_theme_font_size_override("font_size", 9)
-	info_vbox.add_child(name_lbl)
+	name_lbl.text = item_name
+	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	name_lbl.add_theme_font_size_override("font_size", 8)
+	top_hbox.add_child(name_lbl)
 	
-	var cat_lbl: Label = Label.new()
-	if category == "decor":
-		var room_name_str: String = item_def.get("target_room_name", "Room")
-		cat_lbl.text = "📍 %s" % room_name_str.to_upper()
-		cat_lbl.modulate = Color(0.40, 0.85, 0.55) # Green
-	else:
-		cat_lbl.text = category.to_upper()
-		cat_lbl.modulate = Color(0.93, 0.28, 0.60) if category == "cosmetic" else Color(0.31, 0.82, 0.91)
-	cat_lbl.add_theme_font_size_override("font_size", 7)
-	info_vbox.add_child(cat_lbl)
-	
-	# Action Button based on category
-	if category == "snack":
-		if GameState.active_pets.size() <= 1:
-			var feed_btn: Button = Button.new()
-			feed_btn.text = "FEED"
-			feed_btn.custom_minimum_size = Vector2(46, 20)
-			feed_btn.add_theme_font_size_override("font_size", 8)
-			feed_btn.modulate = Color(0.96, 0.62, 0.04)
-			feed_btn.pressed.connect(func(): _on_feed_item_pressed(item_id))
-			hbox.add_child(feed_btn)
-		else:
-			var feed_btn: MenuButton = MenuButton.new()
-			feed_btn.text = "FEED ▾"
-			feed_btn.flat = false
-			feed_btn.custom_minimum_size = Vector2(56, 20)
-			feed_btn.add_theme_font_size_override("font_size", 8)
-			feed_btn.modulate = Color(0.96, 0.62, 0.04)
-			var popup = feed_btn.get_popup()
-			popup.add_theme_font_size_override("font_size", 8)
-			for i in range(GameState.active_pets.size()):
-				popup.add_item("Feed " + GameState.active_pets[i].get("name", "Pet"), i)
-			popup.id_pressed.connect(func(id: int):
-				GameState.set_selected_pet(id)
-				_on_feed_item_pressed(item_id)
-			)
-			hbox.add_child(feed_btn)
-	elif category == "cosmetic":
-		if GameState.active_pets.size() <= 1:
-			var is_equipped: bool = GameState.is_cosmetic_equipped(item_id)
-			var equip_btn: Button = Button.new()
-			equip_btn.text = "✓ ON" if is_equipped else "EQUIP"
-			equip_btn.custom_minimum_size = Vector2(46, 20)
-			equip_btn.add_theme_font_size_override("font_size", 8)
-			equip_btn.modulate = Color(0.31, 0.82, 0.91) if is_equipped else Color(1.0, 1.0, 1.0)
-			equip_btn.pressed.connect(func(): _on_equip_toggle_pressed(slot_type, item_id))
-			hbox.add_child(equip_btn)
-		else:
-			var equip_btn: MenuButton = MenuButton.new()
-			equip_btn.text = "EQUIP ▾"
-			equip_btn.flat = false
-			equip_btn.custom_minimum_size = Vector2(56, 20)
-			equip_btn.add_theme_font_size_override("font_size", 8)
-			equip_btn.modulate = Color(0.31, 0.82, 0.91)
-			var popup = equip_btn.get_popup()
-			popup.add_theme_font_size_override("font_size", 8)
-			for i in range(GameState.active_pets.size()):
-				var p = GameState.active_pets[i]
-				var has_it = false
-				if p.has("equipped_cosmetics") and p["equipped_cosmetics"].has(slot_type):
-					if p["equipped_cosmetics"][slot_type] == item_id:
-						has_it = true
-				var prefix = "✓ " if has_it else ""
-				popup.add_item(prefix + p.get("name", "Pet"), i)
-			popup.id_pressed.connect(func(id: int):
-				GameState.set_selected_pet(id)
-				_on_equip_toggle_pressed(slot_type, item_id)
-			)
-			hbox.add_child(equip_btn)
-	elif category == "decor":
-		var is_placed: bool = GameState.is_decor_placed(item_id)
-		var decor_btn: Button = Button.new()
-		decor_btn.text = "✓ PLACED" if is_placed else "PLACE"
-		decor_btn.custom_minimum_size = Vector2(58, 20)
-		decor_btn.add_theme_font_size_override("font_size", 8)
-		decor_btn.modulate = Color(0.40, 0.85, 0.55) if is_placed else Color(1.0, 1.0, 1.0)
-		decor_btn.pressed.connect(func(): _on_decor_toggle_pressed(item_id))
-		hbox.add_child(decor_btn)
+	if count > 1:
+		var count_badge: Label = Label.new()
+		count_badge.text = "x%d" % count
+		count_badge.add_theme_font_size_override("font_size", 8)
+		count_badge.modulate = Color(0.96, 0.78, 0.25)
+		top_hbox.add_child(count_badge)
 		
-	return slot_panel
+	var desc_lbl: Label = Label.new()
+	desc_lbl.text = description
+	desc_lbl.add_theme_font_size_override("font_size", 7)
+	desc_lbl.modulate = Color(0.58, 0.64, 0.72)
+	desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	main_vbox.add_child(desc_lbl)
+	
+	var action_btn: Button = Button.new()
+	action_btn.custom_minimum_size = Vector2(0, 20)
+	action_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	action_btn.add_theme_font_size_override("font_size", 8)
+	
+	match item_type:
+		"food", "snack", "drink", "consumable":
+			action_btn.text = "🍴 USE / FEED"
+			action_btn.pressed.connect(func(): _on_use_item_pressed(item_id))
+		"cosmetic", "hat", "accessory", "collar", "glasses":
+			var slot: String = item_def.get("slot", "hat")
+			var is_eq: bool = GameState.is_cosmetic_equipped(item_id)
+			action_btn.text = "✓ UNEQUIP" if is_eq else "👕 EQUIP"
+			action_btn.modulate = Color(0.96, 0.78, 0.25) if is_eq else Color(0.31, 0.82, 0.91)
+			action_btn.pressed.connect(func(): _on_equip_toggle_pressed(slot, item_id))
+		"furniture", "decor":
+			var is_placed: bool = GameState.is_decor_placed(item_id)
+			action_btn.text = "📦 STORE" if is_placed else "🏡 PLACE IN ROOM"
+			action_btn.modulate = Color(0.4, 0.85, 0.5) if is_placed else Color(0.31, 0.82, 0.91)
+			action_btn.pressed.connect(func(): _on_decor_toggle_pressed(item_id))
+		_:
+			action_btn.text = "USE"
+			action_btn.pressed.connect(func(): _on_use_item_pressed(item_id))
+			
+	main_vbox.add_child(action_btn)
+	return card
 
-func _on_feed_item_pressed(item_id: String) -> void:
+func _on_use_item_pressed(item_id: String) -> void:
 	if GameState.use_item(item_id):
 		_refresh_bag_tab()
 		_refresh_vitals_tab()
@@ -518,308 +388,11 @@ func _on_decor_toggle_pressed(item_id: String) -> void:
 		DatabaseManager.save_game()
 
 # ==============================================================================
-# 📝 TAB 3: DTR (DAILY TIME RECORDS)
-# ==============================================================================
-func _refresh_dtr_tab() -> void:
-	_refresh_dtr_metrics()
-	_refresh_dtr_sessions()
-
-func _refresh_dtr_metrics() -> void:
-	if not DatabaseManager:
-		return
-		
-	var records: Array[Dictionary] = DatabaseManager.get_all_records()
-	var total_min: int = 0
-	var total_coins: int = 0
-	var today_str: String = Time.get_date_string_from_system()
-	
-	for r in records:
-		if not _is_today_filter or r.get("date_key", "") == today_str:
-			total_min += r.get("duration_minutes", 0)
-			total_coins += r.get("coins_earned", 0)
-			
-	if total_time_label:
-		if total_min >= 60:
-			total_time_label.text = "%.1fh" % (float(total_min) / 60.0)
-		else:
-			total_time_label.text = "%dm" % total_min
-			
-	if total_coins_label:
-		total_coins_label.text = "+%d" % total_coins
-
-func _refresh_dtr_sessions() -> void:
-	if not dtr_list_vbox or not DatabaseManager:
-		return
-		
-	for child in dtr_list_vbox.get_children():
-		child.queue_free()
-		
-	var records: Array[Dictionary] = DatabaseManager.get_all_records()
-	var filter_date: String = date_filter_input.text.strip_edges() if date_filter_input else ""
-	var today_str: String = Time.get_date_string_from_system()
-	
-	var filtered: Array[Dictionary] = []
-	for i in range(records.size() - 1, -1, -1): # Reverse chronological
-		var r: Dictionary = records[i]
-		var match_filter: bool = false
-		if _is_today_filter:
-			match_filter = (r.get("date_key", "") == today_str)
-		else:
-			if filter_date == "" or filter_date == "ALL":
-				match_filter = true
-			else:
-				match_filter = (r.get("date_key", "") == filter_date or r.get("task_name", "").containsn(filter_date))
-				
-		if match_filter:
-			filtered.append(r)
-			
-	if filtered.is_empty():
-		var empty_card: PanelContainer = PanelContainer.new()
-		empty_card.custom_minimum_size = Vector2(0, 40)
-		empty_card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		
-		var center: CenterContainer = CenterContainer.new()
-		center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		center.size_flags_vertical = Control.SIZE_EXPAND_FILL
-		empty_card.add_child(center)
-		
-		var empty_lbl: Label = Label.new()
-		empty_lbl.text = "NO DTR SESSIONS"
-		empty_lbl.add_theme_font_size_override("font_size", 8)
-		empty_lbl.modulate = Color(0.58, 0.64, 0.72)
-		center.add_child(empty_lbl)
-		
-		dtr_list_vbox.add_child(empty_card)
-		return
-		
-	for session in filtered:
-		var card: Control = _create_dtr_card(session)
-		dtr_list_vbox.add_child(card)
-
-func _create_dtr_card(session: Dictionary) -> Control:
-	var task_name: String = session.get("task_name", "General Work")
-	var category: String = session.get("category", "Development")
-	var duration_min: int = session.get("duration_minutes", 0)
-	var coins: int = session.get("coins_earned", 0)
-	var xp: int = session.get("exp_earned", 0)
-	var status: String = session.get("status", "completed")
-	var start_time: String = session.get("start_time", "")
-	
-	var time_snippet: String = ""
-	if start_time != "":
-		var parts: PackedStringArray = start_time.split("T")
-		if parts.size() > 1:
-			var time_parts: PackedStringArray = parts[1].split(":")
-			if time_parts.size() >= 2:
-				time_snippet = "%s:%s" % [time_parts[0], time_parts[1]]
-				
-	var card: PanelContainer = PanelContainer.new()
-	card.custom_minimum_size = Vector2(0, 42)
-	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	
-	var vbox: VBoxContainer = VBoxContainer.new()
-	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	vbox.add_theme_constant_override("separation", 2)
-	card.add_child(vbox)
-	
-	# Top line: Task Name + Coins
-	var top_hbox: HBoxContainer = HBoxContainer.new()
-	top_hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	vbox.add_child(top_hbox)
-	
-	var task_lbl: Label = Label.new()
-	task_lbl.text = task_name
-	task_lbl.add_theme_font_size_override("font_size", 9)
-	task_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	task_lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	top_hbox.add_child(task_lbl)
-	
-	var edit_btn: Button = Button.new()
-	edit_btn.text = "✏️"
-	edit_btn.flat = true
-	edit_btn.add_theme_font_size_override("font_size", 8)
-	edit_btn.modulate = Color(0.58, 0.64, 0.72)
-	edit_btn.pressed.connect(func(): _open_dtr_modal(session))
-	top_hbox.add_child(edit_btn)
-	
-	var coins_lbl: Label = Label.new()
-	coins_lbl.text = "+%d 🪙" % coins
-	coins_lbl.add_theme_font_size_override("font_size", 8)
-	coins_lbl.modulate = Color(0.96, 0.62, 0.04) # Gold
-	top_hbox.add_child(coins_lbl)
-	
-	# Bottom line: Category & Duration + Status
-	var bottom_hbox: HBoxContainer = HBoxContainer.new()
-	bottom_hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	vbox.add_child(bottom_hbox)
-	
-	var details_lbl: Label = Label.new()
-	details_lbl.text = "%dm • %s %s" % [duration_min, category, ("• " + time_snippet) if time_snippet != "" else ""]
-	details_lbl.add_theme_font_size_override("font_size", 7)
-	details_lbl.modulate = Color(0.31, 0.82, 0.91) # Cyan
-	details_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	bottom_hbox.add_child(details_lbl)
-	
-	var status_lbl: Label = Label.new()
-	status_lbl.text = status.to_upper()
-	status_lbl.add_theme_font_size_override("font_size", 7)
-	status_lbl.modulate = Color(0.40, 0.85, 0.55) if status == "completed" else Color(0.90, 0.40, 0.40)
-	bottom_hbox.add_child(status_lbl)
-	
-	return card
-
-func _on_date_toggle_pressed() -> void:
-	_is_today_filter = not _is_today_filter
-	if date_toggle_btn:
-		date_toggle_btn.text = "TODAY" if _is_today_filter else "ALL"
-		date_toggle_btn.modulate = Color(0.31, 0.82, 0.91) if _is_today_filter else Color(1.0, 1.0, 1.0)
-	_refresh_dtr_tab()
-
-func _on_export_csv_pressed() -> void:
-	if not DatabaseManager:
-		return
-		
-	var res: Dictionary = DatabaseManager.export_dtr_to_csv()
-	var path: String = res.get("path", "")
-	var count: int = res.get("count", 0)
-	
-	if dtr_export_status_label:
-		if path != "":
-			dtr_export_status_label.text = "✓ Exported %d logs to CSV\n%s" % [count, path.get_file()]
-			dtr_export_status_label.modulate = Color(0.3, 1.0, 0.4)
-		else:
-			dtr_export_status_label.text = "✗ Export failed"
-			dtr_export_status_label.modulate = Color(1.0, 0.3, 0.3)
-
-func _on_add_entry_pressed() -> void:
-	_open_dtr_modal(null)
-
-func _open_dtr_modal(session) -> void: # session is Dictionary or null
-	if not dtr_modal:
-		return
-	if session == null:
-		_editing_dtr_unix = 0
-		dtr_task_input.text = ""
-		dtr_cat_input.text = ""
-		dtr_date_input.text = Time.get_date_string_from_system()
-		var now: Dictionary = Time.get_time_dict_from_system()
-		dtr_start_input.text = "%02d:%02d" % [now.hour, now.minute]
-		dtr_end_input.text = "%02d:%02d" % [now.hour, now.minute]
-		dtr_delete_btn.visible = false
-	else:
-		_editing_dtr_unix = session.get("created_unix", 0)
-		dtr_task_input.text = session.get("task_name", "")
-		dtr_cat_input.text = session.get("category", "")
-		dtr_date_input.text = session.get("date_key", "")
-		
-		var st: String = session.get("start_time", "")
-		var et: String = session.get("end_time", "")
-		dtr_start_input.text = st.split("T")[-1].substr(0, 5) if "T" in st else st.substr(0, 5)
-		dtr_end_input.text = et.split("T")[-1].substr(0, 5) if "T" in et else et.substr(0, 5)
-		
-		dtr_delete_btn.visible = true
-		
-	dtr_modal.show()
-
-func _on_dtr_modal_save() -> void:
-	if not DatabaseManager:
-		return
-		
-	var start_parts: PackedStringArray = dtr_start_input.text.split(":")
-	var end_parts: PackedStringArray = dtr_end_input.text.split(":")
-	var duration: int = 0
-	
-	if start_parts.size() == 2 and end_parts.size() == 2:
-		var start_mins: int = start_parts[0].to_int() * 60 + start_parts[1].to_int()
-		var end_mins: int = end_parts[0].to_int() * 60 + end_parts[1].to_int()
-		duration = max(0, end_mins - start_mins)
-		
-	var entry: Dictionary = {
-		"task_name": dtr_task_input.text if dtr_task_input.text != "" else "Manual Entry",
-		"category": dtr_cat_input.text if dtr_cat_input.text != "" else "General",
-		"start_time": dtr_date_input.text + "T" + dtr_start_input.text + ":00",
-		"end_time": dtr_date_input.text + "T" + dtr_end_input.text + ":00",
-		"duration_minutes": duration,
-		"status": "completed",
-		"coins_earned": 0, # Manual entries don't grant coins to prevent exploit
-		"exp_earned": 0,
-		"date_key": dtr_date_input.text,
-		"created_unix": _editing_dtr_unix if _editing_dtr_unix != 0 else Time.get_unix_time_from_system()
-	}
-	
-	if _editing_dtr_unix == 0:
-		DatabaseManager.log_session(entry)
-	else:
-		DatabaseManager.update_session(_editing_dtr_unix, entry)
-		
-	dtr_modal.hide()
-	_refresh_dtr_tab()
-
-func _on_dtr_modal_delete() -> void:
-	if not DatabaseManager or _editing_dtr_unix == 0:
-		return
-		
-	DatabaseManager.delete_session(_editing_dtr_unix)
-	dtr_modal.hide()
-	_refresh_dtr_tab()
-
-# ==============================================================================
-# 🔄 EVENT HANDLERS & HELPERS
-# ==============================================================================
-func _on_close_pressed() -> void:
-	var wc: WindowController = _find_window_controller()
-	if wc:
-		wc.toggle_right_panel()
-	else:
-		visible = false
-		EventBus.panel_visibility_changed.emit("right", false)
-
-func _on_exp_changed(_cur: int, _req: int, _lvl: int) -> void:
-	_refresh_vitals_tab()
-
-func _on_level_up(_new_lvl: int) -> void:
-	_refresh_vitals_tab()
-
-func _on_energy_changed(_cur: float, _max: float, _buffed: bool) -> void:
-	_refresh_vitals_tab()
-
-func _on_joy_changed(_cur: float, _max: float) -> void:
-	_refresh_vitals_tab()
-
-func _on_coins_changed(_balance: int, _delta: int, _reason: String) -> void:
-	_refresh_vitals_tab()
-
-func _on_kp_changed(_balance: int, _delta: int, _reason: String) -> void:
-	_refresh_vitals_tab()
-
-func _on_streak_changed(_streak: int) -> void:
-	_refresh_vitals_tab()
-
-func _on_inventory_changed(_inv: Array[Dictionary]) -> void:
-	_refresh_bag_tab()
-
-func _on_item_used(_item_id: String, _data: Dictionary) -> void:
-	_refresh_bag_tab()
-	_refresh_vitals_tab()
-
-func _on_cosmetic_equipped(_slot: String, _cosmetic_id: String) -> void:
-	_refresh_bag_tab()
-
-func _on_cosmetic_unequipped(_slot: String) -> void:
-	_refresh_bag_tab()
-
-func _on_session_completed(_type: String, _coins: int, _xp: int, _streak: int) -> void:
-	_refresh_dtr_tab()
-	_refresh_vitals_tab()
-
-# ==============================================================================
 # ⚙️ CONFIG TAB LOGIC
 # ==============================================================================
 func _refresh_config_ui() -> void:
-	# Update active scale buttons
 	_update_scale_buttons_highlight(_current_scale_preset)
 	
-	# Update Pin button
 	if pin_btn:
 		var pinned: bool = false
 		var wc: WindowController = _find_window_controller()
@@ -830,7 +403,6 @@ func _refresh_config_ui() -> void:
 		pin_btn.text = "📌 PINNED" if pinned else "📌 PIN TO TOP"
 		pin_btn.modulate = Color(0.96, 0.62, 0.04) if pinned else Color(1.0, 1.0, 1.0)
 		
-	# Update timer presets
 	if TimerEngine and work_time_input and break_time_input and cycle_input:
 		var w_min: float = TimerEngine.work_duration / 60.0
 		work_time_input.text = str(w_min) if w_min < 1.0 else str(int(round(w_min)))
@@ -838,7 +410,6 @@ func _refresh_config_ui() -> void:
 		break_time_input.text = str(b_min) if b_min < 1.0 else str(int(round(b_min)))
 		cycle_input.text = str(TimerEngine.pomodoro_cycle_goal)
 		
-	# Refresh Audio & Alert controls
 	_refresh_audio_ui()
 
 func _refresh_audio_ui() -> void:
@@ -888,10 +459,13 @@ func _on_timer_notifs_toggled() -> void:
 		var cur: bool = GameState.audio_settings.get("timer_notifs_enabled", true)
 		GameState.set_audio_setting("timer_notifs_enabled", not cur)
 
-func _on_pet_nudges_toggled() -> void:
+func _on_pet_nudge_toggled() -> void:
 	if GameState:
 		var cur: bool = GameState.audio_settings.get("pet_nudges_enabled", true)
 		GameState.set_audio_setting("pet_nudges_enabled", not cur)
+
+func _on_pet_nudges_toggled() -> void:
+	_on_pet_nudge_toggled()
 
 func _on_scale_dropdown_selected(index: int) -> void:
 	var scales: Array[float] = [1.25, 1.5, 2.0]
@@ -912,7 +486,6 @@ func _apply_scale(target_scale: float) -> void:
 	_current_scale_preset = target_scale
 	_update_scale_buttons_highlight(target_scale)
 	
-	# Find WindowController in ancestor tree and apply scale index
 	var wc: WindowController = _find_window_controller()
 	if wc:
 		var scale_idx: int = 0
@@ -923,7 +496,6 @@ func _apply_scale(target_scale: float) -> void:
 		wc.current_scale_index = scale_idx
 		wc._update_layout()
 	else:
-		# Fallback window sizing
 		var win_w: int = int(round(240.0 * target_scale))
 		var win_h: int = int(round(320.0 * target_scale))
 		DisplayServer.window_set_size(Vector2i(win_w, win_h), 0)
@@ -987,172 +559,6 @@ func _on_save_completed(success: bool, timestamp: String) -> void:
 		save_status_label.text = "Saved: %s" % timestamp.split("T")[-1]
 		save_status_label.modulate = Color(0.58, 0.64, 0.72)
 
-# ==============================================================================
-# 📚 TAB 4: STUDY DECK LOGIC (Full Edit / Delete Support)
-# ==============================================================================
-func _refresh_deck_tab() -> void:
-	if not GameState or not deck_cards_list_vbox:
-		return
-		
-	var cards: Array[Dictionary] = GameState.get_flashcards()
-	if deck_count_badge:
-		deck_count_badge.text = "%d CARDS" % cards.size()
-	if deck_kp_badge:
-		deck_kp_badge.text = "⭐ %d KP" % GameState.knowledge_points
-		
-	for child in deck_cards_list_vbox.get_children():
-		child.queue_free()
-		
-	if cards.is_empty():
-		var empty_lbl: Label = Label.new()
-		empty_lbl.text = "No cards in deck.\nAdd questions below!"
-		empty_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		empty_lbl.add_theme_font_size_override("font_size", 7)
-		empty_lbl.modulate = Color(0.58, 0.64, 0.72)
-		deck_cards_list_vbox.add_child(empty_lbl)
-		return
-		
-	for card in cards:
-		var c_id: String = card.get("id", "")
-		var q: String = card.get("q", "")
-		var a: String = card.get("a", "")
-		var subj: String = card.get("subject", "General")
-		
-		var card_panel: PanelContainer = PanelContainer.new()
-		var card_vbox: VBoxContainer = VBoxContainer.new()
-		card_vbox.add_theme_constant_override("separation", 3)
-		
-		# Top Row: Subject Tag + Edit + Delete Buttons
-		var top_hbox: HBoxContainer = HBoxContainer.new()
-		var subj_lbl: Label = Label.new()
-		subj_lbl.text = "🏷️ " + subj.to_upper()
-		subj_lbl.add_theme_font_size_override("font_size", 6)
-		subj_lbl.modulate = Color(0.38, 0.77, 0.99)
-		top_hbox.add_child(subj_lbl)
-		
-		var spacer: Control = Control.new()
-		spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		top_hbox.add_child(spacer)
-		
-		# Edit Button
-		var edit_btn: Button = Button.new()
-		edit_btn.text = "✏️"
-		edit_btn.custom_minimum_size = Vector2(18, 16)
-		edit_btn.add_theme_font_size_override("font_size", 6)
-		edit_btn.pressed.connect(func(): _start_edit_card(c_id, q, a, subj))
-		top_hbox.add_child(edit_btn)
-		
-		# Delete Button
-		var del_btn: Button = Button.new()
-		del_btn.text = "✕"
-		del_btn.custom_minimum_size = Vector2(16, 16)
-		del_btn.add_theme_font_size_override("font_size", 6)
-		del_btn.pressed.connect(func():
-			if AudioManager:
-				AudioManager.play_sfx("click")
-			GameState.delete_flashcard(c_id)
-			if _editing_card_id == c_id:
-				_cancel_card_edit()
-			if NotificationManager:
-				NotificationManager.show_toast("Card deleted", NotificationManager.ToastType.INFO)
-		)
-		top_hbox.add_child(del_btn)
-		card_vbox.add_child(top_hbox)
-		
-		# Question
-		var q_lbl: Label = Label.new()
-		q_lbl.text = "Q: " + q
-		q_lbl.add_theme_font_size_override("font_size", 7)
-		q_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		card_vbox.add_child(q_lbl)
-		
-		# Answer
-		var a_lbl: Label = Label.new()
-		a_lbl.text = "A: " + a
-		a_lbl.add_theme_font_size_override("font_size", 7)
-		a_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		a_lbl.modulate = Color(0.53, 0.94, 0.67)
-		card_vbox.add_child(a_lbl)
-		
-		card_panel.add_child(card_vbox)
-		deck_cards_list_vbox.add_child(card_panel)
-
-func _start_edit_card(c_id: String, q: String, a: String, subj: String) -> void:
-	if AudioManager:
-		AudioManager.play_sfx("click")
-	_editing_card_id = c_id
-	if deck_q_input: deck_q_input.text = q
-	if deck_a_input: deck_a_input.text = a
-	if deck_subject_input: deck_subject_input.text = subj
-	if deck_form_title: deck_form_title.text = "✏️ EDIT FLASHCARD"
-	if deck_add_btn: deck_add_btn.text = "💾 UPDATE CARD"
-	if deck_cancel_edit_btn: deck_cancel_edit_btn.show()
-
-func _cancel_card_edit() -> void:
-	_editing_card_id = ""
-	if deck_q_input: deck_q_input.text = ""
-	if deck_a_input: deck_a_input.text = ""
-	if deck_subject_input: deck_subject_input.text = ""
-	if deck_form_title: deck_form_title.text = "+ NEW FLASHCARD"
-	if deck_add_btn: deck_add_btn.text = "+ ADD TO DECK"
-	if deck_cancel_edit_btn: deck_cancel_edit_btn.hide()
-
-func _on_add_card_pressed() -> void:
-	if not GameState or not deck_q_input or not deck_a_input:
-		return
-		
-	var q: String = deck_q_input.text.strip_edges()
-	var a: String = deck_a_input.text.strip_edges()
-	var subj: String = deck_subject_input.text.strip_edges() if deck_subject_input else "General"
-	
-	if q == "" or a == "":
-		if NotificationManager:
-			NotificationManager.show_toast("Question & Answer required!", NotificationManager.ToastType.WARNING)
-		return
-		
-	if _editing_card_id != "":
-		# Edit existing card
-		var success = GameState.edit_flashcard(_editing_card_id, q, a, subj)
-		if success:
-			_cancel_card_edit()
-			if AudioManager:
-				AudioManager.play_sfx("click")
-			if NotificationManager:
-				NotificationManager.show_toast("Flashcard Updated! 📚✨", NotificationManager.ToastType.SUCCESS)
-	else:
-		# Add new card
-		var new_id: String = GameState.add_flashcard(q, a, subj)
-		if new_id != "":
-			deck_q_input.text = ""
-			deck_a_input.text = ""
-			if deck_subject_input:
-				deck_subject_input.text = ""
-			if AudioManager:
-				AudioManager.play_sfx("click")
-			if NotificationManager:
-				NotificationManager.show_toast("Flashcard Added! 📚✨", NotificationManager.ToastType.SUCCESS)
-
-func _on_start_study_drill_pressed() -> void:
-	if AudioManager:
-		AudioManager.play_sfx("click")
-		
-	var win_ctrl: WindowController = _find_window_controller()
-	if not win_ctrl or not win_ctrl.pet_slot:
-		return
-		
-	# Close existing modal if open
-	for m_name in ["FlashcardEngine", "MinigameHub", "SnackCatchGame", "PlantBloomGame", "MemoryMatchGame"]:
-		if win_ctrl.pet_slot.has_node(m_name):
-			win_ctrl.pet_slot.get_node(m_name).queue_free()
-			
-	var scene = load("res://scenes/minigames/FlashcardEngine.tscn")
-	if scene:
-		var flashcard_instance: Control = scene.instantiate()
-		flashcard_instance.name = "FlashcardEngine"
-		flashcard_instance.custom_minimum_size = Vector2(236, 140)
-		flashcard_instance.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		win_ctrl.pet_slot.add_child(flashcard_instance)
-
 func _find_window_controller() -> WindowController:
 	var cur: Node = get_parent()
 	while cur:
@@ -1161,64 +567,48 @@ func _find_window_controller() -> WindowController:
 		cur = cur.get_parent()
 	return null
 
-func _render_dtr_heatmap() -> void:
-	if not dtr_heatmap_grid or not GameState:
-		return
-	for child in dtr_heatmap_grid.get_children():
-		child.queue_free()
-		
-	var now_unix: int = int(Time.get_unix_time_from_system())
-	# Render 28 days (4 weeks of 7 days)
-	for d in range(27, -1, -1):
-		var day_unix: int = now_unix - (d * 86400)
-		var dt_dict: Dictionary = Time.get_datetime_dict_from_unix_time(day_unix)
-		var date_str: String = "%04d-%02d-%02d" % [dt_dict["year"], dt_dict["month"], dt_dict["day"]]
-		var minutes: int = GameState.daily_focus_history.get(date_str, 0)
-		
-		var cell: ColorRect = ColorRect.new()
-		cell.custom_minimum_size = Vector2(24, 16)
-		
-		# Intensity colors
-		if minutes == 0:
-			cell.color = Color(0.12, 0.16, 0.23, 0.85) # Slate dark
-		elif minutes < 25:
-			cell.color = Color(0.06, 0.72, 0.50, 0.9)   # Emerald tier 1
-		elif minutes < 50:
-			cell.color = Color(0.13, 0.80, 0.35, 1.0)   # Green tier 2
-		else:
-			cell.color = Color(0.96, 0.72, 0.15, 1.0)   # Gold tier 3
-			
-		cell.tooltip_text = "%s: %d mins focus" % [date_str, minutes]
-		dtr_heatmap_grid.add_child(cell)
+# ==============================================================================
+# 🎮 EVENT LISTENERS
+# ==============================================================================
+func _on_exp_changed(_cur: int, _req: int, _lvl: int = 1) -> void:
+	_refresh_vitals_tab()
 
-func _render_dtr_lifetime_stats() -> void:
-	if not GameState:
-		return
-	if dtr_total_hours_lbl:
-		var hours: float = float(GameState.lifetime_focus_minutes) / 60.0
-		dtr_total_hours_lbl.text = "⏱️ %.1f hrs total" % hours
-	if dtr_total_sprints_lbl:
-		var sprints: int = maxi(0, int(GameState.lifetime_focus_minutes / 25))
-		dtr_total_sprints_lbl.text = "⚡ %d sprints" % sprints
+func _on_level_up(_new_lvl: int) -> void:
+	_refresh_vitals_tab()
 
+func _on_energy_changed(_e: float, _max_e: float = 100.0, _buff: bool = false) -> void:
+	_refresh_vitals_tab()
 
-func _on_pet_prev() -> void:
-	if not GameState or GameState.active_pets.is_empty(): return
-	if GameState.active_pets.size() <= 1:
-		NotificationManager.show_toast("🐾 You only have one companion! Adopt another from the Shop.", NotificationManager.ToastType.INFO)
-		return
-	var idx = GameState.selected_pet_index - 1
-	if idx < 0: idx = GameState.active_pets.size() - 1
-	GameState.set_selected_pet(idx)
+func _on_joy_changed(_j: float, _max_j: float = 100.0) -> void:
+	_refresh_vitals_tab()
 
-func _on_pet_next() -> void:
-	if not GameState or GameState.active_pets.is_empty(): return
-	if GameState.active_pets.size() <= 1:
-		NotificationManager.show_toast("🐾 You only have one companion! Adopt another from the Shop.", NotificationManager.ToastType.INFO)
-		return
-	var idx = GameState.selected_pet_index + 1
-	if idx >= GameState.active_pets.size(): idx = 0
-	GameState.set_selected_pet(idx)
+func _on_coins_changed(_c: int, _delta: int = 0, _reason: String = "") -> void:
+	_refresh_vitals_tab()
+
+func _on_kp_changed(_kp: int, _delta: int = 0, _reason: String = "") -> void:
+	_refresh_vitals_tab()
+
+func _on_streak_changed(_s: int) -> void:
+	_refresh_vitals_tab()
+
+func _on_inventory_changed(_inv: Array) -> void:
+	_refresh_bag_tab()
+
+func _on_item_used(_item_id: String, _data: Dictionary) -> void:
+	_refresh_bag_tab()
+	_refresh_vitals_tab()
+
+func _on_cosmetic_equipped(_slot: String, _cosmetic_id: String) -> void:
+	_refresh_bag_tab()
+
+func _on_cosmetic_unequipped(_slot: String) -> void:
+	_refresh_bag_tab()
+
+func _on_session_completed(_type: String, _coins: int, _xp: int, _streak: int) -> void:
+	_refresh_vitals_tab()
+
+func _on_close_pressed() -> void:
+	hide()
 
 func _on_active_pet_selected(_idx: int, pet_data: Dictionary) -> void:
 	if pet_name_lbl:
@@ -1227,6 +617,7 @@ func _on_active_pet_selected(_idx: int, pet_data: Dictionary) -> void:
 	_refresh_bag_tab()
 
 func _on_pet_list_changed(_pets: Array) -> void:
-	var sel = GameState.get_selected_pet()
-	if sel and pet_name_lbl:
-		pet_name_lbl.text = "🐾 " + sel.get("name", "Companion")
+	if GameState.selected_pet_index < GameState.active_pets.size():
+		var sel = GameState.active_pets[GameState.selected_pet_index]
+		if sel and pet_name_lbl:
+			pet_name_lbl.text = "🐾 " + sel.get("name", "Companion")
