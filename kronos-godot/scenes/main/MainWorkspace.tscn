@@ -137,6 +137,15 @@ mouse_filter = 0
 mouse_default_cursor_shape = 2
 text = "1x"
 
+[node name="StudioButton" type="Button" parent="MainContainer/MiddlePanel/VBox/HeaderBar/HBox"]
+custom_minimum_size = Vector2(22, 20)
+layout_mode = 2
+focus_mode = 0
+mouse_filter = 0
+mouse_default_cursor_shape = 2
+tooltip_text = "📊 Open Productivity Studio (Ctrl+D)"
+text = "📊"
+
 [node name="PinButton" type="Button" parent="MainContainer/MiddlePanel/VBox/HeaderBar/HBox"]
 modulate = Color(1, 1, 1, 0.6)
 custom_minimum_size = Vector2(20, 20)
@@ -291,6 +300,13 @@ text = "🎯 Focus: General Deep Work"
 horizontal_alignment = 1
 text_overrun_behavior = 3
 
+[node name="SprintProgressBar" type="ProgressBar" parent="MainContainer/MiddlePanel/VBox/TimerDock/DockVBox"]
+custom_minimum_size = Vector2(0, 4)
+layout_mode = 2
+size_flags_horizontal = 3
+value = 0.0
+show_percentage = false
+
 [node name="TimerLabel" type="Label" parent="MainContainer/MiddlePanel/VBox/TimerDock/DockVBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.972549, 0.980392, 0.988235, 1)
@@ -304,11 +320,18 @@ theme_override_constants/separation = 3
 alignment = 1
 
 [node name="PlayPauseButton" type="Button" parent="MainContainer/MiddlePanel/VBox/TimerDock/DockVBox/ActionControls"]
-custom_minimum_size = Vector2(60, 22)
+custom_minimum_size = Vector2(50, 22)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 8
 text = "▶ Start"
+
+[node name="PresetButton" type="Button" parent="MainContainer/MiddlePanel/VBox/TimerDock/DockVBox/ActionControls"]
+custom_minimum_size = Vector2(36, 22)
+layout_mode = 2
+theme_override_font_sizes/font_size = 7
+tooltip_text = "Click to cycle preset: 25/5 -> 50/10 -> 90/20 -> Flow"
+text = "⚙ 25/5"
 
 [node name="MinigameButton" type="Button" parent="MainContainer/MiddlePanel/VBox/TimerDock/DockVBox/ActionControls"]
 custom_minimum_size = Vector2(24, 22)
@@ -317,7 +340,7 @@ theme_override_font_sizes/font_size = 8
 text = "🎮"
 
 [node name="ResetButton" type="Button" parent="MainContainer/MiddlePanel/VBox/TimerDock/DockVBox/ActionControls"]
-custom_minimum_size = Vector2(40, 22)
+custom_minimum_size = Vector2(36, 22)
 layout_mode = 2
 theme_override_font_sizes/font_size = 8
 text = "↺ Reset"

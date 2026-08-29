@@ -9,7 +9,7 @@
 
 1. **After every GDScript edit**, run the syntax check before declaring success:
    ```powershell
-   & "C:\Users\netne\AppData\Local\Microsoft\WinGet\Packages\GodotEngine.GodotEngine_Microsoft.Winget.Source_8wekyb3d8bbwe\Godot_v4.7.1-stable_win64_console.exe" --headless --path "c:\Users\netne\Kronos\Kronos Project\kronos-godot" --check-only -s res://path/to/script.gd 2>&1
+   & "C:\Users\netne\AppData\Local\Microsoft\WinGet\Packages\GodotEngine.GodotEngine_Microsoft.Winget.Source_8wekyb3d8bbwe\Godot_v4.7.2-stable_win64_console.exe" --headless --path "c:\Users\netne\Codes\Kronos\Kronos\kronos-godot" --check-only -s res://path/to/script.gd 2>&1
    ```
 2. `EventBus` and `GameState` are **autoloads** — they will show "Identifier not found" in `--check-only` mode. That specific error is safe to ignore. Any other parse error is NOT.
 3. **Never claim code works without verifying.** If the build tool fails, say so.
@@ -34,7 +34,7 @@
 Whenever Kian asks to **"push release" / "release version" / "push released"**:
 1. **Headless Export**: Export standalone binary via Godot 4 headless export:
    ```powershell
-   & "C:\Users\netne\AppData\Local\Microsoft\WinGet\Packages\GodotEngine.GodotEngine_Microsoft.Winget.Source_8wekyb3d8bbwe\Godot_v4.7.1-stable_win64_console.exe" --headless --path "c:\Users\netne\Kronos\Kronos Project\kronos-godot" --export-release "Windows Desktop" "../release/Kronos-v1.0-Windows/Kronos.exe"
+   & "C:\Users\netne\AppData\Local\Microsoft\WinGet\Packages\GodotEngine.GodotEngine_Microsoft.Winget.Source_8wekyb3d8bbwe\Godot_v4.7.2-stable_win64_console.exe" --headless --path "c:\Users\netne\Codes\Kronos\Kronos\kronos-godot" --export-release "Windows Desktop" "../release/Kronos-v1.0-Windows/Kronos.exe"
    ```
 2. **Package Zip**: Compress `release\Kronos-v1.0-Windows\*` into `release\Kronos-v1.0-Windows.zip`.
 3. **Publish GitHub Release**: Create and publish the new release to GitHub Releases with the `.zip` attached:

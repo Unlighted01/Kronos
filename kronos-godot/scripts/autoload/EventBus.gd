@@ -29,6 +29,13 @@ signal audio_settings_changed()
 ## Emitted on continuous focus coin ticks (+1 coin / 10s, +50% speed if energy >= 70)
 signal focus_coin_earned(coins_added: int, is_buffed: bool)
 
+## Emitted when the timer preset changes (e.g. 25/5, 50/10, 90/20, flowmodoro)
+signal timer_preset_changed(preset_id: String, preset_def: Dictionary)
+
+## Emitted when Productivity Studio open/toggle is requested
+signal productivity_studio_requested(initial_tab: String)
+signal productivity_studio_toggled(is_open: bool)
+
 # ==============================================================================
 # 📋 MICRO-TASKS & DAILY QUEST SIGNALS
 # ==============================================================================

@@ -1192,6 +1192,14 @@ func set_energy(value: float) -> void:
 func add_energy(amount: float) -> void:
 	set_energy(energy + amount)
 
+## Returns current active pet energy
+func get_active_energy() -> float:
+	return energy
+
+## Returns current active pet joy
+func get_active_joy() -> float:
+	return joy
+
 ## Sets pet joy clamped between 0 and 100
 func set_joy(value: float) -> void:
 	joy = clampf(value, MIN_JOY, MAX_JOY)

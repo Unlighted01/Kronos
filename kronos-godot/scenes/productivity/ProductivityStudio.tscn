@@ -1,0 +1,248 @@
+[gd_scene load_steps=5 format=3 uid="uid://p7r8o9d0u1c2t"]
+
+[ext_resource type="Script" path="res://scenes/productivity/ProductivityStudio.gd" id="1_studio"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_root"]
+bg_color = Color(0.054902, 0.062745, 0.101961, 0.98)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.176471, 0.207843, 0.282353, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+shadow_color = Color(0, 0, 0, 0.6)
+shadow_size = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_header"]
+bg_color = Color(0.0862745, 0.101961, 0.160784, 1)
+border_width_bottom = 2
+border_color = Color(0.176471, 0.207843, 0.282353, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_status"]
+bg_color = Color(0.0392157, 0.0470588, 0.0784314, 1)
+border_width_top = 1
+border_color = Color(0.137255, 0.160784, 0.223529, 1)
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[node name="ProductivityStudio" type="Window"]
+title = "📊 Kronos Productivity Studio"
+initial_position = 2
+size = Vector2i(720, 460)
+min_size = Vector2i(640, 400)
+script = ExtResource("1_studio")
+
+[node name="RootPanel" type="PanelContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_root")
+
+[node name="VBox" type="VBoxContainer" parent="RootPanel"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="HeaderBar" type="PanelContainer" parent="RootPanel/VBox"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_header")
+
+[node name="HBox" type="HBoxContainer" parent="RootPanel/VBox/HeaderBar"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="MarginStart" type="Control" parent="RootPanel/VBox/HeaderBar/HBox"]
+custom_minimum_size = Vector2(4, 0)
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="RootPanel/VBox/HeaderBar/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.960784, 0.803922, 0.47451, 1)
+theme_override_font_sizes/font_size = 11
+text = "📊 KRONOS PRODUCTIVITY STUDIO"
+
+[node name="Spacer" type="Control" parent="RootPanel/VBox/HeaderBar/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="TabBar" type="HBoxContainer" parent="RootPanel/VBox/HeaderBar/HBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="BtnDTR" type="Button" parent="RootPanel/VBox/HeaderBar/HBox/TabBar"]
+custom_minimum_size = Vector2(130, 24)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 9
+text = "📊 DTR & Analytics"
+
+[node name="BtnDeck" type="Button" parent="RootPanel/VBox/HeaderBar/HBox/TabBar"]
+custom_minimum_size = Vector2(130, 24)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 9
+text = "🧠 Study Deck & SRS"
+
+[node name="BtnTasks" type="Button" parent="RootPanel/VBox/HeaderBar/HBox/TabBar"]
+custom_minimum_size = Vector2(130, 24)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 9
+text = "📋 Tasks & Forecast"
+
+[node name="CloseButton" type="Button" parent="RootPanel/VBox/HeaderBar/HBox"]
+custom_minimum_size = Vector2(26, 24)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 10
+text = "✕"
+
+[node name="MarginEnd" type="Control" parent="RootPanel/VBox/HeaderBar/HBox"]
+custom_minimum_size = Vector2(4, 0)
+layout_mode = 2
+
+[node name="ContentArea" type="MarginContainer" parent="RootPanel/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 6
+
+[node name="TabContainer" type="TabContainer" parent="RootPanel/VBox/ContentArea"]
+layout_mode = 2
+current_tab = 0
+tabs_visible = false
+
+[node name="DTRTab" type="MarginContainer" parent="RootPanel/VBox/ContentArea/TabContainer"]
+layout_mode = 2
+
+[node name="DTRPlaceholder" type="VBoxContainer" parent="RootPanel/VBox/ContentArea/TabContainer/DTRTab"]
+layout_mode = 2
+alignment = 1
+
+[node name="Icon" type="Label" parent="RootPanel/VBox/ContentArea/TabContainer/DTRTab/DTRPlaceholder"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "📊"
+horizontal_alignment = 1
+
+[node name="Title" type="Label" parent="RootPanel/VBox/ContentArea/TabContainer/DTRTab/DTRPlaceholder"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.8, 0.6, 1)
+theme_override_font_sizes/font_size = 14
+text = "DTR Analytics & Session Studio"
+horizontal_alignment = 1
+
+[node name="Desc" type="Label" parent="RootPanel/VBox/ContentArea/TabContainer/DTRTab/DTRPlaceholder"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
+theme_override_font_sizes/font_size = 9
+text = "60-Day Focus Heatmap • Category Time Distribution • Full Session CRUD • Standup & CSV Exporter"
+horizontal_alignment = 1
+
+[node name="DeckTab" type="MarginContainer" parent="RootPanel/VBox/ContentArea/TabContainer"]
+visible = false
+layout_mode = 2
+
+[node name="DeckPlaceholder" type="VBoxContainer" parent="RootPanel/VBox/ContentArea/TabContainer/DeckTab"]
+layout_mode = 2
+alignment = 1
+
+[node name="Icon" type="Label" parent="RootPanel/VBox/ContentArea/TabContainer/DeckTab/DeckPlaceholder"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "🧠"
+horizontal_alignment = 1
+
+[node name="Title" type="Label" parent="RootPanel/VBox/ContentArea/TabContainer/DeckTab/DeckPlaceholder"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.7, 1, 1)
+theme_override_font_sizes/font_size = 14
+text = "Active Recall & SuperMemo SM-2 Study Deck"
+horizontal_alignment = 1
+
+[node name="Desc" type="Label" parent="RootPanel/VBox/ContentArea/TabContainer/DeckTab/DeckPlaceholder"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
+theme_override_font_sizes/font_size = 9
+text = "SuperMemo SM-2 Spaced Repetition • Due-Today Queue • Smart PDF/Doc & Paste Importer"
+horizontal_alignment = 1
+
+[node name="TasksTab" type="MarginContainer" parent="RootPanel/VBox/ContentArea/TabContainer"]
+visible = false
+layout_mode = 2
+
+[node name="TasksPlaceholder" type="VBoxContainer" parent="RootPanel/VBox/ContentArea/TabContainer/TasksTab"]
+layout_mode = 2
+alignment = 1
+
+[node name="Icon" type="Label" parent="RootPanel/VBox/ContentArea/TabContainer/TasksTab/TasksPlaceholder"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "📋"
+horizontal_alignment = 1
+
+[node name="Title" type="Label" parent="RootPanel/VBox/ContentArea/TabContainer/TasksTab/TasksPlaceholder"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.7, 0.2, 1)
+theme_override_font_sizes/font_size = 14
+text = "Sprint Tasks & Pomodoro Forecast"
+horizontal_alignment = 1
+
+[node name="Desc" type="Label" parent="RootPanel/VBox/ContentArea/TabContainer/TasksTab/TasksPlaceholder"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
+theme_override_font_sizes/font_size = 9
+text = "Category Color Tags • Estimated Pomodoros (🍅) • Finish-By Time Predictor • Instant Sprint Binding"
+horizontal_alignment = 1
+
+[node name="StatusBar" type="PanelContainer" parent="RootPanel/VBox"]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_status")
+
+[node name="HBox" type="HBoxContainer" parent="RootPanel/VBox/StatusBar"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="MarginStart" type="Control" parent="RootPanel/VBox/StatusBar/HBox"]
+custom_minimum_size = Vector2(4, 0)
+layout_mode = 2
+
+[node name="SprintStatusLabel" type="Label" parent="RootPanel/VBox/StatusBar/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.305882, 0.8, 0.639216, 1)
+theme_override_font_sizes/font_size = 8
+text = "🎯 Active Sprint: General Deep Work"
+
+[node name="Spacer" type="Control" parent="RootPanel/VBox/StatusBar/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="StatsBadgeLabel" type="Label" parent="RootPanel/VBox/StatusBar/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.960784, 0.803922, 0.47451, 1)
+theme_override_font_sizes/font_size = 8
+text = "🪙 0 G  |  Lv.1  |  Streak: 0 🔥"
+
+[node name="TimerStatusLabel" type="Label" parent="RootPanel/VBox/StatusBar/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.454902, 0.72549, 1, 1)
+theme_override_font_sizes/font_size = 8
+text = "⏱️ [25/5] Work: 25:00"
+
+[node name="MarginEnd" type="Control" parent="RootPanel/VBox/StatusBar/HBox"]
+custom_minimum_size = Vector2(4, 0)
+layout_mode = 2

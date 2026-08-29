@@ -26,6 +26,48 @@ const PASSIVE_COIN_INTERVAL: float = 30.0 # Seconds per passive presence coin (t
 const ENERGY_BURN_RATE: float = 1.0 / 120.0 # 1 energy point per 120s of active focus
 const BREAK_RECOVERY_RATE: float = 1.0 / 30.0 # 1 energy point per 30s of break
 
+# Presets
+const PRESETS: Dictionary = {
+	"25_5": {
+		"id": "25_5",
+		"name": "Classic 25/5",
+		"short_name": "25/5",
+		"mode": TimerMode.POMODORO,
+		"work_min": 25.0,
+		"short_break_min": 5.0,
+		"long_break_min": 15.0
+	},
+	"50_10": {
+		"id": "50_10",
+		"name": "Deep Work 50/10",
+		"short_name": "50/10",
+		"mode": TimerMode.POMODORO,
+		"work_min": 50.0,
+		"short_break_min": 10.0,
+		"long_break_min": 20.0
+	},
+	"90_20": {
+		"id": "90_20",
+		"name": "Ultradian 90/20",
+		"short_name": "90/20",
+		"mode": TimerMode.POMODORO,
+		"work_min": 90.0,
+		"short_break_min": 20.0,
+		"long_break_min": 30.0
+	},
+	"flowmodoro": {
+		"id": "flowmodoro",
+		"name": "Flowmodoro",
+		"short_name": "Flow",
+		"mode": TimerMode.FLOWMODORO,
+		"work_min": 0.0,
+		"short_break_min": 5.0,
+		"long_break_min": 15.0
+	}
+}
+const PRESET_ORDER: Array[String] = ["25_5", "50_10", "90_20", "flowmodoro"]
+var active_preset_id: String = "25_5"
+
 # ==============================================================================
 # 📊 ENGINE STATE
 # ==============================================================================
@@ -260,6 +302,38 @@ func toggle_timer() -> void:
 		pause_timer()
 	elif status == TimerStatus.PAUSED or status == TimerStatus.STOPPED:
 		start_timer()
+
+## Gets the active preset definition
+func get_active_preset() -> Dictionary:
+	return PRESETS.get(active_preset_id, PRESETS["25_5"])
+
+## Cycles to the next preset in order
+func cycle_preset() -> void:
+	var cur_idx: int = PRESET_ORDER.find(active_preset_id)
+	if cur_idx == -1:
+		cur_idx = 0
+	var next_idx: int = (cur_idx + 1) % PRESET_ORDER.size()
+	apply_preset(PRESET_ORDER[next_idx])
+
+## Applies a preset by ID
+func apply_preset(preset_id: String) -> void:
+	if not PRESETS.has(preset_id):
+		return
+	active_preset_id = preset_id
+	var def: Dictionary = PRESETS[preset_id]
+	current_mode = def.get("mode", TimerMode.POMODORO)
+	
+	if current_mode == TimerMode.POMODORO:
+		work_duration = def.get("work_min", 25.0) * 60.0
+		short_break_duration = def.get("short_break_min", 5.0) * 60.0
+		long_break_duration = def.get("long_break_min", 15.0) * 60.0
+	else: # Flowmodoro
+		work_duration = 0.0
+		short_break_duration = def.get("short_break_min", 5.0) * 60.0
+		long_break_duration = def.get("long_break_min", 15.0) * 60.0
+		
+	stop_timer()
+	EventBus.timer_preset_changed.emit(active_preset_id, def)
 
 ## Sets custom durations for work and break phases and resets the current timer
 func set_custom_durations(work_sec: float, break_sec: float) -> void:

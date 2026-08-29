@@ -31,6 +31,7 @@ const SCALE_LABELS: Array[String] = ["1.25x", "1.5x", "2x"]
 @onready var level_label: Label = $MainContainer/MiddlePanel/VBox/HeaderBar/HBox/LevelLabel
 @onready var title_label: Label = $MainContainer/MiddlePanel/VBox/HeaderBar/HBox/TitleLabel
 @onready var scale_btn: Button = $MainContainer/MiddlePanel/VBox/HeaderBar/HBox/ScaleButton
+@onready var studio_btn: Button = $MainContainer/MiddlePanel/VBox/HeaderBar/HBox/StudioButton
 @onready var pin_btn: Button = $MainContainer/MiddlePanel/VBox/HeaderBar/HBox/PinButton
 @onready var min_btn: Button = $MainContainer/MiddlePanel/VBox/HeaderBar/HBox/MinimizeButton
 @onready var close_btn: Button = $MainContainer/MiddlePanel/VBox/HeaderBar/HBox/CloseButton
@@ -47,8 +48,10 @@ const SCALE_LABELS: Array[String] = ["1.25x", "1.5x", "2x"]
 @onready var short_break_tab_btn: Button = $MainContainer/MiddlePanel/VBox/TimerDock/DockVBox/PhaseTabBar/ShortBreakTabBtn
 @onready var long_break_tab_btn: Button = $MainContainer/MiddlePanel/VBox/TimerDock/DockVBox/PhaseTabBar/LongBreakTabBtn
 @onready var active_task_label: Label = $MainContainer/MiddlePanel/VBox/TimerDock/DockVBox/ActiveTaskLabel
+@onready var sprint_progress_bar: ProgressBar = $MainContainer/MiddlePanel/VBox/TimerDock/DockVBox/SprintProgressBar
 @onready var timer_label: Label = $MainContainer/MiddlePanel/VBox/TimerDock/DockVBox/TimerLabel
 @onready var play_pause_btn: Button = $MainContainer/MiddlePanel/VBox/TimerDock/DockVBox/ActionControls/PlayPauseButton
+@onready var preset_btn: Button = $MainContainer/MiddlePanel/VBox/TimerDock/DockVBox/ActionControls/PresetButton
 @onready var minigame_btn: Button = $MainContainer/MiddlePanel/VBox/TimerDock/DockVBox/ActionControls/MinigameButton
 @onready var reset_btn: Button = $MainContainer/MiddlePanel/VBox/TimerDock/DockVBox/ActionControls/ResetButton
 @onready var pet_slot: Control = $MainContainer/MiddlePanel/VBox/PetSlot
@@ -56,6 +59,7 @@ const SCALE_LABELS: Array[String] = ["1.25x", "1.5x", "2x"]
 # ==============================================================================
 # 📊 INTERNAL STATE
 # ==============================================================================
+var studio_window: ProductivityStudio = null
 var current_scale_index: int = 0 # 0 -> 1.25x (Default), 1 -> 1.5x, 2 -> 2.0x
 var is_pinned: bool = false
 var is_position_locked: bool = false
@@ -107,6 +111,12 @@ func _setup_window() -> void:
 		left_panel_container.visible = is_left_open
 	if right_panel_container:
 		right_panel_container.visible = is_right_open
+		
+	# Instantiate Productivity Studio Window
+	var studio_scene = load("res://scenes/productivity/ProductivityStudio.tscn")
+	if studio_scene:
+		studio_window = studio_scene.instantiate() as ProductivityStudio
+		add_child(studio_window)
 
 func _connect_signals() -> void:
 	# Header Dragging on HeaderBar and Title Label
@@ -122,6 +132,8 @@ func _connect_signals() -> void:
 		toggle_right_btn.pressed.connect(toggle_right_panel)
 	if scale_btn:
 		scale_btn.pressed.connect(cycle_window_scale)
+	if studio_btn:
+		studio_btn.pressed.connect(func(): toggle_productivity_studio("dtr"))
 	if pin_btn:
 		pin_btn.pressed.connect(toggle_always_on_top)
 	if min_btn:
@@ -144,6 +156,11 @@ func _connect_signals() -> void:
 	# Action Controls
 	if play_pause_btn:
 		play_pause_btn.pressed.connect(func(): TimerEngine.toggle_timer())
+	if preset_btn:
+		preset_btn.pressed.connect(func():
+			if TimerEngine:
+				TimerEngine.cycle_preset()
+		)
 	if minigame_btn:
 		minigame_btn.pressed.connect(_on_minigame_pressed)
 	if reset_btn:
@@ -158,6 +175,8 @@ func _connect_event_bus() -> void:
 	EventBus.timer_tick.connect(_on_timer_tick)
 	EventBus.phase_changed.connect(_on_phase_changed)
 	EventBus.timer_state_changed.connect(_on_timer_state_changed)
+	EventBus.timer_preset_changed.connect(_on_timer_preset_changed)
+	EventBus.productivity_studio_requested.connect(open_productivity_studio)
 	EventBus.coins_changed.connect(_on_coins_changed)
 	EventBus.energy_changed.connect(_on_energy_changed)
 	EventBus.joy_changed.connect(_on_joy_changed)
@@ -199,6 +218,9 @@ func _refresh_ui_from_state() -> void:
 			timer_label.text = TimerEngine.get_formatted_time()
 		_update_phase_tab_styles(TimerEngine.get_phase_string())
 		_update_minigame_button_state()
+		_update_preset_button_display()
+		if sprint_progress_bar:
+			sprint_progress_bar.value = TimerEngine.get_progress() * 100.0
 		
 	if pin_btn:
 		pin_btn.modulate = Color(1.0, 0.84, 0.0, 1.0) if is_pinned else Color(1.0, 1.0, 1.0, 0.6)
@@ -440,12 +462,54 @@ func _on_timer_tick(time_left_sec: float, _total_sec: float, _phase: String) -> 
 	if timer_label:
 		if TimerEngine and TimerEngine.status == TimerEngine.TimerStatus.ALARMING:
 			timer_label.text = "00:00"
-			timer_label.modulate = Color(1.0, 0.84, 0.0, 1.0)
+			timer_label.modulate = Color(1.0, 0.84, 0.0, 1.0) # Pulsating gold
 		else:
-			timer_label.modulate = Color(1.0, 1.0, 1.0, 1.0)
+			var phase_str = TimerEngine.get_phase_string() if TimerEngine else "work"
+			match phase_str:
+				"work":
+					timer_label.modulate = Color(0.31, 0.82, 0.91, 1.0) # Crisp cyan-mint
+				"short_break":
+					timer_label.modulate = Color(0.40, 1.0, 0.60, 1.0) # Emerald break
+				"long_break":
+					timer_label.modulate = Color(0.85, 0.60, 1.0, 1.0) # Dream violet
+				_:
+					timer_label.modulate = Color(1.0, 1.0, 1.0, 1.0)
+					
 			var mins: int = int(time_left_sec) / 60
 			var secs: int = int(time_left_sec) % 60
 			timer_label.text = "%02d:%02d" % [mins, secs]
+			
+	if sprint_progress_bar and TimerEngine:
+		sprint_progress_bar.value = TimerEngine.get_progress() * 100.0
+
+func _on_timer_preset_changed(_preset_id: String, _preset_def: Dictionary) -> void:
+	_update_preset_button_display()
+	_refresh_ui_from_state()
+
+func _update_preset_button_display() -> void:
+	if not preset_btn or not TimerEngine:
+		return
+	var preset = TimerEngine.get_active_preset() if TimerEngine.has_method("get_active_preset") else {"short_name": "25/5"}
+	var short_name = preset.get("short_name", "25/5")
+	preset_btn.text = "⚙ %s" % short_name
+
+func toggle_productivity_studio(tab: String = "dtr") -> void:
+	if not studio_window:
+		return
+	if studio_window.visible:
+		studio_window.close_studio()
+	else:
+		open_productivity_studio(tab)
+
+func open_productivity_studio(tab: String = "dtr") -> void:
+	if not studio_window:
+		return
+	if not studio_window.visible:
+		var screen_id: int = DisplayServer.window_get_current_screen(0)
+		var screen_rect: Rect2i = DisplayServer.screen_get_usable_rect(screen_id)
+		var win_pos = screen_rect.position + (screen_rect.size - studio_window.size) / 2
+		studio_window.position = win_pos
+	studio_window.open_studio(tab)
 
 func _on_phase_changed(new_phase: String, _duration: float) -> void:
 	_update_phase_tab_styles(new_phase)
@@ -604,6 +668,12 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	# 3. Ctrl + P: Toggle Always-On-Top Pin
 	if key.ctrl_pressed and key.keycode == KEY_P:
 		toggle_always_on_top()
+		get_viewport().set_input_as_handled()
+		return
+		
+	# 4. Ctrl + D or F1: Toggle Productivity Studio
+	if (key.ctrl_pressed and key.keycode == KEY_D) or key.keycode == KEY_F1:
+		toggle_productivity_studio("dtr")
 		get_viewport().set_input_as_handled()
 		return
 		

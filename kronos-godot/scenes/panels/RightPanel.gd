@@ -54,16 +54,16 @@ class_name RightPanel
 @onready var dtr_export_status_label: Label = $VBox/TabContainer/DTR/ScrollContainer/DtrVBox/ExportStatusLabel
 @onready var dtr_list_vbox: VBoxContainer = $VBox/TabContainer/DTR/ScrollContainer/DtrVBox/SessionsListVBox
 
-# DTR Modal References
-@onready var dtr_modal: PanelContainer = $DTRModal
-@onready var dtr_task_input: LineEdit = $DTRModal/Center/Card/VBox/TaskInput
-@onready var dtr_cat_input: LineEdit = $DTRModal/Center/Card/VBox/CategoryInput
-@onready var dtr_start_input: LineEdit = $DTRModal/Center/Card/VBox/HBox/StartVBox/StartInput
-@onready var dtr_end_input: LineEdit = $DTRModal/Center/Card/VBox/HBox/EndVBox/EndInput
-@onready var dtr_date_input: LineEdit = $DTRModal/Center/Card/VBox/DateInput
-@onready var dtr_save_btn: Button = $DTRModal/Center/Card/VBox/SaveBtn
-@onready var dtr_delete_btn: Button = $DTRModal/Center/Card/VBox/DeleteBtn
-@onready var dtr_cancel_btn: Button = $DTRModal/Center/Card/VBox/CancelBtn
+# DTR Modal References (Optional)
+@onready var dtr_modal: PanelContainer = get_node_or_null("DTRModal")
+@onready var dtr_task_input: LineEdit = get_node_or_null("DTRModal/Center/Card/VBox/TaskInput")
+@onready var dtr_cat_input: LineEdit = get_node_or_null("DTRModal/Center/Card/VBox/CategoryInput")
+@onready var dtr_start_input: LineEdit = get_node_or_null("DTRModal/Center/Card/VBox/HBox/StartVBox/StartInput")
+@onready var dtr_end_input: LineEdit = get_node_or_null("DTRModal/Center/Card/VBox/HBox/EndVBox/EndInput")
+@onready var dtr_date_input: LineEdit = get_node_or_null("DTRModal/Center/Card/VBox/DateInput")
+@onready var dtr_save_btn: Button = get_node_or_null("DTRModal/Center/Card/VBox/SaveBtn")
+@onready var dtr_delete_btn: Button = get_node_or_null("DTRModal/Center/Card/VBox/DeleteBtn")
+@onready var dtr_cancel_btn: Button = get_node_or_null("DTRModal/Center/Card/VBox/CancelBtn")
 
 # Audio & Alerts References
 @onready var master_slider: HSlider = $VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/AudioCard/VBox/MasterRow/MasterSlider
@@ -98,8 +98,8 @@ class_name RightPanel
 @onready var manual_save_btn: Button = $VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/SaveCard/VBox/ManualSaveBtn
 @onready var save_status_label: Label = $VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/SaveCard/VBox/SaveStatusLabel
 
-# Dev Cheats UI References
-@onready var skip_sprint_btn: Button = $VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/DevToolsCard/VBox/SkipSprintBtn
+# Dev Cheats UI References (Optional)
+@onready var skip_sprint_btn: Button = get_node_or_null("VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/DevToolsCard/VBox/SkipSprintBtn")
 
 # ==============================================================================
 # 📊 INTERNAL STATE
