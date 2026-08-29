@@ -1,0 +1,429 @@
+[gd_scene load_steps=7 format=3 uid="uid://b8m9k0p1q2r3s"]
+
+[ext_resource type="Theme" uid="uid://b5g2j8k1m3n4p" path="res://themes/pixel_theme.tres" id="1_theme"]
+[ext_resource type="Script" path="res://scenes/productivity/DTRStudioTab.gd" id="2_dtr"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card"]
+content_margin_left = 10.0
+content_margin_top = 8.0
+content_margin_right = 10.0
+content_margin_bottom = 8.0
+bg_color = Color(0.0470588, 0.054902, 0.0901961, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.160784, 0.192157, 0.262745, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_goal_fill"]
+bg_color = Color(0.188235, 0.768627, 0.529412, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_modal_bg"]
+bg_color = Color(0.027451, 0.0313726, 0.054902, 0.85)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_modal_card"]
+content_margin_left = 16.0
+content_margin_top = 14.0
+content_margin_right = 16.0
+content_margin_bottom = 14.0
+bg_color = Color(0.0666667, 0.0784314, 0.12549, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.309804, 0.819608, 0.909804, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+shadow_color = Color(0, 0, 0, 0.6)
+shadow_size = 14
+
+[node name="DTRStudioTab" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme = ExtResource("1_theme")
+script = ExtResource("2_dtr")
+
+[node name="Scroll" type="ScrollContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+horizontal_scroll_mode = 0
+
+[node name="ContentVBox" type="VBoxContainer" parent="Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 10
+
+[node name="StatsRow" type="HBoxContainer" parent="Scroll/ContentVBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="GoalCard" type="PanelContainer" parent="Scroll/ContentVBox/StatsRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="VBox" type="VBoxContainer" parent="Scroll/ContentVBox/StatsRow/GoalCard"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Title" type="Label" parent="Scroll/ContentVBox/StatsRow/GoalCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.309804, 0.819608, 0.909804, 1)
+theme_override_font_sizes/font_size = 9
+text = "🎯 DAILY FOCUS GOAL"
+
+[node name="HBox" type="HBoxContainer" parent="Scroll/ContentVBox/StatsRow/GoalCard/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="GoalProgressBar" type="ProgressBar" parent="Scroll/ContentVBox/StatsRow/GoalCard/VBox/HBox"]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_styles/fill = SubResource("StyleBoxFlat_goal_fill")
+value = 75.0
+show_percentage = false
+
+[node name="GoalValueLabel" type="Label" parent="Scroll/ContentVBox/StatsRow/GoalCard/VBox/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.960784, 0.803922, 0.47451, 1)
+theme_override_font_sizes/font_size = 9
+text = "3.0h / 4.0h (75%)"
+
+[node name="BadgesCard" type="PanelContainer" parent="Scroll/ContentVBox/StatsRow"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="HBox" type="HBoxContainer" parent="Scroll/ContentVBox/StatsRow/BadgesCard"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="StreakLabel" type="Label" parent="Scroll/ContentVBox/StatsRow/BadgesCard/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.54902, 0.239216, 1)
+theme_override_font_sizes/font_size = 9
+text = "🔥 0 Days"
+
+[node name="TotalHoursLabel" type="Label" parent="Scroll/ContentVBox/StatsRow/BadgesCard/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.454902, 0.72549, 1, 1)
+theme_override_font_sizes/font_size = 9
+text = "⏱️ 0.0h Total"
+
+[node name="SprintsLabel" type="Label" parent="Scroll/ContentVBox/StatsRow/BadgesCard/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.305882, 0.8, 0.639216, 1)
+theme_override_font_sizes/font_size = 9
+text = "⚡ 0 Sprints"
+
+[node name="ActionsHBox" type="HBoxContainer" parent="Scroll/ContentVBox/StatsRow"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="BtnCopyStandup" type="Button" parent="Scroll/ContentVBox/StatsRow/ActionsHBox"]
+custom_minimum_size = Vector2(95, 26)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 9
+text = "📋 Standup"
+
+[node name="BtnExportCsv" type="Button" parent="Scroll/ContentVBox/StatsRow/ActionsHBox"]
+custom_minimum_size = Vector2(70, 26)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 9
+text = "📊 CSV"
+
+[node name="BtnAddSession" type="Button" parent="Scroll/ContentVBox/StatsRow/ActionsHBox"]
+custom_minimum_size = Vector2(95, 26)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 9
+text = "➕ Add Record"
+
+[node name="ChartsRow" type="HBoxContainer" parent="Scroll/ContentVBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="HeatmapCard" type="PanelContainer" parent="Scroll/ContentVBox/ChartsRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="VBox" type="VBoxContainer" parent="Scroll/ContentVBox/ChartsRow/HeatmapCard"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="HeaderHBox" type="HBoxContainer" parent="Scroll/ContentVBox/ChartsRow/HeatmapCard/VBox"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Scroll/ContentVBox/ChartsRow/HeatmapCard/VBox/HeaderHBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.960784, 0.803922, 0.47451, 1)
+theme_override_font_sizes/font_size = 9
+text = "🗓️ 60-DAY FOCUS CONSISTENCY"
+
+[node name="Spacer" type="Control" parent="Scroll/ContentVBox/ChartsRow/HeatmapCard/VBox/HeaderHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="BtnClearDayFilter" type="Button" parent="Scroll/ContentVBox/ChartsRow/HeatmapCard/VBox/HeaderHBox"]
+visible = false
+custom_minimum_size = Vector2(80, 20)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 8
+text = "✕ Clear Filter"
+
+[node name="LegendLabel" type="Label" parent="Scroll/ContentVBox/ChartsRow/HeatmapCard/VBox/HeaderHBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.55, 0.6, 0.7, 1)
+theme_override_font_sizes/font_size = 8
+text = "Less ░ ▒ ▓ █ More"
+
+[node name="HeatmapGrid" type="GridContainer" parent="Scroll/ContentVBox/ChartsRow/HeatmapCard/VBox"]
+layout_mode = 2
+theme_override_constants/h_separation = 3
+theme_override_constants/v_separation = 3
+columns = 12
+
+[node name="SelectedDayLabel" type="Label" parent="Scroll/ContentVBox/ChartsRow/HeatmapCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.54902, 0.6, 0.709804, 1)
+theme_override_font_sizes/font_size = 8
+text = "💡 Click any square above to filter sessions for that date."
+
+[node name="CategoryCard" type="PanelContainer" parent="Scroll/ContentVBox/ChartsRow"]
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="VBox" type="VBoxContainer" parent="Scroll/ContentVBox/ChartsRow/CategoryCard"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="HeaderHBox" type="HBoxContainer" parent="Scroll/ContentVBox/ChartsRow/CategoryCard/VBox"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Scroll/ContentVBox/ChartsRow/CategoryCard/VBox/HeaderHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.960784, 0.803922, 0.47451, 1)
+theme_override_font_sizes/font_size = 9
+text = "📊 CATEGORIES"
+
+[node name="TimeframeOption" type="OptionButton" parent="Scroll/ContentVBox/ChartsRow/CategoryCard/VBox/HeaderHBox"]
+custom_minimum_size = Vector2(90, 22)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 8
+
+[node name="CategoryBarsVBox" type="VBoxContainer" parent="Scroll/ContentVBox/ChartsRow/CategoryCard/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="TableCard" type="PanelContainer" parent="Scroll/ContentVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="VBox" type="VBoxContainer" parent="Scroll/ContentVBox/TableCard"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="TableHeader" type="HBoxContainer" parent="Scroll/ContentVBox/TableCard/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Title" type="Label" parent="Scroll/ContentVBox/TableCard/VBox/TableHeader"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.309804, 0.819608, 0.909804, 1)
+theme_override_font_sizes/font_size = 9
+text = "📝 SESSION HISTORY"
+
+[node name="FilterStatusLabel" type="Label" parent="Scroll/ContentVBox/TableCard/VBox/TableHeader"]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.843137, 0, 1)
+theme_override_font_sizes/font_size = 8
+text = "📅 [2026-08-29]"
+
+[node name="SearchInput" type="LineEdit" parent="Scroll/ContentVBox/TableCard/VBox/TableHeader"]
+custom_minimum_size = Vector2(170, 24)
+layout_mode = 2
+theme_override_font_sizes/font_size = 8
+placeholder_text = "Search task or category..."
+
+[node name="BtnResetFilter" type="Button" parent="Scroll/ContentVBox/TableCard/VBox/TableHeader"]
+visible = false
+custom_minimum_size = Vector2(65, 22)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 8
+text = "↺ Reset"
+
+[node name="Spacer" type="Control" parent="Scroll/ContentVBox/TableCard/VBox/TableHeader"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="RecordCountLabel" type="Label" parent="Scroll/ContentVBox/TableCard/VBox/TableHeader"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.55, 0.6, 0.7, 1)
+theme_override_font_sizes/font_size = 8
+text = "0 Sessions"
+
+[node name="TableScroll" type="ScrollContainer" parent="Scroll/ContentVBox/TableCard/VBox"]
+custom_minimum_size = Vector2(0, 140)
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="SessionsListVBox" type="VBoxContainer" parent="Scroll/ContentVBox/TableCard/VBox/TableScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="ModalOverlay" type="PanelContainer" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_modal_bg")
+
+[node name="Center" type="CenterContainer" parent="ModalOverlay"]
+layout_mode = 2
+
+[node name="Card" type="PanelContainer" parent="ModalOverlay/Center"]
+custom_minimum_size = Vector2(320, 0)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_modal_card")
+
+[node name="VBox" type="VBoxContainer" parent="ModalOverlay/Center/Card"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ModalTitle" type="Label" parent="ModalOverlay/Center/Card/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.960784, 0.803922, 0.47451, 1)
+theme_override_font_sizes/font_size = 11
+text = "✏️ Edit Focus Session"
+horizontal_alignment = 1
+
+[node name="TaskLabel" type="Label" parent="ModalOverlay/Center/Card/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
+theme_override_font_sizes/font_size = 8
+text = "Task Description:"
+
+[node name="TaskInput" type="LineEdit" parent="ModalOverlay/Center/Card/VBox"]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+theme_override_font_sizes/font_size = 8
+placeholder_text = "e.g. Build Auth System"
+
+[node name="CatLabel" type="Label" parent="ModalOverlay/Center/Card/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
+theme_override_font_sizes/font_size = 8
+text = "Category:"
+
+[node name="CategoryOption" type="OptionButton" parent="ModalOverlay/Center/Card/VBox"]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+theme_override_font_sizes/font_size = 8
+
+[node name="DateRow" type="HBoxContainer" parent="ModalOverlay/Center/Card/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="DateVBox" type="VBoxContainer" parent="ModalOverlay/Center/Card/VBox/DateRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="DateLabel" type="Label" parent="ModalOverlay/Center/Card/VBox/DateRow/DateVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
+theme_override_font_sizes/font_size = 8
+text = "Date (YYYY-MM-DD):"
+
+[node name="DateInput" type="LineEdit" parent="ModalOverlay/Center/Card/VBox/DateRow/DateVBox"]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+theme_override_font_sizes/font_size = 8
+
+[node name="DurVBox" type="VBoxContainer" parent="ModalOverlay/Center/Card/VBox/DateRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="DurLabel" type="Label" parent="ModalOverlay/Center/Card/VBox/DateRow/DurVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
+theme_override_font_sizes/font_size = 8
+text = "Duration (Minutes):"
+
+[node name="DurationSpin" type="SpinBox" parent="ModalOverlay/Center/Card/VBox/DateRow/DurVBox"]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+min_value = 1.0
+max_value = 360.0
+value = 25.0
+
+[node name="BtnRow" type="HBoxContainer" parent="ModalOverlay/Center/Card/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="SaveBtn" type="Button" parent="ModalOverlay/Center/Card/VBox/BtnRow"]
+custom_minimum_size = Vector2(90, 26)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 9
+text = "💾 Save"
+
+[node name="DeleteBtn" type="Button" parent="ModalOverlay/Center/Card/VBox/BtnRow"]
+custom_minimum_size = Vector2(80, 26)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 9
+text = "🗑️ Delete"
+
+[node name="CancelBtn" type="Button" parent="ModalOverlay/Center/Card/VBox/BtnRow"]
+custom_minimum_size = Vector2(70, 26)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 9
+text = "✕ Cancel"

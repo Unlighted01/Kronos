@@ -100,25 +100,28 @@ Transform Kronos into a premier focus ecosystem: a **Cozy Ambient Desktop Compan
 
 ## 📅 Phased Execution Plan
 
-### Phase 1: Studio Window Framework & Retro Pixel Timer Redesign
+### Phase 1: Studio Window Framework & Retro Pixel Timer Redesign [✅ COMPLETED]
 * **Deliverables**:
-  * `[NEW] scenes/productivity/ProductivityStudio.tscn` & `ProductivityStudio.gd`: Standalone `720×460` window with 3-tab navigation switcher (`[📊 DTR]`, `[🧠 DECK]`, `[📋 TASKS]`) and smooth open/close hotkeys.
-  * `[MODIFY] scenes/main/WindowController.gd` & `MainWorkspace.tscn`: Connect `[📊 Studio]` button and `Ctrl+D` shortcut; restyle the middle Timer Dock with glowing pixel segments and progress ring.
-  * `[MODIFY] scripts/autoload/TimerEngine.gd`: Add custom presets, duration storage, and auto-start logic.
+  * `[NEW] scenes/productivity/ProductivityStudio.tscn` & `ProductivityStudio.gd`: Standalone `720×460` frameless pixel window with 3-tab navigation switcher (`[📊 DTR]`, `[🧠 DECK]`, `[📋 TASKS]`), header dragging, and smooth open/close hotkeys (`Ctrl+D` / `F1` / `Esc`).
+  * `[MODIFY] scenes/main/WindowController.gd` & `MainWorkspace.tscn`: Connect `[📊 Studio]` button and `Ctrl+D` shortcut; compact middle panel HeaderBar and timer dock controls; maintain clean uncropped pixel layout across 1x/1.25x/1.5x/2x scales.
+  * `[MODIFY] scripts/autoload/TimerEngine.gd`: Added presets (`25/5`, `50/10`, `90/20`, `Flowmodoro`), sprint progress bar integration, and preset cycling.
 
-### Phase 2: DTR Analytics Studio & Standup Exporter
+### Phase 2: DTR Analytics Studio & Standup Exporter [✅ COMPLETED]
 * **Deliverables**:
-  * `[NEW] scenes/productivity/DTRStudioTab.tscn` & `DTRStudioTab.gd`: 60-day interactive heatmap, daily/weekly goal bar, category distribution chart, session CRUD table, CSV export, and standup markdown generator.
-  * `[MODIFY] scripts/autoload/GameState.gd`: Session query/update/delete methods and category duration aggregations.
+  * `[NEW] scenes/productivity/DTRStudioTab.tscn` & `DTRStudioTab.gd`: 60-day interactive GitHub-style heatmap with tooltips and date filter, daily focus goal progress bar (`3.0h / 4.0h`), multi-timeframe category distribution charts, reverse-chronological session CRUD table with search, inline edit/add modal, 1-click Markdown Standup generator for clipboard, and CSV export.
+  * `[MODIFY] scripts/autoload/DatabaseManager.gd`: Heatmap data aggregation (60 days), category distribution, lifetime statistics summary, standup markdown generation, and `dtr_updated` signal.
+  * `[MODIFY] scripts/autoload/EventBus.gd`: Added `dtr_updated` signal for real-time reactivity.
+  * `[MODIFY] scenes/productivity/ProductivityStudio.tscn` & `ProductivityStudio.gd`: Embedded `DTRStudioTab` into Tab 1 with borderless/transparent pixel styling and header dragging.
 
-### Phase 3: SuperMemo (SM-2) Engine & Smart Document/Paste Importer
+### Phase 3: SuperMemo (SM-2) Engine & Smart Document/Paste Importer [🟡 NEXT UP]
 * **Deliverables**:
-  * `[NEW] scripts/study/SRSAlgorithm.gd`: SuperMemo SM-2 interval calculations.
-  * `[NEW] scripts/study/SmartQAParser.gd`: Regex parser supporting Q&A patterns, Term-Definition pairs, and quiz blocks.
-  * `[NEW] scenes/productivity/StudyDeckStudioTab.tscn` & `StudyDeckStudioTab.gd`: SRS card manager, "Due Today" queue, quiz arena, file picker, and smart paste import preview.
-  * `[MODIFY] scripts/autoload/GameState.gd`: Persist SM-2 interval, ease factor, and due dates.
+  * `[NEW] scripts/study/SRSAlgorithm.gd`: SuperMemo SM-2 interval calculations ($I_n = I_{n-1} \times \text{EF}$), ease factor adaptation, and "Due Today" queue scheduler.
+  * `[NEW] scripts/study/SmartQAParser.gd`: Regex parser supporting Q&A patterns, Term-Definition pairs, numbered quizzes, and cloze deletions.
+  * `[NEW] scenes/productivity/StudyDeckStudioTab.tscn` & `StudyDeckStudioTab.gd`: SRS card manager, "Due Today" queue, interactive quiz arena with card flipper, file picker, and smart paste import preview table.
+  * `[MODIFY] scripts/autoload/DatabaseManager.gd`: Persist flashcard decks (`user://kronos_study_decks.json`), review history, and SM-2 parameters.
+  * `[MODIFY] scenes/productivity/ProductivityStudio.tscn`: Mount `StudyDeckStudioTab` into Tab 2 (`DeckTab`).
 
-### Phase 4: Task Command Board, Pomodoro Forecast & Panel Streamlining
+### Phase 4: Task Command Board, Pomodoro Forecast & Panel Streamlining [❌ QUEUED]
 * **Deliverables**:
   * `[NEW] scenes/productivity/TaskBoardStudioTab.tscn` & `TaskBoardStudioTab.gd`: Category color tags, subtasks, estimated Pomodoro tracking, "Finish By" time forecast, and sprint binder.
   * `[MODIFY] scenes/panels/LeftPanel.gd` & `RightPanel.gd`: Clean up redundant panels to focus purely on pet shop/lifestyle and vitals/inventory.

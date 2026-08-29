@@ -24,16 +24,23 @@ class_name ProductivityStudio
 # Internal Active Tab tracking
 var current_tab_id: String = "dtr"
 
+# Header drag state
+@onready var header_bar: PanelContainer = $RootPanel/VBox/HeaderBar
+var is_dragging: bool = false
+var drag_start_mouse_pos: Vector2i = Vector2i.ZERO
+var drag_start_window_pos: Vector2i = Vector2i.ZERO
+
 # ==============================================================================
 # ⚙️ LIFECYCLE & SIGNALS
 # ==============================================================================
 func _ready() -> void:
-	# Configure window properties
+	# Configure window properties matching Kronos pixel aesthetic
 	title = "📊 Kronos Productivity Studio"
 	size = Vector2i(720, 460)
 	min_size = Vector2i(640, 400)
-	unresizable = false
-	borderless = false
+	unresizable = true
+	borderless = true
+	transparent = true
 	visible = false
 	
 	close_requested.connect(_on_close_requested)
@@ -44,6 +51,11 @@ func _ready() -> void:
 	switch_tab("dtr")
 
 func _connect_ui_signals() -> void:
+	if header_bar:
+		header_bar.gui_input.connect(_on_header_gui_input)
+	if title_label:
+		title_label.gui_input.connect(_on_header_gui_input)
+		
 	if btn_tab_dtr:
 		btn_tab_dtr.pressed.connect(func(): switch_tab("dtr"))
 	if btn_tab_deck:
@@ -55,6 +67,19 @@ func _connect_ui_signals() -> void:
 		
 	if tab_container:
 		tab_container.tab_changed.connect(_on_tab_container_tab_changed)
+
+func _on_header_gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		if event.pressed:
+			is_dragging = true
+			drag_start_mouse_pos = DisplayServer.mouse_get_position()
+			drag_start_window_pos = position
+		else:
+			is_dragging = false
+	elif event is InputEventMouseMotion and is_dragging:
+		var cur_mouse_pos: Vector2i = DisplayServer.mouse_get_position()
+		var delta_pos: Vector2i = cur_mouse_pos - drag_start_mouse_pos
+		position = drag_start_window_pos + delta_pos
 
 func _connect_event_bus() -> void:
 	if not EventBus:
@@ -156,8 +181,13 @@ func _refresh_active_tab_view() -> void:
 	if not tab_container:
 		return
 	var cur_child = tab_container.get_current_tab_control()
-	if cur_child and cur_child.has_method("refresh_tab"):
-		cur_child.refresh_tab()
+	if cur_child:
+		if cur_child.has_method("refresh_tab"):
+			cur_child.refresh_tab()
+		elif cur_child.get_child_count() > 0:
+			var inner = cur_child.get_child(0)
+			if inner and inner.has_method("refresh_tab"):
+				inner.refresh_tab()
 
 # ==============================================================================
 # ⏱️ EVENTBUS HANDLERS

@@ -1,6 +1,8 @@
-[gd_scene load_steps=5 format=3 uid="uid://p7r8o9d0u1c2t"]
+[gd_scene load_steps=6 format=3 uid="uid://p7r8o9d0u1c2t"]
 
+[ext_resource type="Theme" uid="uid://b5g2j8k1m3n4p" path="res://themes/pixel_theme.tres" id="1_theme"]
 [ext_resource type="Script" path="res://scenes/productivity/ProductivityStudio.gd" id="1_studio"]
+[ext_resource type="PackedScene" uid="uid://b8m9k0p1q2r3s" path="res://scenes/productivity/DTRStudioTab.tscn" id="2_dtr_tab"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_root"]
 bg_color = Color(0.054902, 0.062745, 0.101961, 0.98)
@@ -8,7 +10,7 @@ border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.176471, 0.207843, 0.282353, 1)
+border_color = Color(0.309804, 0.819608, 0.909804, 1)
 corner_radius_top_left = 6
 corner_radius_top_right = 6
 corner_radius_bottom_right = 6
@@ -35,6 +37,10 @@ title = "📊 Kronos Productivity Studio"
 initial_position = 2
 size = Vector2i(720, 460)
 min_size = Vector2i(640, 400)
+unresizable = true
+borderless = true
+transparent = true
+theme = ExtResource("1_theme")
 script = ExtResource("1_studio")
 
 [node name="RootPanel" type="PanelContainer" parent="."]
@@ -43,6 +49,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme = ExtResource("1_theme")
 theme_override_styles/panel = SubResource("StyleBoxFlat_root")
 
 [node name="VBox" type="VBoxContainer" parent="RootPanel"]
@@ -128,29 +135,8 @@ tabs_visible = false
 [node name="DTRTab" type="MarginContainer" parent="RootPanel/VBox/ContentArea/TabContainer"]
 layout_mode = 2
 
-[node name="DTRPlaceholder" type="VBoxContainer" parent="RootPanel/VBox/ContentArea/TabContainer/DTRTab"]
+[node name="DTRStudioTab" parent="RootPanel/VBox/ContentArea/TabContainer/DTRTab" instance=ExtResource("2_dtr_tab")]
 layout_mode = 2
-alignment = 1
-
-[node name="Icon" type="Label" parent="RootPanel/VBox/ContentArea/TabContainer/DTRTab/DTRPlaceholder"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 28
-text = "📊"
-horizontal_alignment = 1
-
-[node name="Title" type="Label" parent="RootPanel/VBox/ContentArea/TabContainer/DTRTab/DTRPlaceholder"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.3, 0.8, 0.6, 1)
-theme_override_font_sizes/font_size = 14
-text = "DTR Analytics & Session Studio"
-horizontal_alignment = 1
-
-[node name="Desc" type="Label" parent="RootPanel/VBox/ContentArea/TabContainer/DTRTab/DTRPlaceholder"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
-theme_override_font_sizes/font_size = 9
-text = "60-Day Focus Heatmap • Category Time Distribution • Full Session CRUD • Standup & CSV Exporter"
-horizontal_alignment = 1
 
 [node name="DeckTab" type="MarginContainer" parent="RootPanel/VBox/ContentArea/TabContainer"]
 visible = false

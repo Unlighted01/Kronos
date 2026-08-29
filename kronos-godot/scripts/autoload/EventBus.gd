@@ -179,6 +179,9 @@ signal save_completed(success: bool, timestamp: String)
 ## Emitted after load operation
 signal load_completed(success: bool)
 
+## Emitted when DTR focus records are added, updated, or deleted
+signal dtr_updated()
+
 ## Emitted by rooms with dynamic floors (like Charon's Skiff)
 signal floor_y_offset_changed(offset: float)
 
