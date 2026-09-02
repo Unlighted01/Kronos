@@ -87,45 +87,12 @@ func _update_direction() -> void:
 	queue_redraw()
 
 # ==============================================================================
-# 🎨 CUSTOM CANVAS DRAWING (Pixel Door)
+# 🎨 CUSTOM CANVAS DRAWING (Invisible Threshold)
 # ==============================================================================
 func _draw() -> void:
-	var dw: float = 18.0
-	var dh: float = 46.0
-	var x: float = -dw * 0.5
-	var y: float = -dh
-	
-	# Door Threshold Glow (warm light seeping under door)
-	draw_rect(Rect2(x - 2, 0, dw + 4, 3), COL_THRESHOLD_GLOW)
-	
-	# Outer Door Frame
-	draw_rect(Rect2(x - 2, y - 2, dw + 4, dh + 2), COL_FRAME_SHADOW)
-	draw_rect(Rect2(x - 1, y - 1, dw + 2, dh + 1), COL_FRAME_WOOD)
-	
-	# Door Leaf / Body
-	draw_rect(Rect2(x, y, dw, dh), COL_DOOR_PANEL)
-	
-	# Upper and Lower Inset Panels
-	draw_rect(Rect2(x + 2, y + 3, dw - 4, 16), COL_FRAME_SHADOW)
-	draw_rect(Rect2(x + 3, y + 4, dw - 6, 14), COL_DOOR_LIGHT)
-	
-	draw_rect(Rect2(x + 2, y + 23, dw - 4, 18), COL_FRAME_SHADOW)
-	draw_rect(Rect2(x + 3, y + 24, dw - 6, 16), COL_DOOR_LIGHT)
-	
-	# Brass Doorknob
-	var handle_x: float = (x + dw - 4) if door_direction == "right" else (x + 2)
-	draw_rect(Rect2(handle_x, y + 24, 2, 4), COL_HANDLE_BRASS)
-	draw_rect(Rect2(handle_x - 1, y + 25, 4, 2), COL_HANDLE_BRASS)
-	
-	# Draw Padlock if Target Room is Locked in Shop
-	if GameState and not GameState.is_room_unlocked(target_room):
-		draw_rect(Rect2(-3, y + 8, 6, 6), Color(0.95, 0.75, 0.20)) # Brass body
-		draw_rect(Rect2(-2, y + 5, 4, 3), Color(0.35, 0.40, 0.45), false, 1.0) # Shackle
-		draw_rect(Rect2(-1, y + 10, 2, 2), Color(0.20, 0.15, 0.10)) # Keyhole
-	
-	# Hover glow outline
-	if _is_hovered:
-		draw_rect(Rect2(x - 3, y - 3, dw + 6, dh + 6), COL_HOVER_BORDER, false, 1.0)
+	# Doors are visually invisible to keep room aesthetics clean and uncluttered.
+	# The node serves as an invisible interaction & pet teleportation boundary.
+	pass
 
 # ==============================================================================
 # 🖱️ INTERACTION & HOVER EVENTS

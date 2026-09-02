@@ -247,11 +247,11 @@ func _refresh_active_tab_view() -> void:
 			var dtr_node = get_node_or_null("RootPanel/VBox/ContentArea/TabContainer/DTRTab/DTRStudioTab")
 			if dtr_node and dtr_node.has_method("refresh_tab"):
 				dtr_node.refresh_tab()
-		"deck", "cards":
+		"deck", "cards", "srs":
 			var deck_node = get_node_or_null("RootPanel/VBox/ContentArea/TabContainer/DeckTab/DeckStudioTab")
 			if deck_node and deck_node.has_method("refresh_tab"):
 				deck_node.refresh_tab()
-		"tasks", "board":
+		"tasks", "board", "forecast":
 			var tasks_node = get_node_or_null("RootPanel/VBox/ContentArea/TabContainer/TasksTab/TasksStudioTab")
 			if tasks_node and tasks_node.has_method("refresh_tab"):
 				tasks_node.refresh_tab()

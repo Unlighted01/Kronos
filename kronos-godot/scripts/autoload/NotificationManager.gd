@@ -113,11 +113,11 @@ func _reset_idle_tracker() -> void:
 	_idle_nudge_count = 0
 
 func _are_timer_notifs_enabled() -> bool:
-	if not GameState or not GameState.audio_settings:
+	if not GameState or not ("audio_settings" in GameState) or not GameState.audio_settings:
 		return true
 	return GameState.audio_settings.get("timer_notifications_enabled", true)
 
 func _are_pet_nudges_enabled() -> bool:
-	if not GameState or not GameState.audio_settings:
+	if not GameState or not ("audio_settings" in GameState) or not GameState.audio_settings:
 		return true
 	return GameState.audio_settings.get("pet_nudges_enabled", true)

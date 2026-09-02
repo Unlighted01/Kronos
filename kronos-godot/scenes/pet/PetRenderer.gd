@@ -3,8 +3,9 @@ extends Node2D
 class_name PetRenderer
 
 ## Custom Pixel-Art Renderer for Pet Companions in Kronos.
-## Renders crisp, pixel-perfect 2D animations with species-specific body plans
-## (Shiba quadruped, Penguin biped, Bunny biped, Fox sleek quadruped, Cat sprite-based).
+## Renders crisp, pixel-perfect 2D animations with dedicated species-specific body plans
+## (Shiba quadruped, Calico Cat feline, Bunny biped, Tuxedo Penguin, Fox vulpine,
+##  Red Panda ringtail, Zen Capybara block, and Scholar Owl perched avian).
 
 enum AnimState {
 	IDLE,
@@ -23,7 +24,7 @@ enum AnimState {
 }
 
 # ==============================================================================
-# 🎨 COLOR PALETTE (Shiba Inu & Props)
+# 🎨 COLOR PALETTE (Base Shiba & Props)
 # ==============================================================================
 const COL_FUR_MAIN: Color = Color(0.91, 0.58, 0.24, 1.0)     # #E8943D Golden Tan
 const COL_FUR_SHADOW: Color = Color(0.76, 0.42, 0.15, 1.0)   # #C26B26 Fur Shadow
@@ -70,11 +71,14 @@ const COL_ZZZ_BLUE: Color = Color(0.55, 0.75, 0.98, 0.85)    # Sleep Zzz
 
 func _get_fur_main() -> Color:
 	match species:
-		"cat": return Color(0.96, 0.96, 0.98) # Calico White
-		"bunny": return Color(0.98, 0.98, 1.0) # Snow White
-		"penguin": return Color(0.12, 0.16, 0.24) # Navy Tuxedo
-		"fox": return Color(0.92, 0.44, 0.12) # Amber Fox
-		_: return COL_FUR_MAIN
+		"cat": return Color(0.96, 0.96, 0.98)       # Calico White Base
+		"bunny": return Color(0.98, 0.98, 1.0)      # Snow White
+		"penguin": return Color(0.12, 0.16, 0.24)   # Navy Tuxedo
+		"fox": return Color(0.92, 0.44, 0.12)       # Amber Fox
+		"redpanda": return Color(0.82, 0.32, 0.15)  # Russet Chestnut Red
+		"capybara": return Color(0.68, 0.52, 0.36)  # Earthy Tan Brown
+		"owl": return Color(0.62, 0.44, 0.28)       # Tawny Hazel Brown
+		_: return COL_FUR_MAIN                      # Golden Tan
 
 func _get_fur_shadow() -> Color:
 	match species:
@@ -82,14 +86,20 @@ func _get_fur_shadow() -> Color:
 		"bunny": return Color(0.88, 0.88, 0.92)
 		"penguin": return Color(0.08, 0.10, 0.16)
 		"fox": return Color(0.74, 0.32, 0.08)
+		"redpanda": return Color(0.18, 0.12, 0.12) # Dark Espresso Belly & Legs
+		"capybara": return Color(0.48, 0.34, 0.22) # Muted Walnut Shadow
+		"owl": return Color(0.38, 0.25, 0.16)      # Deep Feathery Umber
 		_: return COL_FUR_SHADOW
 
 func _get_fur_cream() -> Color:
 	match species:
-		"cat": return Color(0.90, 0.55, 0.20) # Ginger Patch
+		"cat": return Color(0.90, 0.55, 0.20)      # Ginger Calico Patch
 		"bunny": return Color(0.98, 0.98, 1.0)
-		"penguin": return Color(0.99, 0.99, 1.0) # White Belly
-		"fox": return Color(0.99, 0.96, 0.89) # Cream chest
+		"penguin": return Color(0.99, 0.99, 1.0)   # White Belly
+		"fox": return Color(0.99, 0.96, 0.89)      # Cream Chest & Muzzle
+		"redpanda": return Color(0.98, 0.95, 0.88) # Cream Muzzle & Brow Tufts
+		"capybara": return Color(0.82, 0.70, 0.55) # Light Tan Muzzle
+		"owl": return Color(0.96, 0.92, 0.82)      # Cream Facial Disc & Belly
 		_: return COL_FUR_CREAM
 
 var anim_frame: int = 0
@@ -152,12 +162,11 @@ func _get_frame_speed_for_state(state: AnimState) -> float:
 	return 0.20
 
 # ==============================================================================
-# 🌟 FLOATING PARTICLES (Hearts, Steam, Zzz, Stars)
+# 🌟 FLOATING PARTICLES
 # ==============================================================================
 func _update_particles(delta: float) -> void:
 	_particle_timer += delta
 	
-	# Spawn particles based on state
 	if current_state == AnimState.PETTED and _particle_timer >= 0.25:
 		_particle_timer = 0.0
 		_spawn_particle("heart", Vector2(randf_range(-10, 10), -12))
@@ -174,7 +183,6 @@ func _update_particles(delta: float) -> void:
 		_particle_timer = 0.0
 		_spawn_particle("star", Vector2(randf_range(-10, 10), randf_range(-18, -8)))
 		
-	# Update active particles
 	for i in range(_particles.size() - 1, -1, -1):
 		var p: Dictionary = _particles[i]
 		p["life"] -= delta
@@ -209,10 +217,8 @@ func _spawn_particle(type: String, origin: Vector2 = Vector2.ZERO) -> void:
 func _draw() -> void:
 	var flip: float = 1.0 if facing_right else -1.0
 	
-	# Draw shadow beneath pet
 	_draw_pet_shadow()
 	
-	# Save canvas state for pet flip
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2(flip, 1.0))
 	
 	match current_state:
@@ -243,19 +249,20 @@ func _draw() -> void:
 		AnimState.CHEF_SNIFF:
 			_draw_chef_sniff_anim()
 			
-	# Reset transform for world-space particle drawing
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	_draw_all_particles()
 
-# ==============================================================================
-# 🐕 PET ANATOMY PIXEL DRAW HELPERS
-# ==============================================================================
 func _draw_pet_shadow() -> void:
 	var shadow_w: float = 20.0
 	var shadow_h: float = 6.0
 	var shadow_y: float = 2.0
 	if current_state == AnimState.NAP:
 		shadow_w = 24.0
+	elif species == "capybara":
+		shadow_w = 26.0
+	elif species == "owl" or species == "penguin":
+		shadow_w = 16.0
+		
 	draw_colored_polygon(
 		PackedVector2Array([
 			Vector2(-shadow_w * 0.5, shadow_y),
@@ -270,7 +277,7 @@ func _draw_pixel_rect(rect: Rect2, col: Color) -> void:
 	draw_rect(rect, col)
 
 # ------------------------------------------------------------------------------
-# 1. IDLE ANIMATION (Gentle breath, tail wag, ear twitch)
+# 1. IDLE ANIMATION (All 8 Species)
 # ------------------------------------------------------------------------------
 func _draw_idle_anim() -> void:
 	var bob: float = -1.0 if (anim_frame == 1 or anim_frame == 2) else 0.0
@@ -281,78 +288,128 @@ func _draw_idle_anim() -> void:
 	var fur_cream: Color = _get_fur_cream()
 	
 	match species:
+		"cat":
+			_draw_cat_idle(bob, tail_wag, ear_twitch, fur_main, fur_shadow, fur_cream)
 		"penguin":
 			_draw_penguin_idle(bob, fur_main, fur_cream)
 		"bunny":
 			_draw_bunny_idle(bob, ear_twitch, fur_main, fur_cream)
 		"fox":
 			_draw_fox_idle(bob, tail_wag, ear_twitch, fur_main, fur_shadow, fur_cream)
+		"redpanda":
+			_draw_redpanda_idle(bob, tail_wag, ear_twitch, fur_main, fur_shadow, fur_cream)
+		"capybara":
+			_draw_capybara_idle(bob, fur_main, fur_shadow, fur_cream)
+		"owl":
+			_draw_owl_idle(bob, fur_main, fur_shadow, fur_cream)
 		_:
-			# Shiba / Cat default quadruped
-			_draw_curled_tail(Vector2(-10, -6 + bob), tail_wag)
-			_draw_pixel_rect(Rect2(-8, -2, 5, 4), fur_shadow)
-			_draw_pixel_rect(Rect2(-8, 0, 5, 2), fur_cream)
-			_draw_pixel_rect(Rect2(-7, -10 + bob, 14, 10), fur_main)
-			_draw_pixel_rect(Rect2(-3, -7 + bob, 8, 7), fur_cream)
-			_draw_pixel_rect(Rect2(2, -2, 4, 4), fur_main)
-			_draw_pixel_rect(Rect2(2, 0, 4, 2), fur_cream)
-			_draw_pixel_rect(Rect2(-3, -2, 4, 4), fur_main)
-			_draw_pixel_rect(Rect2(-3, 0, 4, 2), fur_cream)
-			_draw_head(Vector2(2, -14 + bob), ear_twitch, false, false)
+			_draw_shiba_idle(bob, tail_wag, ear_twitch, fur_main, fur_shadow, fur_cream)
 
-## Penguin upright biped idle — stands on 2 orange feet, flippers at sides, gentle rock
+func _draw_shiba_idle(bob: float, tail_wag: float, ear_twitch: float, fur_main: Color, fur_shadow: Color, fur_cream: Color) -> void:
+	_draw_curled_tail(Vector2(-10, -6 + bob), tail_wag)
+	_draw_pixel_rect(Rect2(-8, -2, 5, 4), fur_shadow)
+	_draw_pixel_rect(Rect2(-8, 0, 5, 2), fur_cream)
+	_draw_pixel_rect(Rect2(-7, -10 + bob, 14, 10), fur_main)
+	_draw_pixel_rect(Rect2(-3, -7 + bob, 8, 7), fur_cream)
+	_draw_pixel_rect(Rect2(2, -2, 4, 4), fur_main)
+	_draw_pixel_rect(Rect2(2, 0, 4, 2), fur_cream)
+	_draw_pixel_rect(Rect2(-3, -2, 4, 4), fur_main)
+	_draw_pixel_rect(Rect2(-3, 0, 4, 2), fur_cream)
+	_draw_head(Vector2(2, -14 + bob), ear_twitch, false, false)
+
+func _draw_cat_idle(bob: float, tail_wag: float, ear_twitch: float, fur_main: Color, fur_shadow: Color, fur_cream: Color) -> void:
+	# Long S-curve tail
+	_draw_curled_tail(Vector2(-9, -7 + bob), tail_wag * 1.8)
+	# Slender feline body with arched back
+	_draw_pixel_rect(Rect2(-7, -10 + bob, 14, 9), fur_main)
+	# Calico spots
+	_draw_pixel_rect(Rect2(-5, -9 + bob, 4, 4), fur_cream) # Ginger patch
+	_draw_pixel_rect(Rect2(0, -8 + bob, 4, 4), Color(0.25, 0.25, 0.30)) # Slate patch
+	# Legs
+	_draw_pixel_rect(Rect2(-7, -2, 4, 4), fur_shadow)
+	_draw_pixel_rect(Rect2(-7, 1, 4, 2), Color(1, 1, 1)) # White socks
+	_draw_pixel_rect(Rect2(2, -2, 4, 4), fur_main)
+	_draw_pixel_rect(Rect2(2, 1, 4, 2), Color(1, 1, 1))
+	# Paw groom on frame 2
+	if anim_frame == 2:
+		_draw_pixel_rect(Rect2(4, -8 + bob, 3, 5), Color(1, 1, 1))
+	_draw_head(Vector2(2, -14 + bob), ear_twitch, false, false)
+
 func _draw_penguin_idle(bob: float, fur_main: Color, fur_cream: Color) -> void:
 	var rock: float = 1.0 if (anim_frame == 1 or anim_frame == 3) else -1.0
-	# Orange feet
 	_draw_pixel_rect(Rect2(-5, 0, 4, 3), Color(0.98, 0.60, 0.10))
 	_draw_pixel_rect(Rect2(2, 0, 4, 3), Color(0.98, 0.60, 0.10))
-	# Upright body (tuxedo)
 	_draw_pixel_rect(Rect2(-6, -12 + bob, 13, 13), fur_main)
-	# White belly front
 	_draw_pixel_rect(Rect2(-3, -10 + bob, 8, 10), fur_cream)
-	# Small flippers at sides
 	_draw_pixel_rect(Rect2(-9, -9 + bob + rock, 4, 6), fur_main)
 	_draw_pixel_rect(Rect2(7, -9 + bob - rock, 4, 6), fur_main)
-	# Head
 	_draw_head(Vector2(0, -16 + bob), 0.0, false, false)
 
-## Bunny sitting biped idle — sits upright, long ears twitch, nose wiggles
 func _draw_bunny_idle(bob: float, ear_twitch: float, fur_main: Color, fur_cream: Color) -> void:
 	var nose_wiggle: float = 1.0 if anim_frame == 2 else 0.0
-	# Cotton ball tail behind
 	_draw_pixel_rect(Rect2(-10, -4, 4, 4), Color(0.98, 0.98, 1.0))
-	# Big hind feet
 	_draw_pixel_rect(Rect2(-7, 0, 6, 3), fur_main)
 	_draw_pixel_rect(Rect2(2, 0, 6, 3), fur_main)
-	# Upright sitting body (round)
 	_draw_pixel_rect(Rect2(-6, -11 + bob, 13, 12), fur_main)
 	_draw_pixel_rect(Rect2(-3, -8 + bob, 8, 8), fur_cream)
-	# Small front paws resting
 	_draw_pixel_rect(Rect2(-3, -3, 3, 3), fur_cream)
 	_draw_pixel_rect(Rect2(2, -3, 3, 3), fur_cream)
-	# Head with long ears
 	_draw_head(Vector2(1, -15 + bob + nose_wiggle), ear_twitch, false, false)
 
-## Fox idle — lower crouch, huge sweeping tail, ears rotate
 func _draw_fox_idle(bob: float, tail_wag: float, ear_twitch: float, fur_main: Color, fur_shadow: Color, fur_cream: Color) -> void:
-	# Huge fluffy brush tail sweeping
 	_draw_curled_tail(Vector2(-10, -6 + bob), tail_wag * 1.5)
-	# Hind legs (lower crouch)
 	_draw_pixel_rect(Rect2(-8, -1, 5, 3), fur_shadow)
 	_draw_pixel_rect(Rect2(-8, 1, 5, 2), fur_cream)
-	# Sleek body (slightly longer, lower)
 	_draw_pixel_rect(Rect2(-7, -9 + bob, 16, 9), fur_main)
 	_draw_pixel_rect(Rect2(-3, -6 + bob, 9, 6), fur_cream)
-	# Front paws
 	_draw_pixel_rect(Rect2(3, -1, 4, 3), fur_main)
-	_draw_pixel_rect(Rect2(3, 1, 4, 2), Color(0.12, 0.16, 0.24)) # Black socks
+	_draw_pixel_rect(Rect2(3, 1, 4, 2), Color(0.12, 0.16, 0.24))
 	_draw_pixel_rect(Rect2(-2, -1, 4, 3), fur_main)
 	_draw_pixel_rect(Rect2(-2, 1, 4, 2), Color(0.12, 0.16, 0.24))
-	# Head
 	_draw_head(Vector2(3, -13 + bob), ear_twitch, false, false)
 
+func _draw_redpanda_idle(bob: float, tail_wag: float, ear_twitch: float, fur_main: Color, fur_shadow: Color, fur_cream: Color) -> void:
+	# Thick ringtail swish
+	_draw_curled_tail(Vector2(-11, -6 + bob), tail_wag * 1.4)
+	# Fluffy bear-cub torso
+	_draw_pixel_rect(Rect2(-7, -11 + bob, 15, 11), fur_main)
+	# Dark chocolate underbelly
+	_draw_pixel_rect(Rect2(-5, -5 + bob, 11, 5), fur_shadow)
+	# Sturdy dark limbs
+	_draw_pixel_rect(Rect2(-7, -2, 4, 4), fur_shadow)
+	_draw_pixel_rect(Rect2(3, -2, 4, 4), fur_shadow)
+	_draw_pixel_rect(Rect2(-2, -2, 4, 4), fur_shadow)
+	_draw_head(Vector2(2, -15 + bob), ear_twitch, false, false)
+
+func _draw_capybara_idle(bob: float, fur_main: Color, fur_shadow: Color, fur_cream: Color) -> void:
+	# Rectangular heavy body
+	_draw_pixel_rect(Rect2(-9, -11 + bob, 19, 11), fur_main)
+	_draw_pixel_rect(Rect2(-6, -6 + bob, 14, 6), fur_shadow)
+	# Chunky legs
+	_draw_pixel_rect(Rect2(-8, -1, 5, 3), fur_shadow)
+	_draw_pixel_rect(Rect2(3, -1, 5, 3), fur_shadow)
+	_draw_pixel_rect(Rect2(-2, -1, 4, 3), fur_shadow)
+	# Boxy Head
+	_draw_head(Vector2(4, -13 + bob), 0.0, false, false)
+	# Perched Yuzu Fruit balancing on head
+	_draw_pixel_rect(Rect2(4, -20 + bob, 4, 4), Color(1.0, 0.88, 0.15))
+	_draw_pixel_rect(Rect2(5, -21 + bob, 2, 1), Color(0.30, 0.75, 0.20)) # Green leaf stem
+
+func _draw_owl_idle(bob: float, fur_main: Color, fur_shadow: Color, fur_cream: Color) -> void:
+	var head_turn: bool = (anim_frame == 2)
+	# Perch talons
+	_draw_pixel_rect(Rect2(-4, 0, 3, 2), Color(0.95, 0.70, 0.15))
+	_draw_pixel_rect(Rect2(2, 0, 3, 2), Color(0.95, 0.70, 0.15))
+	# Upright compact body
+	_draw_pixel_rect(Rect2(-6, -13 + bob, 13, 13), fur_main)
+	_draw_pixel_rect(Rect2(-3, -10 + bob, 7, 10), fur_cream) # Speckled belly
+	# Folded wings on sides
+	_draw_pixel_rect(Rect2(-8, -11 + bob, 3, 9), fur_shadow)
+	_draw_pixel_rect(Rect2(6, -11 + bob, 3, 9), fur_shadow)
+	_draw_head(Vector2(0, -17 + bob), 0.0, false, false, false, false)
+
 # ------------------------------------------------------------------------------
-# 2. WALK ANIMATION (Cute 4-frame waddle with alternating paws)
+# 2. WALK ANIMATION (All 8 Species)
 # ------------------------------------------------------------------------------
 func _draw_walk_anim() -> void:
 	var bob: float = -2.0 if (anim_frame == 1 or anim_frame == 3) else 0.0
@@ -363,84 +420,116 @@ func _draw_walk_anim() -> void:
 	var fur_cream: Color = _get_fur_cream()
 	
 	match species:
+		"cat":
+			_draw_cat_walk(bob, paw_offset, tail_wag, fur_main, fur_shadow, fur_cream)
 		"penguin":
 			_draw_penguin_walk(fur_main, fur_cream)
 		"bunny":
 			_draw_bunny_walk(fur_main, fur_cream)
 		"fox":
 			_draw_fox_walk(bob, paw_offset, tail_wag, fur_main, fur_shadow, fur_cream)
+		"redpanda":
+			_draw_redpanda_walk(bob, paw_offset, tail_wag, fur_main, fur_shadow, fur_cream)
+		"capybara":
+			_draw_capybara_walk(bob, paw_offset, fur_main, fur_shadow, fur_cream)
+		"owl":
+			_draw_owl_walk(bob, paw_offset, fur_main, fur_shadow, fur_cream)
 		_:
-			# Shiba / Cat default quadruped walk
-			_draw_curled_tail(Vector2(-10, -6 + bob), tail_wag)
-			_draw_pixel_rect(Rect2(-8 - paw_offset, -2, 4, 4), fur_shadow)
-			_draw_pixel_rect(Rect2(-8 - paw_offset, 0, 4, 2), fur_cream)
-			_draw_pixel_rect(Rect2(-7, -10 + bob, 14, 10), fur_main)
-			_draw_pixel_rect(Rect2(-3, -7 + bob, 8, 7), fur_cream)
-			_draw_pixel_rect(Rect2(2 + paw_offset, -2, 4, 4), fur_main)
-			_draw_pixel_rect(Rect2(2 + paw_offset, 0, 4, 2), fur_cream)
-			_draw_pixel_rect(Rect2(-2 - paw_offset, -2, 4, 4), fur_main)
-			_draw_pixel_rect(Rect2(-2 - paw_offset, 0, 4, 2), fur_cream)
-			_draw_head(Vector2(3, -14 + bob), 0.0, false, false)
+			_draw_shiba_walk(bob, paw_offset, tail_wag, fur_main, fur_shadow, fur_cream)
 
-## Penguin waddle walk — body rocks left/right, feet shuffle
+func _draw_shiba_walk(bob: float, paw_offset: float, tail_wag: float, fur_main: Color, fur_shadow: Color, fur_cream: Color) -> void:
+	_draw_curled_tail(Vector2(-10, -6 + bob), tail_wag)
+	_draw_pixel_rect(Rect2(-8 - paw_offset, -2, 4, 4), fur_shadow)
+	_draw_pixel_rect(Rect2(-8 - paw_offset, 0, 4, 2), fur_cream)
+	_draw_pixel_rect(Rect2(-7, -10 + bob, 14, 10), fur_main)
+	_draw_pixel_rect(Rect2(-3, -7 + bob, 8, 7), fur_cream)
+	_draw_pixel_rect(Rect2(2 + paw_offset, -2, 4, 4), fur_main)
+	_draw_pixel_rect(Rect2(2 + paw_offset, 0, 4, 2), fur_cream)
+	_draw_pixel_rect(Rect2(-2 - paw_offset, -2, 4, 4), fur_main)
+	_draw_pixel_rect(Rect2(-2 - paw_offset, 0, 4, 2), fur_cream)
+	_draw_head(Vector2(3, -14 + bob), 0.0, false, false)
+
+func _draw_cat_walk(bob: float, paw_offset: float, tail_wag: float, fur_main: Color, fur_shadow: Color, fur_cream: Color) -> void:
+	_draw_curled_tail(Vector2(-10, -7 + bob), tail_wag * 1.5)
+	_draw_pixel_rect(Rect2(-7 - paw_offset, -2, 4, 4), fur_shadow)
+	_draw_pixel_rect(Rect2(-7 - paw_offset, 0, 4, 2), Color(1, 1, 1))
+	_draw_pixel_rect(Rect2(-7, -9 + bob, 15, 9), fur_main)
+	_draw_pixel_rect(Rect2(-5, -8 + bob, 4, 4), fur_cream)
+	_draw_pixel_rect(Rect2(0, -7 + bob, 4, 4), Color(0.25, 0.25, 0.30))
+	_draw_pixel_rect(Rect2(3 + paw_offset, -2, 4, 4), fur_main)
+	_draw_pixel_rect(Rect2(3 + paw_offset, 0, 4, 2), Color(1, 1, 1))
+	_draw_head(Vector2(3, -13 + bob), 0.0, false, false)
+
 func _draw_penguin_walk(fur_main: Color, fur_cream: Color) -> void:
 	var rock: float = 2.0 if (anim_frame == 0 or anim_frame == 2) else -2.0
 	var foot_step: float = 2.0 if (anim_frame == 1) else (-2.0 if anim_frame == 3 else 0.0)
-	# Orange feet shuffling
 	_draw_pixel_rect(Rect2(-5 + foot_step, 0, 4, 3), Color(0.98, 0.60, 0.10))
 	_draw_pixel_rect(Rect2(2 - foot_step, 0, 4, 3), Color(0.98, 0.60, 0.10))
-	# Upright body rocking side to side
 	_draw_pixel_rect(Rect2(-6 + rock, -12, 13, 13), fur_main)
 	_draw_pixel_rect(Rect2(-3 + rock, -10, 8, 10), fur_cream)
-	# Flippers swinging opposite to rock
 	_draw_pixel_rect(Rect2(-9 + rock, -8, 4, 5), fur_main)
 	_draw_pixel_rect(Rect2(7 + rock, -8, 4, 5), fur_main)
-	# Head follows rock
 	_draw_head(Vector2(0 + rock, -16), 0.0, false, false)
 
-## Bunny hop walk — springs forward with both hind legs, ears bounce on landing
 func _draw_bunny_walk(fur_main: Color, fur_cream: Color) -> void:
 	var hop_height: float = -4.0 if (anim_frame == 1 or anim_frame == 2) else 0.0
 	var ear_bounce: float = 2.0 if hop_height < 0 else -1.0
 	var land_squish: float = 1.0 if anim_frame == 3 else 0.0
-	# Cotton ball tail
 	_draw_pixel_rect(Rect2(-10, -4 + hop_height, 4, 4), Color(0.98, 0.98, 1.0))
-	# Big hind feet (stretched when jumping)
 	if hop_height < 0:
 		_draw_pixel_rect(Rect2(-5, 0, 5, 2), fur_main)
 		_draw_pixel_rect(Rect2(1, 0, 5, 2), fur_main)
 	else:
 		_draw_pixel_rect(Rect2(-7, 0, 6, 3), fur_main)
 		_draw_pixel_rect(Rect2(2, 0, 6, 3), fur_main)
-	# Round body (squishes on landing)
 	_draw_pixel_rect(Rect2(-6, -11 + hop_height + land_squish, 13, 12 - land_squish), fur_main)
 	_draw_pixel_rect(Rect2(-3, -8 + hop_height + land_squish, 8, 8 - land_squish), fur_cream)
-	# Front paws tucked during hop
 	_draw_pixel_rect(Rect2(-2, -4 + hop_height, 3, 3), fur_cream)
 	_draw_pixel_rect(Rect2(1, -4 + hop_height, 3, 3), fur_cream)
-	# Head bounces with ears
 	_draw_head(Vector2(1, -15 + hop_height), ear_bounce, false, false)
 
-## Fox slinky trot — lower body, longer stride, tail streams behind
 func _draw_fox_walk(bob: float, paw_offset: float, tail_wag: float, fur_main: Color, fur_shadow: Color, fur_cream: Color) -> void:
-	# Streaming tail behind
 	_draw_curled_tail(Vector2(-12, -5 + bob), tail_wag * 0.5)
-	# Hind legs
 	_draw_pixel_rect(Rect2(-8 - paw_offset, -1, 4, 3), fur_shadow)
 	_draw_pixel_rect(Rect2(-8 - paw_offset, 1, 4, 2), Color(0.12, 0.16, 0.24))
-	# Sleek long body (lower profile)
 	_draw_pixel_rect(Rect2(-7, -9 + bob, 16, 9), fur_main)
 	_draw_pixel_rect(Rect2(-3, -6 + bob, 9, 6), fur_cream)
-	# Front paws with longer stride
 	_draw_pixel_rect(Rect2(3 + paw_offset * 1.5, -1, 4, 3), fur_main)
 	_draw_pixel_rect(Rect2(3 + paw_offset * 1.5, 1, 4, 2), Color(0.12, 0.16, 0.24))
-	_draw_pixel_rect(Rect2(-2 - paw_offset, -1, 4, 3), fur_main)
-	_draw_pixel_rect(Rect2(-2 - paw_offset, 1, 4, 2), Color(0.12, 0.16, 0.24))
-	# Head
 	_draw_head(Vector2(4, -13 + bob), 0.0, false, false)
 
+func _draw_redpanda_walk(bob: float, paw_offset: float, tail_wag: float, fur_main: Color, fur_shadow: Color, fur_cream: Color) -> void:
+	_draw_curled_tail(Vector2(-12, -6 + bob), tail_wag * 1.2)
+	_draw_pixel_rect(Rect2(-8 - paw_offset, -2, 4, 4), fur_shadow)
+	_draw_pixel_rect(Rect2(-7, -10 + bob, 15, 10), fur_main)
+	_draw_pixel_rect(Rect2(-5, -5 + bob, 11, 5), fur_shadow)
+	_draw_pixel_rect(Rect2(3 + paw_offset, -2, 4, 4), fur_shadow)
+	_draw_head(Vector2(3, -14 + bob), 0.0, false, false)
+
+func _draw_capybara_walk(bob: float, paw_offset: float, fur_main: Color, fur_shadow: Color, fur_cream: Color) -> void:
+	_draw_pixel_rect(Rect2(-9 - paw_offset * 0.5, -1, 5, 3), fur_shadow)
+	_draw_pixel_rect(Rect2(-9, -10 + bob, 19, 10), fur_main)
+	_draw_pixel_rect(Rect2(-6, -5 + bob, 14, 5), fur_shadow)
+	_draw_pixel_rect(Rect2(3 + paw_offset * 0.5, -1, 5, 3), fur_shadow)
+	_draw_head(Vector2(5, -12 + bob), 0.0, false, false)
+	# Yuzu fruit bobbing
+	_draw_pixel_rect(Rect2(5, -19 + bob, 4, 4), Color(1.0, 0.88, 0.15))
+	_draw_pixel_rect(Rect2(6, -20 + bob, 2, 1), Color(0.30, 0.75, 0.20))
+
+func _draw_owl_walk(bob: float, paw_offset: float, fur_main: Color, fur_shadow: Color, fur_cream: Color) -> void:
+	var hop_y: float = -3.0 if (anim_frame == 1 or anim_frame == 2) else 0.0
+	_draw_pixel_rect(Rect2(-4, 0 + hop_y, 3, 2), Color(0.95, 0.70, 0.15))
+	_draw_pixel_rect(Rect2(2, 0 + hop_y, 3, 2), Color(0.95, 0.70, 0.15))
+	_draw_pixel_rect(Rect2(-6, -13 + hop_y, 13, 13), fur_main)
+	_draw_pixel_rect(Rect2(-3, -10 + hop_y, 7, 10), fur_cream)
+	# Wings flutter slightly when hopping
+	var wing_f: float = -3.0 if hop_y < 0 else 0.0
+	_draw_pixel_rect(Rect2(-9, -12 + hop_y + wing_f, 4, 8), fur_shadow)
+	_draw_pixel_rect(Rect2(6, -12 + hop_y + wing_f, 4, 8), fur_shadow)
+	_draw_head(Vector2(0, -17 + hop_y), 0.0, false, false)
+
 # ------------------------------------------------------------------------------
-# 3. TYPE LAPTOP ANIMATION (Sitting with mini laptop, rapid typing)
+# 3. TYPE LAPTOP / FOCUS ANIMATION (All 8 Species)
 # ------------------------------------------------------------------------------
 func _draw_type_anim() -> void:
 	var tap_left: bool = (anim_frame % 2 == 0)
@@ -450,98 +539,136 @@ func _draw_type_anim() -> void:
 	var fur_cream: Color = _get_fur_cream()
 	
 	match species:
+		"cat":
+			_draw_cat_type(tap_left, fur_main, fur_cream)
 		"penguin":
 			_draw_penguin_type(tap_left, fur_main, fur_cream)
 		"bunny":
 			_draw_bunny_type(tap_left, fur_main, fur_cream)
 		"fox":
 			_draw_fox_type(fur_main, fur_shadow, fur_cream)
+		"redpanda":
+			_draw_redpanda_type(tap_left, fur_main, fur_shadow, fur_cream)
+		"capybara":
+			_draw_capybara_type(tap_left, fur_main, fur_shadow, fur_cream)
+		"owl":
+			_draw_owl_type(fur_main, fur_shadow, fur_cream)
 		_:
-			# Shiba / Cat default laptop typing
-			_draw_curled_tail(Vector2(-9, -5), 0.0)
-			_draw_pixel_rect(Rect2(-7, -8, 12, 9), fur_main)
-			_draw_pixel_rect(Rect2(-2, -6, 7, 7), fur_cream)
-			_draw_pixel_rect(Rect2(-8, -1, 5, 3), fur_shadow)
-			_draw_pixel_rect(Rect2(-8, 0, 5, 2), fur_cream)
-			_draw_pixel_rect(Rect2(5, 0, 11, 2), COL_LAPTOP_BODY)
-			_draw_pixel_rect(Rect2(12, -10, 2, 10), COL_LAPTOP_BODY)
-			_draw_pixel_rect(Rect2(10, -9, 2, 8), COL_LAPTOP_SCREEN)
-			if screen_flicker:
-				_draw_pixel_rect(Rect2(10, -8, 2, 2), COL_SCREEN_CODE)
-				_draw_pixel_rect(Rect2(10, -4, 2, 2), COL_SCREEN_CODE)
-			else:
-				_draw_pixel_rect(Rect2(10, -6, 2, 3), COL_SCREEN_CODE)
-			var l_paw_y: float = -1.0 if tap_left else -3.0
-			var r_paw_y: float = -3.0 if tap_left else -1.0
-			_draw_pixel_rect(Rect2(5, l_paw_y, 3, 3), fur_cream)
-			_draw_pixel_rect(Rect2(8, r_paw_y, 3, 3), fur_cream)
-			_draw_head(Vector2(0, -13), 0.0, true, false)
+			_draw_shiba_type(tap_left, screen_flicker, fur_main, fur_shadow, fur_cream)
 
-## Penguin clipboard writing — stands upright holding clipboard, scribbles with flipper
+func _draw_shiba_type(tap_left: bool, screen_flicker: bool, fur_main: Color, fur_shadow: Color, fur_cream: Color) -> void:
+	_draw_curled_tail(Vector2(-9, -5), 0.0)
+	_draw_pixel_rect(Rect2(-7, -8, 12, 9), fur_main)
+	_draw_pixel_rect(Rect2(-2, -6, 7, 7), fur_cream)
+	_draw_pixel_rect(Rect2(-8, -1, 5, 3), fur_shadow)
+	_draw_pixel_rect(Rect2(5, 0, 11, 2), COL_LAPTOP_BODY)
+	_draw_pixel_rect(Rect2(12, -10, 2, 10), COL_LAPTOP_BODY)
+	_draw_pixel_rect(Rect2(10, -9, 2, 8), COL_LAPTOP_SCREEN)
+	if screen_flicker:
+		_draw_pixel_rect(Rect2(10, -8, 2, 2), COL_SCREEN_CODE)
+		_draw_pixel_rect(Rect2(10, -4, 2, 2), COL_SCREEN_CODE)
+	else:
+		_draw_pixel_rect(Rect2(10, -6, 2, 3), COL_SCREEN_CODE)
+	var l_paw_y: float = -1.0 if tap_left else -3.0
+	var r_paw_y: float = -3.0 if tap_left else -1.0
+	_draw_pixel_rect(Rect2(5, l_paw_y, 3, 3), fur_cream)
+	_draw_pixel_rect(Rect2(8, r_paw_y, 3, 3), fur_cream)
+	_draw_head(Vector2(0, -13), 0.0, true, false)
+
+func _draw_cat_type(tap_left: bool, fur_main: Color, fur_cream: Color) -> void:
+	_draw_curled_tail(Vector2(-9, -6), sin(anim_frame * 1.5) * 2.0)
+	_draw_pixel_rect(Rect2(-6, -9, 12, 9), fur_main)
+	_draw_pixel_rect(Rect2(-4, -8, 4, 4), fur_cream)
+	# Laptop
+	_draw_pixel_rect(Rect2(5, 0, 11, 2), COL_LAPTOP_BODY)
+	_draw_pixel_rect(Rect2(12, -10, 2, 10), COL_LAPTOP_BODY)
+	_draw_pixel_rect(Rect2(10, -9, 2, 8), COL_LAPTOP_SCREEN)
+	# Playful paw batting at screen
+	var bat_y: float = -7.0 if tap_left else -4.0
+	_draw_pixel_rect(Rect2(7, bat_y, 3, 3), Color(1, 1, 1))
+	_draw_head(Vector2(0, -14), 0.0, true, false)
+
 func _draw_penguin_type(tap_left: bool, fur_main: Color, fur_cream: Color) -> void:
-	# Orange feet
 	_draw_pixel_rect(Rect2(-5, 0, 4, 3), Color(0.98, 0.60, 0.10))
 	_draw_pixel_rect(Rect2(2, 0, 4, 3), Color(0.98, 0.60, 0.10))
-	# Upright body
 	_draw_pixel_rect(Rect2(-6, -12, 13, 13), fur_main)
 	_draw_pixel_rect(Rect2(-3, -10, 8, 10), fur_cream)
-	# Clipboard held in front
-	_draw_pixel_rect(Rect2(4, -8, 7, 9), Color(0.72, 0.56, 0.32)) # Brown clipboard
-	_draw_pixel_rect(Rect2(5, -7, 5, 7), Color(0.99, 0.96, 0.89)) # White paper
-	_draw_pixel_rect(Rect2(4, -9, 3, 2), Color(0.50, 0.40, 0.25)) # Clip
-	# Scribble lines on paper
+	_draw_pixel_rect(Rect2(4, -8, 7, 9), Color(0.72, 0.56, 0.32)) # Clipboard
+	_draw_pixel_rect(Rect2(5, -7, 5, 7), Color(0.99, 0.96, 0.89)) # Paper
+	_draw_pixel_rect(Rect2(4, -9, 3, 2), Color(0.50, 0.40, 0.25))
 	var scrib_y: float = -5.0 if tap_left else -3.0
 	_draw_pixel_rect(Rect2(6, scrib_y, 3, 1), Color(0.15, 0.15, 0.20))
-	# Flippers — one holds clipboard, one writes
-	_draw_pixel_rect(Rect2(-8, -8, 4, 5), fur_main) # Left flipper at side
+	_draw_pixel_rect(Rect2(-8, -8, 4, 5), fur_main)
 	var write_y: float = -6.0 if tap_left else -4.0
-	_draw_pixel_rect(Rect2(8, write_y, 3, 3), fur_main) # Right flipper writing
-	# Focused head
+	_draw_pixel_rect(Rect2(8, write_y, 3, 3), fur_main)
 	_draw_head(Vector2(0, -16), 0.0, true, false)
 
-## Bunny paper sorting — sits upright shuffling papers rapidly
 func _draw_bunny_type(tap_left: bool, fur_main: Color, fur_cream: Color) -> void:
-	# Cotton ball tail
 	_draw_pixel_rect(Rect2(-10, -4, 4, 4), Color(0.98, 0.98, 1.0))
-	# Big hind feet
 	_draw_pixel_rect(Rect2(-7, 0, 6, 3), fur_main)
 	_draw_pixel_rect(Rect2(2, 0, 6, 3), fur_main)
-	# Sitting body
 	_draw_pixel_rect(Rect2(-6, -11, 13, 12), fur_main)
 	_draw_pixel_rect(Rect2(-3, -8, 8, 8), fur_cream)
-	# Stack of papers/cards in front
-	_draw_pixel_rect(Rect2(5, -2, 8, 4), Color(0.99, 0.96, 0.89)) # Paper stack
-	_draw_pixel_rect(Rect2(6, -3, 6, 1), Color(0.90, 0.90, 0.92)) # Top paper
-	# Paws sorting papers rapidly
+	_draw_pixel_rect(Rect2(5, -2, 8, 4), Color(0.99, 0.96, 0.89)) # Flashcard stack
+	_draw_pixel_rect(Rect2(6, -3, 6, 1), Color(0.90, 0.90, 0.92))
 	var l_paw_x: float = 5.0 if tap_left else 8.0
 	var r_paw_x: float = 8.0 if tap_left else 5.0
 	_draw_pixel_rect(Rect2(l_paw_x, -4, 3, 3), fur_cream)
 	_draw_pixel_rect(Rect2(r_paw_x, -4, 3, 3), fur_cream)
-	# Focused head with perked ears
 	_draw_head(Vector2(1, -15), 0.0, true, false)
 
-## Fox scroll study — curled on floor with scroll/tablet, tail wrapped around body
 func _draw_fox_type(fur_main: Color, fur_shadow: Color, fur_cream: Color) -> void:
 	var bob: float = -0.5 if (anim_frame == 1 or anim_frame == 2) else 0.0
-	# Huge tail wrapped around body
 	_draw_curled_tail(Vector2(-10, -5 + bob), 0.0)
-	# Body lying low, curled
 	_draw_pixel_rect(Rect2(-7, -8 + bob, 16, 8), fur_main)
 	_draw_pixel_rect(Rect2(-3, -6 + bob, 9, 6), fur_cream)
-	# Hind legs tucked
 	_draw_pixel_rect(Rect2(-8, -1, 4, 3), fur_shadow)
-	# Scroll/tablet on floor in front
 	_draw_pixel_rect(Rect2(6, -3, 8, 5), Color(0.82, 0.72, 0.55)) # Parchment scroll
-	_draw_pixel_rect(Rect2(7, -2, 6, 3), Color(0.92, 0.86, 0.72)) # Inner scroll
-	_draw_pixel_rect(Rect2(8, -1, 4, 1), Color(0.15, 0.15, 0.20)) # Text lines
-	# Front paws on scroll
+	_draw_pixel_rect(Rect2(7, -2, 6, 3), Color(0.92, 0.86, 0.72))
+	_draw_pixel_rect(Rect2(8, -1, 4, 1), Color(0.15, 0.15, 0.20))
 	_draw_pixel_rect(Rect2(5, -3, 3, 3), fur_cream)
 	_draw_pixel_rect(Rect2(9, -3, 3, 3), fur_cream)
-	# Head looking down at scroll
 	_draw_head(Vector2(3, -12 + bob), 0.0, true, false)
 
+func _draw_redpanda_type(tap_left: bool, fur_main: Color, fur_shadow: Color, fur_cream: Color) -> void:
+	_draw_curled_tail(Vector2(-10, -6), 0.0)
+	_draw_pixel_rect(Rect2(-6, -10, 13, 10), fur_main)
+	_draw_pixel_rect(Rect2(-4, -5, 9, 5), fur_shadow)
+	# Digital tablet in front
+	_draw_pixel_rect(Rect2(4, -4, 9, 6), Color(0.15, 0.18, 0.25))
+	_draw_pixel_rect(Rect2(5, -3, 7, 4), Color(0.30, 0.85, 0.90))
+	var p_y: float = -4.0 if tap_left else -2.0
+	_draw_pixel_rect(Rect2(5, p_y, 3, 3), fur_shadow)
+	_draw_pixel_rect(Rect2(8, -p_y - 6.0, 3, 3), fur_shadow)
+	_draw_head(Vector2(1, -14), 0.0, true, false)
+
+func _draw_capybara_type(tap_left: bool, fur_main: Color, fur_shadow: Color, fur_cream: Color) -> void:
+	_draw_pixel_rect(Rect2(-8, -10, 18, 10), fur_main)
+	_draw_pixel_rect(Rect2(-5, -5, 13, 5), fur_shadow)
+	# Keyboard in front
+	_draw_pixel_rect(Rect2(5, 0, 10, 2), Color(0.2, 0.25, 0.35))
+	var p_x: float = 6.0 if tap_left else 9.0
+	_draw_pixel_rect(Rect2(p_x, -2, 4, 3), fur_shadow)
+	_draw_head(Vector2(4, -13), 0.0, true, false)
+	# Wireframe study spectacles
+	_draw_pixel_rect(Rect2(6, -12, 3, 3), Color(0.85, 0.70, 0.20))
+	_draw_pixel_rect(Rect2(10, -12, 3, 3), Color(0.85, 0.70, 0.20))
+	_draw_pixel_rect(Rect2(9, -11, 1, 1), Color(0.85, 0.70, 0.20))
+
+func _draw_owl_type(fur_main: Color, fur_shadow: Color, fur_cream: Color) -> void:
+	_draw_pixel_rect(Rect2(-4, 0, 3, 2), Color(0.95, 0.70, 0.15))
+	_draw_pixel_rect(Rect2(2, 0, 3, 2), Color(0.95, 0.70, 0.15))
+	_draw_pixel_rect(Rect2(-6, -13, 13, 13), fur_main)
+	_draw_pixel_rect(Rect2(-3, -10, 7, 10), fur_cream)
+	# Open glowing spellbook in front
+	_draw_pixel_rect(Rect2(4, -6, 10, 8), Color(0.45, 0.20, 0.15)) # Leather cover
+	_draw_pixel_rect(Rect2(5, -5, 4, 6), Color(0.96, 0.92, 0.82)) # Left page
+	_draw_pixel_rect(Rect2(9, -5, 4, 6), Color(0.96, 0.92, 0.82)) # Right page
+	_draw_pixel_rect(Rect2(6, -4, 2, 4), Color(0.30, 0.70, 0.95)) # Glowing runes
+	_draw_head(Vector2(0, -17), 0.0, true, false)
+
 # ------------------------------------------------------------------------------
-# 4. DRINK COFFEE ANIMATION (Holding mug, sipping, steam)
+# 4. DRINK COFFEE / TEA ANIMATION (All 8 Species)
 # ------------------------------------------------------------------------------
 func _draw_drink_anim() -> void:
 	var sipping: bool = (anim_frame == 1 or anim_frame == 2)
@@ -551,13 +678,19 @@ func _draw_drink_anim() -> void:
 	var fur_cream: Color = _get_fur_cream()
 	
 	match species:
+		"cat":
+			# Daintily sipping matcha bowl with paw
+			_draw_curled_tail(Vector2(-9, -6), 0.0)
+			_draw_pixel_rect(Rect2(-6, -9, 12, 9), fur_main)
+			_draw_pixel_rect(Rect2(4, mug_y + 1, 7, 5), Color(0.20, 0.50, 0.30)) # Ceramic matcha bowl
+			_draw_pixel_rect(Rect2(5, mug_y + 1, 5, 2), Color(0.40, 0.80, 0.45)) # Matcha froth
+			_draw_pixel_rect(Rect2(3, mug_y + 2, 3, 3), Color(1, 1, 1))
+			_draw_head(Vector2(0, -14), 0.0, false, sipping)
 		"penguin":
-			# Penguin holds mug between both flippers, tips head back to sip
 			_draw_pixel_rect(Rect2(-5, 0, 4, 3), Color(0.98, 0.60, 0.10))
 			_draw_pixel_rect(Rect2(2, 0, 4, 3), Color(0.98, 0.60, 0.10))
 			_draw_pixel_rect(Rect2(-6, -12, 13, 13), fur_main)
 			_draw_pixel_rect(Rect2(-3, -10, 8, 10), fur_cream)
-			# Mug held between flippers
 			_draw_pixel_rect(Rect2(2, mug_y, 6, 6), COL_MUG_BODY)
 			_draw_pixel_rect(Rect2(3, mug_y, 4, 1), COL_COFFEE)
 			_draw_pixel_rect(Rect2(8, mug_y + 1, 2, 4), COL_MUG_BODY)
@@ -566,7 +699,6 @@ func _draw_drink_anim() -> void:
 			var head_tilt: float = -2.0 if sipping else 0.0
 			_draw_head(Vector2(0, -16 + head_tilt), 0.0, false, sipping)
 		"bunny":
-			# Bunny sits upright holding tiny cup, ears droop from steam warmth
 			_draw_pixel_rect(Rect2(-10, -4, 4, 4), Color(0.98, 0.98, 1.0))
 			_draw_pixel_rect(Rect2(-7, 0, 6, 3), fur_main)
 			_draw_pixel_rect(Rect2(2, 0, 6, 3), fur_main)
@@ -579,8 +711,29 @@ func _draw_drink_anim() -> void:
 			_draw_pixel_rect(Rect2(7, mug_y + 1, 3, 3), fur_cream)
 			var ear_droop: float = 2.0 if sipping else 0.0
 			_draw_head(Vector2(1, -15), ear_droop, false, sipping)
+		"redpanda":
+			_draw_curled_tail(Vector2(-10, -6), 0.0)
+			_draw_pixel_rect(Rect2(-6, -10, 13, 10), fur_main)
+			_draw_pixel_rect(Rect2(4, mug_y, 6, 6), Color(0.40, 0.65, 0.35)) # Bamboo tumbler
+			_draw_pixel_rect(Rect2(5, mug_y, 4, 1), Color(0.70, 0.50, 0.30))
+			_draw_pixel_rect(Rect2(3, mug_y + 2, 3, 3), fur_shadow)
+			_draw_pixel_rect(Rect2(8, mug_y + 2, 3, 3), fur_shadow)
+			_draw_head(Vector2(1, -14), 0.0, false, sipping)
+		"capybara":
+			_draw_pixel_rect(Rect2(-8, -10, 18, 10), fur_main)
+			# Wooden mate gourd with silver straw
+			_draw_pixel_rect(Rect2(5, mug_y + 2, 6, 6), Color(0.45, 0.28, 0.15))
+			_draw_pixel_rect(Rect2(7, mug_y - 2, 2, 5), Color(0.75, 0.80, 0.85)) # Bombilla straw
+			_draw_head(Vector2(4, -13), 0.0, false, sipping)
+		"owl":
+			_draw_pixel_rect(Rect2(-4, 0, 3, 2), Color(0.95, 0.70, 0.15))
+			_draw_pixel_rect(Rect2(2, 0, 3, 2), Color(0.95, 0.70, 0.15))
+			_draw_pixel_rect(Rect2(-6, -13, 13, 13), fur_main)
+			_draw_pixel_rect(Rect2(4, mug_y + 1, 6, 5), Color(0.85, 0.70, 0.25)) # Brass teapot
+			_draw_pixel_rect(Rect2(9, mug_y + 2, 3, 2), Color(0.85, 0.70, 0.25)) # Spout
+			_draw_head(Vector2(0, -17), 0.0, false, sipping)
 		_:
-			# Shiba / Cat / Fox default drink
+			# Shiba / Fox default
 			_draw_curled_tail(Vector2(-9, -5), 0.0)
 			_draw_pixel_rect(Rect2(-7, -8, 12, 9), fur_main)
 			_draw_pixel_rect(Rect2(-2, -6, 7, 7), fur_cream)
@@ -593,59 +746,61 @@ func _draw_drink_anim() -> void:
 			_draw_head(Vector2(0, -13), 0.0, false, sipping)
 
 # ------------------------------------------------------------------------------
-# 5. NAP ANIMATION (Curled up in a ball, slow breathing, Zzz)
+# 5. NAP ANIMATION (All 8 Species)
 # ------------------------------------------------------------------------------
 func _draw_nap_anim() -> void:
 	var breath: float = 1.0 if (anim_frame == 1 or anim_frame == 2) else 0.0
 	var fur_main: Color = _get_fur_main()
 	var fur_cream: Color = _get_fur_cream()
+	var fur_shadow: Color = _get_fur_shadow()
 	
-	# Curled Body ball
-	_draw_pixel_rect(Rect2(-11, -8 - breath, 22, 9 + breath), fur_main)
-	_draw_pixel_rect(Rect2(-5, -6 - breath, 12, 7 + breath), fur_cream)
-	
-	# Tail
 	match species:
+		"cat":
+			# Classic Cat Loaf posture
+			_draw_pixel_rect(Rect2(-10, -7 - breath, 20, 8 + breath), fur_main)
+			_draw_pixel_rect(Rect2(-7, -6 - breath, 4, 4), fur_cream)
+			_draw_pixel_rect(Rect2(-2, -6 - breath, 4, 4), Color(0.25, 0.25, 0.30))
+			_draw_curled_tail(Vector2(-11, -4), 0.0)
+			_draw_head(Vector2(2, -10), 0.0, false, true)
 		"bunny":
-			_draw_pixel_rect(Rect2(-13, -5, 4, 4), Color(0.98, 0.98, 1.0))
+			_draw_pixel_rect(Rect2(-9, -8 - breath, 18, 9 + breath), fur_main)
+			_draw_pixel_rect(Rect2(-11, -4, 4, 4), Color(0.98, 0.98, 1.0))
+			_draw_head(Vector2(1, -12), 4.0, false, true)
 		"penguin":
-			_draw_pixel_rect(Rect2(-12, -4, 3, 3), Color(0.08, 0.10, 0.16))
+			_draw_pixel_rect(Rect2(-9, -8 - breath, 18, 9 + breath), fur_main)
+			_draw_pixel_rect(Rect2(-5, -6 - breath, 10, 7 + breath), fur_cream)
+			_draw_head(Vector2(0, -13), 0.0, false, true)
 		"fox":
-			_draw_pixel_rect(Rect2(-14, -7, 6, 6), fur_main)
-			_draw_pixel_rect(Rect2(-13, -9, 4, 4), fur_cream)
+			_draw_pixel_rect(Rect2(-10, -7 - breath, 20, 8 + breath), fur_main)
+			# Huge tail covering body like a blanket
+			_draw_pixel_rect(Rect2(-12, -8, 14, 8), fur_main)
+			_draw_pixel_rect(Rect2(-11, -10, 8, 4), Color(0.99, 0.96, 0.89))
+			_draw_head(Vector2(2, -10), 0.0, false, true)
+		"redpanda":
+			_draw_pixel_rect(Rect2(-10, -8 - breath, 20, 9 + breath), fur_main)
+			_draw_curled_tail(Vector2(-12, -7), 0.0)
+			_draw_head(Vector2(2, -11), 0.0, false, true)
+		"capybara":
+			# Zen sleeping log
+			_draw_pixel_rect(Rect2(-11, -8 - breath, 22, 9 + breath), fur_main)
+			_draw_pixel_rect(Rect2(-7, -4 - breath, 14, 5), fur_shadow)
+			_draw_pixel_rect(Rect2(0, -12 - breath, 4, 4), Color(1.0, 0.88, 0.15)) # Yuzu on top
+			_draw_head(Vector2(3, -10), 0.0, false, true)
+		"owl":
+			# Perched sphere with head tucked under wing
+			_draw_pixel_rect(Rect2(-4, 0, 3, 2), Color(0.95, 0.70, 0.15))
+			_draw_pixel_rect(Rect2(2, 0, 3, 2), Color(0.95, 0.70, 0.15))
+			_draw_pixel_rect(Rect2(-7, -12 - breath, 14, 12 + breath), fur_main)
+			_draw_head(Vector2(0, -15), 0.0, false, true)
 		_:
-			_draw_pixel_rect(Rect2(-12, -6, 4, 5), fur_main)
-			_draw_pixel_rect(Rect2(-10, -7, 3, 3), fur_cream)
-	
-	# Sleeping head tucked down
-	_draw_pixel_rect(Rect2(3, -9, 9, 8), fur_main)
-	_draw_pixel_rect(Rect2(5, -6, 7, 5), fur_cream)
-	
-	# Ear tucked
-	match species:
-		"bunny":
-			_draw_pixel_rect(Rect2(4, -14, 3, 8), fur_main)
-			_draw_pixel_rect(Rect2(5, -13, 1, 6), Color(0.96, 0.72, 0.80))
-		"penguin":
-			pass
-		"fox":
-			_draw_pixel_rect(Rect2(4, -13, 3, 4), fur_main)
-			_draw_pixel_rect(Rect2(4, -13, 3, 1), Color(0.12, 0.16, 0.24))
-		_:
-			_draw_pixel_rect(Rect2(4, -12, 3, 3), fur_main)
-			_draw_pixel_rect(Rect2(5, -11, 2, 2), COL_EAR_PINK)
-	
-	# Sleeping Closed Eye (Crescent arc: 3 pixels)
-	_draw_pixel_rect(Rect2(6, -6, 3, 1), COL_DARK_EYE)
-	
-	# Black nose
-	_draw_pixel_rect(Rect2(11, -5, 2, 2), COL_DARK_EYE)
-	
-	# Paws tucked
-	_draw_pixel_rect(Rect2(0, -2, 4, 3), fur_cream)
+			# Shiba curled donut
+			_draw_pixel_rect(Rect2(-11, -8 - breath, 22, 9 + breath), fur_main)
+			_draw_pixel_rect(Rect2(-5, -6 - breath, 12, 7 + breath), fur_cream)
+			_draw_curled_tail(Vector2(-12, -6), 0.0)
+			_draw_head(Vector2(3, -11), 0.0, false, true)
 
 # ------------------------------------------------------------------------------
-# 6. PETTED ANIMATION (Sparkling eyes, blush, happy tail wag)
+# 6. PETTED ANIMATION (All 8 Species)
 # ------------------------------------------------------------------------------
 func _draw_petted_anim() -> void:
 	var bob: float = -1.0 if (anim_frame % 2 == 1) else 0.0
@@ -655,42 +810,64 @@ func _draw_petted_anim() -> void:
 	var fur_shadow: Color = _get_fur_shadow()
 	
 	match species:
+		"cat":
+			# Purring arch back & ecstatic tail quiver
+			_draw_curled_tail(Vector2(-9, -8 + bob), tail_wag * 2.0)
+			_draw_pixel_rect(Rect2(-6, -11 + bob, 13, 11), fur_main)
+			_draw_pixel_rect(Rect2(-4, -9 + bob, 4, 4), fur_cream)
+			_draw_pixel_rect(Rect2(2, -2, 4, 4), fur_main)
+			_draw_pixel_rect(Rect2(-3, -2, 4, 4), fur_main)
+			_draw_head(Vector2(2, -15 + bob), 0.0, false, true, true)
 		"penguin":
-			# Penguin rocks side to side happily, flippers wiggle
 			var rock: float = 2.0 if (anim_frame % 2 == 1) else -2.0
 			_draw_pixel_rect(Rect2(-5, 0, 4, 3), Color(0.98, 0.60, 0.10))
 			_draw_pixel_rect(Rect2(2, 0, 4, 3), Color(0.98, 0.60, 0.10))
 			_draw_pixel_rect(Rect2(-6 + rock, -12 + bob, 13, 13), fur_main)
 			_draw_pixel_rect(Rect2(-3 + rock, -10 + bob, 8, 10), fur_cream)
-			# Flippers wiggling rapidly
 			var flip_y: float = -10.0 if (anim_frame % 2 == 0) else -7.0
 			_draw_pixel_rect(Rect2(-9 + rock, flip_y + bob, 4, 5), fur_main)
 			_draw_pixel_rect(Rect2(7 + rock, flip_y + bob, 4, 5), fur_main)
 			_draw_head(Vector2(0 + rock, -16 + bob), 0.0, false, true, true)
 		"bunny":
-			# Bunny ears go flat-back (relaxed), eyes close, shows tiny buck tooth
 			_draw_pixel_rect(Rect2(-10, -4 + bob, 4, 4), Color(0.98, 0.98, 1.0))
 			_draw_pixel_rect(Rect2(-7, 0, 6, 3), fur_main)
 			_draw_pixel_rect(Rect2(2, 0, 6, 3), fur_main)
 			_draw_pixel_rect(Rect2(-6, -11 + bob, 13, 12), fur_main)
 			_draw_pixel_rect(Rect2(-3, -8 + bob, 8, 8), fur_cream)
-			_draw_pixel_rect(Rect2(-3, -3, 3, 3), fur_cream)
-			_draw_pixel_rect(Rect2(2, -3, 3, 3), fur_cream)
-			# Flat-back ears (relaxed) + blush
 			_draw_head(Vector2(1, -15 + bob), 3.0, false, true, true)
+		"fox":
+			_draw_curled_tail(Vector2(-10, -6 + bob), tail_wag * 1.5)
+			_draw_pixel_rect(Rect2(-7, -9 + bob, 16, 9), fur_main)
+			_draw_head(Vector2(3, -14 + bob), 0.0, false, true, true)
+		"redpanda":
+			# Standing on hind legs waving paws happily
+			_draw_curled_tail(Vector2(-8, -4 + bob), tail_wag * 1.5)
+			_draw_pixel_rect(Rect2(-5, -12 + bob, 11, 12), fur_main)
+			_draw_pixel_rect(Rect2(-4, -6 + bob, 9, 6), fur_shadow)
+			_draw_pixel_rect(Rect2(-7, -13 + bob, 3, 3), fur_shadow)
+			_draw_pixel_rect(Rect2(5, -13 + bob, 3, 3), fur_shadow)
+			_draw_head(Vector2(0, -17 + bob), 0.0, false, true, true)
+		"capybara":
+			_draw_pixel_rect(Rect2(-9, -11 + bob, 19, 11), fur_main)
+			_draw_pixel_rect(Rect2(-6, -6 + bob, 14, 6), fur_shadow)
+			_draw_head(Vector2(4, -13 + bob), 0.0, false, true, true)
+		"owl":
+			# Plumage fluffs up into an adorable soft ball
+			_draw_pixel_rect(Rect2(-4, 0, 3, 2), Color(0.95, 0.70, 0.15))
+			_draw_pixel_rect(Rect2(2, 0, 3, 2), Color(0.95, 0.70, 0.15))
+			_draw_pixel_rect(Rect2(-8, -14 + bob, 16, 14), fur_main)
+			_draw_pixel_rect(Rect2(-4, -11 + bob, 9, 11), fur_cream)
+			_draw_head(Vector2(0, -18 + bob), 0.0, false, true, true)
 		_:
-			# Shiba / Cat / Fox default petted
 			_draw_curled_tail(Vector2(-10, -6 + bob), tail_wag)
 			_draw_pixel_rect(Rect2(-7, -10 + bob, 14, 10), fur_main)
 			_draw_pixel_rect(Rect2(-3, -7 + bob, 8, 7), fur_cream)
 			_draw_pixel_rect(Rect2(2, -2, 4, 4), fur_main)
-			_draw_pixel_rect(Rect2(2, 0, 4, 2), fur_cream)
 			_draw_pixel_rect(Rect2(-3, -2, 4, 4), fur_main)
-			_draw_pixel_rect(Rect2(-3, 0, 4, 2), fur_cream)
 			_draw_head(Vector2(2, -15 + bob), 0.0, false, true, true)
 
 # ------------------------------------------------------------------------------
-# 7. VICTORY DANCE ANIMATION (Celebratory hops, open smile, stars)
+# 7. VICTORY DANCE ANIMATION (All 8 Species)
 # ------------------------------------------------------------------------------
 func _draw_victory_anim() -> void:
 	var hop_height: float = -6.0 if (anim_frame == 1 or anim_frame == 2 or anim_frame == 4) else 0.0
@@ -700,197 +877,149 @@ func _draw_victory_anim() -> void:
 	var fur_shadow: Color = _get_fur_shadow()
 	
 	match species:
-		"penguin":
-			# Penguin flipper flap celebration — hops with flippers spread wide like wings
-			_draw_pixel_rect(Rect2(-5, 0 + hop_height, 4, 3), Color(0.98, 0.60, 0.10))
-			_draw_pixel_rect(Rect2(2, 0 + hop_height, 4, 3), Color(0.98, 0.60, 0.10))
-			_draw_pixel_rect(Rect2(-6, -12 + hop_height, 13, 13), fur_main)
-			_draw_pixel_rect(Rect2(-3, -10 + hop_height, 8, 10), fur_cream)
-			# Flippers spread wide when hopping
+		"cat":
+			# High-speed acrobatic zoomie flip
+			var roll_y: float = -5.0 if arms_up else 0.0
+			_draw_curled_tail(Vector2(-10, -8 + roll_y), 3.0)
+			_draw_pixel_rect(Rect2(-6, -10 + roll_y, 14, 9), fur_main)
+			_draw_pixel_rect(Rect2(-4, -9 + roll_y, 4, 4), fur_cream)
 			if arms_up:
-				_draw_pixel_rect(Rect2(-12, -11 + hop_height, 5, 4), fur_main)
-				_draw_pixel_rect(Rect2(9, -11 + hop_height, 5, 4), fur_main)
+				_draw_pixel_rect(Rect2(-9, -13 + roll_y, 3, 4), Color(1, 1, 1))
+				_draw_pixel_rect(Rect2(7, -13 + roll_y, 3, 4), Color(1, 1, 1))
+			_draw_head(Vector2(1, -15 + roll_y), 0.0, false, false, true, true)
+		"penguin":
+			# Belly slide celebration!
+			if arms_up:
+				_draw_pixel_rect(Rect2(-12, -5, 24, 6), fur_main) # Flat sliding body
+				_draw_pixel_rect(Rect2(-8, -5, 16, 4), fur_cream)
+				_draw_pixel_rect(Rect2(-14, -4, 4, 4), Color(0.98, 0.60, 0.10)) # Feet behind
+				_draw_head(Vector2(6, -8), 0.0, false, false, true, true)
 			else:
-				_draw_pixel_rect(Rect2(-9, -8 + hop_height, 4, 5), fur_main)
-				_draw_pixel_rect(Rect2(7, -8 + hop_height, 4, 5), fur_main)
-			_draw_head(Vector2(0, -16 + hop_height), 0.0, false, false, true, true)
+				_draw_pixel_rect(Rect2(-5, 0 + hop_height, 4, 3), Color(0.98, 0.60, 0.10))
+				_draw_pixel_rect(Rect2(2, 0 + hop_height, 4, 3), Color(0.98, 0.60, 0.10))
+				_draw_pixel_rect(Rect2(-6, -12 + hop_height, 13, 13), fur_main)
+				_draw_pixel_rect(Rect2(-3, -10 + hop_height, 8, 10), fur_cream)
+				_draw_head(Vector2(0, -16 + hop_height), 0.0, false, false, true, true)
 		"bunny":
-			# Bunny binky! Twists mid-air with ears flying
 			var twist: float = 2.0 if (anim_frame == 2 or anim_frame == 4) else -2.0
 			_draw_pixel_rect(Rect2(-10, -4 + hop_height, 4, 4), Color(0.98, 0.98, 1.0))
-			if hop_height < 0:
-				_draw_pixel_rect(Rect2(-4, 0 + hop_height, 4, 2), fur_main)
-				_draw_pixel_rect(Rect2(2, 0 + hop_height, 4, 2), fur_main)
-			else:
-				_draw_pixel_rect(Rect2(-7, 0, 6, 3), fur_main)
-				_draw_pixel_rect(Rect2(2, 0, 6, 3), fur_main)
 			_draw_pixel_rect(Rect2(-6 + twist, -11 + hop_height, 13, 12), fur_main)
 			_draw_pixel_rect(Rect2(-3 + twist, -8 + hop_height, 8, 8), fur_cream)
-			# Paws up in the air
 			if arms_up:
 				_draw_pixel_rect(Rect2(-8 + twist, -14 + hop_height, 3, 3), fur_cream)
 				_draw_pixel_rect(Rect2(7 + twist, -14 + hop_height, 3, 3), fur_cream)
-			else:
-				_draw_pixel_rect(Rect2(-3, -3 + hop_height, 3, 3), fur_cream)
-				_draw_pixel_rect(Rect2(2, -3 + hop_height, 3, 3), fur_cream)
-			# Ears flying in opposite directions during twist
-			var ear_fly: float = -3.0 if arms_up else 0.0
-			_draw_head(Vector2(1 + twist, -15 + hop_height), ear_fly, false, false, true, true)
+			_draw_head(Vector2(1 + twist, -15 + hop_height), -3.0 if arms_up else 0.0, false, false, true, true)
 		"fox":
-			# Fox playful pounce-hop with tail poof
 			_draw_curled_tail(Vector2(-10, -8 + hop_height), 3.0)
 			_draw_pixel_rect(Rect2(-6, -10 + hop_height, 14, 10), fur_main)
 			_draw_pixel_rect(Rect2(-3, -7 + hop_height, 8, 7), fur_cream)
-			if hop_height < 0:
-				_draw_pixel_rect(Rect2(-4, -1 + hop_height, 3, 3), fur_cream)
-				_draw_pixel_rect(Rect2(2, -1 + hop_height, 3, 3), fur_cream)
-			else:
-				_draw_pixel_rect(Rect2(-5, -2, 4, 4), fur_cream)
-				_draw_pixel_rect(Rect2(2, -2, 4, 4), fur_cream)
 			if arms_up:
 				_draw_pixel_rect(Rect2(-9, -13 + hop_height, 3, 4), fur_cream)
 				_draw_pixel_rect(Rect2(7, -13 + hop_height, 3, 4), fur_cream)
-			else:
-				_draw_pixel_rect(Rect2(-8, -7 + hop_height, 3, 4), fur_cream)
-				_draw_pixel_rect(Rect2(6, -7 + hop_height, 3, 4), fur_cream)
 			_draw_head(Vector2(1, -16 + hop_height), 0.0, false, false, true, true)
+		"redpanda":
+			# Iconic 2-legged dramatic standing cheer \( ᵔ ᵕ ᵔ )/
+			_draw_curled_tail(Vector2(-7, -4), 2.0)
+			_draw_pixel_rect(Rect2(-5, -14 + hop_height, 12, 14), fur_main)
+			_draw_pixel_rect(Rect2(-4, -8 + hop_height, 10, 7), fur_shadow)
+			# Both front paws high in the air
+			_draw_pixel_rect(Rect2(-9, -18 + hop_height, 4, 5), fur_shadow)
+			_draw_pixel_rect(Rect2(7, -18 + hop_height, 4, 5), fur_shadow)
+			_draw_head(Vector2(1, -19 + hop_height), 0.0, false, false, true, true)
+		"capybara":
+			# Soaking in wooden onsen tub with hot steam bubbles!
+			_draw_pixel_rect(Rect2(-12, -6, 24, 8), Color(0.55, 0.38, 0.22)) # Wooden tub
+			_draw_pixel_rect(Rect2(-10, -5, 20, 2), Color(0.35, 0.70, 0.85)) # Hot spring water
+			_draw_pixel_rect(Rect2(-7, -10, 14, 6), fur_main)
+			_draw_head(Vector2(0, -14), 0.0, false, true, true, false)
+			# Yuzu floating on head in onsen
+			_draw_pixel_rect(Rect2(0, -20, 4, 4), Color(1.0, 0.88, 0.15))
+		"owl":
+			# Spreading grand wings wide in celebratory hovering flap
+			_draw_pixel_rect(Rect2(-4, 0 + hop_height, 3, 2), Color(0.95, 0.70, 0.15))
+			_draw_pixel_rect(Rect2(2, 0 + hop_height, 3, 2), Color(0.95, 0.70, 0.15))
+			_draw_pixel_rect(Rect2(-6, -13 + hop_height, 13, 13), fur_main)
+			_draw_pixel_rect(Rect2(-3, -10 + hop_height, 7, 10), fur_cream)
+			# Grand wings spread wide
+			if arms_up:
+				_draw_pixel_rect(Rect2(-15, -15 + hop_height, 9, 8), fur_shadow)
+				_draw_pixel_rect(Rect2(7, -15 + hop_height, 9, 8), fur_shadow)
+			else:
+				_draw_pixel_rect(Rect2(-11, -12 + hop_height, 5, 8), fur_shadow)
+				_draw_pixel_rect(Rect2(6, -12 + hop_height, 5, 8), fur_shadow)
+			_draw_head(Vector2(0, -17 + hop_height), 0.0, false, false, true, true)
 		_:
-			# Shiba / Cat default victory
 			_draw_curled_tail(Vector2(-10, -8 + hop_height), 2.0)
 			_draw_pixel_rect(Rect2(-6, -11 + hop_height, 12, 10), fur_main)
 			_draw_pixel_rect(Rect2(-3, -8 + hop_height, 7, 7), fur_cream)
-			if hop_height < 0:
-				_draw_pixel_rect(Rect2(-4, -1 + hop_height, 3, 3), fur_cream)
-				_draw_pixel_rect(Rect2(2, -1 + hop_height, 3, 3), fur_cream)
-			else:
-				_draw_pixel_rect(Rect2(-5, -2, 4, 4), fur_cream)
-				_draw_pixel_rect(Rect2(2, -2, 4, 4), fur_cream)
 			if arms_up:
 				_draw_pixel_rect(Rect2(-9, -14 + hop_height, 3, 4), fur_cream)
 				_draw_pixel_rect(Rect2(7, -14 + hop_height, 3, 4), fur_cream)
-			else:
-				_draw_pixel_rect(Rect2(-8, -8 + hop_height, 3, 4), fur_cream)
-				_draw_pixel_rect(Rect2(6, -8 + hop_height, 3, 4), fur_cream)
 			_draw_head(Vector2(0, -17 + hop_height), 0.0, false, false, true, true)
 
 # ------------------------------------------------------------------------------
-# 8. WATCH TV ANIMATION (Sits upright facing right, sparkling eyes)
+# 8. CONTEXTUAL ROOM ANIMATIONS
 # ------------------------------------------------------------------------------
 func _draw_watch_tv_anim() -> void:
 	var head_tilt: float = -1.0 if anim_frame == 2 else 0.0
 	var fur_main: Color = _get_fur_main()
 	var fur_cream: Color = _get_fur_cream()
-	
-	# Curled Tail resting over couch
 	_draw_curled_tail(Vector2(-10, -6), 0.0)
-	
-	# Body sitting upright
 	_draw_pixel_rect(Rect2(-7, -11, 14, 11), fur_main)
 	_draw_pixel_rect(Rect2(-3, -8, 8, 8), fur_cream)
-	
-	# Paws resting forward
 	_draw_pixel_rect(Rect2(2, -2, 4, 3), fur_cream)
 	_draw_pixel_rect(Rect2(-4, -2, 4, 3), fur_cream)
-	
-	# Attentive head with wide sparkling eyes watching TV screen
 	_draw_head(Vector2(2, -15 + head_tilt), 0.0, false, false, false, false)
 
-# ------------------------------------------------------------------------------
-# 9. WARM PAWS ANIMATION (Lying on belly in front of fire, toasting paws)
-# ------------------------------------------------------------------------------
 func _draw_warm_paws_anim() -> void:
 	var breath: float = 1.0 if (anim_frame == 1 or anim_frame == 2) else 0.0
 	var fur_main: Color = _get_fur_main()
 	var fur_cream: Color = _get_fur_cream()
-	
-	# Body resting flat
 	_draw_pixel_rect(Rect2(-10, -7 - breath, 20, 8 + breath), fur_main)
 	_draw_pixel_rect(Rect2(-4, -5 - breath, 10, 6 + breath), fur_cream)
-	
-	# Curled Tail
 	_draw_curled_tail(Vector2(-11, -5), 1.0)
-	
-	# Front paws stretched forward towards fire
 	_draw_pixel_rect(Rect2(7, -2, 6, 3), fur_cream)
 	_draw_pixel_rect(Rect2(4, -2, 4, 3), fur_cream)
-	
-	# Happy cozy head with blushing cheeks and closed eyes
 	_draw_head(Vector2(3, -11), 0.0, false, true, true, false)
 
-# ------------------------------------------------------------------------------
-# 10. STUDY ANIMATION (Sitting at library desk, studying open grimoire)
-# ------------------------------------------------------------------------------
 func _draw_study_anim() -> void:
 	var look_down: float = 1.0 if (anim_frame == 1 or anim_frame == 2) else 0.0
 	var fur_main: Color = _get_fur_main()
 	var fur_cream: Color = _get_fur_cream()
-	
-	# Curled Tail
 	_draw_curled_tail(Vector2(-10, -6), 0.0)
-	
-	# Body sitting upright
 	_draw_pixel_rect(Rect2(-7, -10, 14, 10), fur_main)
 	_draw_pixel_rect(Rect2(-3, -7, 8, 7), fur_cream)
-	
-	# Paws resting on desk surface
 	_draw_pixel_rect(Rect2(3, -4, 4, 4), fur_cream)
 	_draw_pixel_rect(Rect2(-2, -4, 4, 4), fur_cream)
-	
-	# Focused head looking down at book
 	_draw_head(Vector2(2, -14 + look_down), 0.0, true, false, false, false)
 
-# ------------------------------------------------------------------------------
-# 11. WINDOW GAZE ANIMATION (Sitting peacefully watching breeze & particles)
-# ------------------------------------------------------------------------------
 func _draw_window_gaze_anim() -> void:
 	var ear_twitch: float = -1.0 if (anim_frame == 1 or anim_frame == 3) else 0.0
 	var fur_main: Color = _get_fur_main()
 	var fur_cream: Color = _get_fur_cream()
-	
-	# Curled Tail with gentle sway
 	_draw_curled_tail(Vector2(-10, -6), sin(anim_frame * 1.5) * 1.5)
-	
-	# Body sitting quietly
 	_draw_pixel_rect(Rect2(-7, -10, 14, 10), fur_main)
 	_draw_pixel_rect(Rect2(-3, -7, 8, 7), fur_cream)
-	
-	# Paws
 	_draw_pixel_rect(Rect2(2, -2, 4, 4), fur_cream)
 	_draw_pixel_rect(Rect2(-3, -2, 4, 4), fur_cream)
-	
-	# Head tilted upward gazing at sky with breezy ear twitch
 	_draw_head(Vector2(2, -16), ear_twitch, false, false, false, false)
 
-# ------------------------------------------------------------------------------
-# 12. TUCKED IN BED ANIMATION (Classic cozy curled sleeping donut)
-# ------------------------------------------------------------------------------
 func _draw_tucked_in_anim() -> void:
 	_draw_nap_anim()
 
-# ------------------------------------------------------------------------------
-# 13. CHEF SNIFF ANIMATION (Leaning forward sniffing savory steam)
-# ------------------------------------------------------------------------------
 func _draw_chef_sniff_anim() -> void:
 	var sniff_bob: float = -1.0 if (anim_frame % 2 == 1) else 0.0
 	var fur_main: Color = _get_fur_main()
 	var fur_cream: Color = _get_fur_cream()
-	
-	# Curled Tail wagging
 	_draw_curled_tail(Vector2(-10, -6), 2.0)
-	
-	# Body leaning forward
 	_draw_pixel_rect(Rect2(-6, -9 + sniff_bob, 14, 9), fur_main)
 	_draw_pixel_rect(Rect2(-2, -6 + sniff_bob, 8, 6), fur_cream)
-	
-	# Paws standing alert
 	_draw_pixel_rect(Rect2(4, -2, 4, 4), fur_cream)
 	_draw_pixel_rect(Rect2(-3, -2, 4, 4), fur_cream)
-	
-	# Sniffing head with open mouth and shiny eyes
 	_draw_head(Vector2(4, -13 + sniff_bob), 0.0, false, false, false, true)
 
 # ==============================================================================
-# 🦊 MODULAR ANATOMICAL HEAD RENDERER
+# 🦊 MODULAR ANATOMICAL HEAD RENDERER (All 8 Species)
 # ==============================================================================
 func _draw_head(pos: Vector2, ear_tilt: float, focused: bool = false, closed_eyes: bool = false, blush: bool = false, open_mouth: bool = false) -> void:
 	var hx: float = pos.x
@@ -918,100 +1047,94 @@ func _draw_head(pos: Vector2, ear_tilt: float, focused: bool = false, closed_eye
 			_draw_shiba_head(hx, hy, ear_tilt, fur_main, fur_cream, closed_eyes, focused, blush, open_mouth)
 
 func _draw_bunny_head(hx: float, hy: float, ear_tilt: float, fur_main: Color, fur_cream: Color, closed_eyes: bool, focused: bool, blush: bool, open_mouth: bool) -> void:
-	# Long floppy ears
 	_draw_pixel_rect(Rect2(hx - 5, hy - 14 + ear_tilt, 4, 11), fur_main)
 	_draw_pixel_rect(Rect2(hx - 4, hy - 12 + ear_tilt, 2, 8), Color(0.96, 0.72, 0.80))
 	_draw_pixel_rect(Rect2(hx + 3, hy - 14, 4, 11), fur_main)
 	_draw_pixel_rect(Rect2(hx + 4, hy - 12, 2, 8), Color(0.96, 0.72, 0.80))
-	
-	# Rounder, slightly wider face base
 	_draw_pixel_rect(Rect2(hx - 7, hy - 3, 16, 11), fur_main)
-	
-	# Soft cheeks & nose
 	_draw_pixel_rect(Rect2(hx - 4, hy + 3, 11, 5), fur_cream)
-	_draw_pixel_rect(Rect2(hx + 6, hy + 3, 2, 2), Color(0.96, 0.72, 0.80)) # Pink nose
-	
+	_draw_pixel_rect(Rect2(hx + 6, hy + 3, 2, 2), Color(0.96, 0.72, 0.80))
 	_draw_eyes_and_mouth(hx, hy, closed_eyes, focused, blush, open_mouth, false)
 
 func _draw_penguin_head(hx: float, hy: float, fur_main: Color, fur_cream: Color, closed_eyes: bool, focused: bool, blush: bool, open_mouth: bool) -> void:
-	# Tuxedo head crest / dome (Taller and rounder)
 	_draw_pixel_rect(Rect2(hx - 4, hy - 8, 10, 5), fur_main)
 	_draw_pixel_rect(Rect2(hx - 6, hy - 4, 14, 12), fur_main)
-	
-	# White face masks
 	_draw_pixel_rect(Rect2(hx - 4, hy - 1, 11, 8), fur_cream)
-	
-	# Orange beak
-	_draw_pixel_rect(Rect2(hx + 5, hy + 2, 5, 3), Color(0.98, 0.60, 0.10))
-	
-	# Red Scarf
-	_draw_pixel_rect(Rect2(hx - 6, hy + 8, 14, 3), Color(0.88, 0.22, 0.25))
-	
+	_draw_pixel_rect(Rect2(hx + 5, hy + 2, 5, 3), Color(0.98, 0.60, 0.10)) # Orange beak
+	_draw_pixel_rect(Rect2(hx - 6, hy + 8, 14, 3), Color(0.88, 0.22, 0.25)) # Red scarf
 	_draw_eyes_and_mouth(hx, hy, closed_eyes, focused, blush, open_mouth, true)
 
 func _draw_fox_head(hx: float, hy: float, ear_tilt: float, fur_main: Color, fur_cream: Color, closed_eyes: bool, focused: bool, blush: bool, open_mouth: bool) -> void:
-	# Fox pointed ears with black tips
 	_draw_pixel_rect(Rect2(hx - 6, hy - 8 + ear_tilt, 4, 5), fur_main)
 	_draw_pixel_rect(Rect2(hx - 6, hy - 8 + ear_tilt, 4, 2), Color(0.12, 0.16, 0.24))
 	_draw_pixel_rect(Rect2(hx - 5, hy - 6 + ear_tilt, 2, 2), COL_EAR_PINK)
 	_draw_pixel_rect(Rect2(hx + 3, hy - 8, 4, 5), fur_main)
 	_draw_pixel_rect(Rect2(hx + 3, hy - 8, 4, 2), Color(0.12, 0.16, 0.24))
 	_draw_pixel_rect(Rect2(hx + 4, hy - 6, 2, 2), COL_EAR_PINK)
-	
-	# Sleek wedge-shaped face
 	_draw_pixel_rect(Rect2(hx - 6, hy - 4, 14, 8), fur_main)
-	
-	# Pointed muzzle extending forward
 	_draw_pixel_rect(Rect2(hx - 2, hy + 2, 12, 4), fur_cream)
-	_draw_pixel_rect(Rect2(hx + 8, hy + 2, 2, 2), Color(0.12, 0.16, 0.24)) # Black nose
-	
+	_draw_pixel_rect(Rect2(hx + 8, hy + 2, 2, 2), Color(0.12, 0.16, 0.24))
 	_draw_eyes_and_mouth(hx, hy, closed_eyes, focused, blush, open_mouth, false, true)
 
 func _draw_cat_head(hx: float, hy: float, ear_tilt: float, fur_main: Color, fur_cream: Color, closed_eyes: bool, focused: bool, blush: bool, open_mouth: bool) -> void:
-	# Cat triangular ears
 	_draw_pixel_rect(Rect2(hx - 6, hy - 7 + ear_tilt, 4, 4), fur_main)
 	_draw_pixel_rect(Rect2(hx - 5, hy - 6 + ear_tilt, 2, 2), COL_EAR_PINK)
 	_draw_pixel_rect(Rect2(hx + 3, hy - 7, 4, 4), Color(0.25, 0.25, 0.30)) # Slate patch ear
 	_draw_pixel_rect(Rect2(hx + 4, hy - 6, 2, 2), COL_EAR_PINK)
-	
-	# Face base (slightly squatter)
 	_draw_pixel_rect(Rect2(hx - 7, hy - 4, 15, 10), fur_main)
-	
-	# Calico patches & whiskers
-	_draw_pixel_rect(Rect2(hx - 7, hy - 4, 6, 5), Color(0.90, 0.55, 0.20)) # Ginger patch
-	_draw_pixel_rect(Rect2(hx + 2, hy - 4, 6, 5), Color(0.25, 0.25, 0.30)) # Dark patch
-	_draw_pixel_rect(Rect2(hx - 3, hy + 2, 9, 4), fur_main) # White muzzle
-	
-	# Tiny Whiskers
-	_draw_pixel_rect(Rect2(hx - 9, hy + 2, 3, 1), Color(0.4, 0.4, 0.45))
+	_draw_pixel_rect(Rect2(hx - 7, hy - 4, 6, 5), fur_cream) # Ginger patch
+	_draw_pixel_rect(Rect2(hx + 2, hy - 4, 6, 5), Color(0.25, 0.25, 0.30))
+	_draw_pixel_rect(Rect2(hx - 3, hy + 2, 9, 4), fur_main)
+	_draw_pixel_rect(Rect2(hx - 9, hy + 2, 3, 1), Color(0.4, 0.4, 0.45)) # Whiskers
 	_draw_pixel_rect(Rect2(hx + 8, hy + 2, 3, 1), Color(0.4, 0.4, 0.45))
-	
-	_draw_pixel_rect(Rect2(hx + 6, hy + 2, 2, 2), COL_DARK_EYE) # Nose
-	
+	_draw_pixel_rect(Rect2(hx + 6, hy + 2, 2, 2), COL_DARK_EYE)
 	_draw_eyes_and_mouth(hx, hy, closed_eyes, focused, blush, open_mouth, false, false)
 
 func _draw_shiba_head(hx: float, hy: float, ear_tilt: float, fur_main: Color, fur_cream: Color, closed_eyes: bool, focused: bool, blush: bool, open_mouth: bool) -> void:
-	# Pointed ears
 	_draw_pixel_rect(Rect2(hx - 6, hy - 7 + ear_tilt, 4, 4), fur_main)
 	_draw_pixel_rect(Rect2(hx - 5, hy - 6 + ear_tilt, 2, 2), COL_EAR_PINK)
 	_draw_pixel_rect(Rect2(hx + 3, hy - 7, 4, 4), fur_main)
 	_draw_pixel_rect(Rect2(hx + 4, hy - 6, 2, 2), COL_EAR_PINK)
-	
-	# Blocky head base
 	_draw_pixel_rect(Rect2(hx - 6, hy - 4, 14, 11), fur_main)
-	
-	# White Eyebrow Dots
-	_draw_pixel_rect(Rect2(hx - 3, hy - 2, 2, 2), fur_cream)
+	_draw_pixel_rect(Rect2(hx - 3, hy - 2, 2, 2), fur_cream) # Eyebrow dots
 	_draw_pixel_rect(Rect2(hx + 3, hy - 2, 2, 2), fur_cream)
 	_draw_pixel_rect(Rect2(hx - 3, hy + 2, 10, 5), fur_cream)
 	_draw_pixel_rect(Rect2(hx + 1, hy, 6, 4), fur_cream)
-	
-	_draw_pixel_rect(Rect2(hx + 6, hy + 2, 2, 2), COL_DARK_EYE) # Nose
-	
+	_draw_pixel_rect(Rect2(hx + 6, hy + 2, 2, 2), COL_DARK_EYE)
+	_draw_eyes_and_mouth(hx, hy, closed_eyes, focused, blush, open_mouth, false, false)
+
+func _draw_redpanda_head(hx: float, hy: float, ear_tilt: float, fur_main: Color, fur_cream: Color, fur_shadow: Color, closed_eyes: bool, focused: bool, blush: bool, open_mouth: bool) -> void:
+	_draw_pixel_rect(Rect2(hx - 7, hy - 4, 14, 10), fur_main)
+	_draw_pixel_rect(Rect2(hx - 8, hy, 5, 5), fur_cream)
+	_draw_pixel_rect(Rect2(hx + 3, hy, 5, 5), fur_cream)
+	_draw_pixel_rect(Rect2(hx - 5, hy - 6, 3, 2), fur_cream) # White brow tufts
+	_draw_pixel_rect(Rect2(hx + 2, hy - 6, 3, 2), fur_cream)
+	_draw_pixel_rect(Rect2(hx - 3, hy + 2, 6, 4), fur_cream)
+	_draw_pixel_rect(Rect2(hx - 1, hy + 2, 2, 1), Color(0.1, 0.1, 0.1))
+	_draw_pixel_rect(Rect2(hx - 8, hy - 8 + ear_tilt, 4, 4), fur_cream)
+	_draw_pixel_rect(Rect2(hx - 7, hy - 7 + ear_tilt, 2, 2), fur_shadow)
+	_draw_pixel_rect(Rect2(hx + 4, hy - 8, 4, 4), fur_cream)
+	_draw_pixel_rect(Rect2(hx + 5, hy - 7, 2, 2), fur_shadow)
+	_draw_eyes_and_mouth(hx, hy, closed_eyes, focused, blush, open_mouth, false, false)
+
+func _draw_capybara_head(hx: float, hy: float, ear_tilt: float, fur_main: Color, fur_cream: Color, fur_shadow: Color, closed_eyes: bool, focused: bool, blush: bool, open_mouth: bool) -> void:
+	_draw_pixel_rect(Rect2(hx - 6, hy - 4, 12, 12), fur_main)
+	_draw_pixel_rect(Rect2(hx - 5, hy + 3, 10, 6), fur_cream)
+	_draw_pixel_rect(Rect2(hx - 2, hy + 3, 4, 2), Color(0.2, 0.15, 0.1))
+	_draw_pixel_rect(Rect2(hx - 7, hy - 4 + ear_tilt, 2, 3), fur_shadow)
+	_draw_pixel_rect(Rect2(hx + 5, hy - 4, 2, 3), fur_shadow)
+	_draw_eyes_and_mouth(hx, hy, closed_eyes, focused, blush, open_mouth, false, false)
+
+func _draw_owl_head(hx: float, hy: float, ear_tilt: float, fur_main: Color, fur_cream: Color, fur_shadow: Color, closed_eyes: bool, focused: bool, blush: bool, open_mouth: bool) -> void:
+	_draw_pixel_rect(Rect2(hx - 6, hy - 6, 12, 12), fur_main)
+	_draw_pixel_rect(Rect2(hx - 7, hy - 4, 14, 9), fur_cream) # Heart facial disc
+	_draw_pixel_rect(Rect2(hx - 1, hy - 5, 2, 5), fur_main)
+	_draw_pixel_rect(Rect2(hx - 5, hy - 8 + ear_tilt, 2, 3), fur_shadow)
+	_draw_pixel_rect(Rect2(hx + 3, hy - 8, 2, 3), fur_shadow)
+	_draw_pixel_rect(Rect2(hx - 1, hy + 1, 2, 3), Color(0.95, 0.70, 0.15)) # Beak
 	_draw_eyes_and_mouth(hx, hy, closed_eyes, focused, blush, open_mouth, false, false)
 
 func _draw_eyes_and_mouth(hx: float, hy: float, closed_eyes: bool, focused: bool, blush: bool, open_mouth: bool, is_penguin: bool = false, is_fox: bool = false) -> void:
-	# 4. Eyes
 	if closed_eyes:
 		_draw_pixel_rect(Rect2(hx - 2, hy, 3, 1), COL_DARK_EYE)
 		_draw_pixel_rect(Rect2(hx + 4, hy, 3, 1), COL_DARK_EYE)
@@ -1028,7 +1151,6 @@ func _draw_eyes_and_mouth(hx: float, hy: float, closed_eyes: bool, focused: bool
 		_draw_pixel_rect(Rect2(hx - 4, hy + 2, 3, 2), COL_CHEEK_BLUSH)
 		_draw_pixel_rect(Rect2(hx + 2, hy + 2, 3, 2), COL_CHEEK_BLUSH)
 		
-	# 6. Mouth / Tongue
 	if not is_penguin:
 		var mouth_x = hx + 3 if is_fox else hx + 4
 		if open_mouth:
@@ -1038,7 +1160,7 @@ func _draw_eyes_and_mouth(hx: float, hy: float, closed_eyes: bool, focused: bool
 			_draw_pixel_rect(Rect2(mouth_x, hy + 4, 2, 1), COL_DARK_EYE)
 
 # ------------------------------------------------------------------------------
-# 🌀 TAIL HELPER
+# 🌀 TAIL HELPER (All 8 Species)
 # ------------------------------------------------------------------------------
 func _draw_curled_tail(origin: Vector2, wag: float) -> void:
 	var tx: float = origin.x + wag
@@ -1049,35 +1171,32 @@ func _draw_curled_tail(origin: Vector2, wag: float) -> void:
 	
 	match species:
 		"cat":
-			# Long slender cat tail swaying
+			# Long slender whip tail swaying
 			_draw_pixel_rect(Rect2(tx - 2, ty - 1, 3, 3), fur_main)
 			_draw_pixel_rect(Rect2(tx - 4, ty - 3, 3, 3), Color(0.25, 0.25, 0.30))
 			_draw_pixel_rect(Rect2(tx - 5, ty - 6, 3, 4), fur_main)
-			_draw_pixel_rect(Rect2(tx - 4, ty - 8, 3, 3), Color(0.90, 0.55, 0.20))
+			_draw_pixel_rect(Rect2(tx - 4, ty - 8, 3, 3), fur_cream)
 		"bunny":
-			# Cotton ball pompom tail
 			_draw_pixel_rect(Rect2(tx - 2, ty - 2, 4, 4), Color(0.98, 0.98, 1.0))
 			_draw_pixel_rect(Rect2(tx - 1, ty - 3, 3, 1), Color(0.95, 0.95, 0.98))
 		"penguin":
-			# Small tuxedo tail wedge
 			_draw_pixel_rect(Rect2(tx - 2, ty - 1, 3, 3), Color(0.08, 0.10, 0.16))
 		"fox":
-			# Huge fluffy brush tail with white tip
-			_draw_pixel_rect(Rect2(tx - 3, ty - 2, 5, 5), _get_fur_main())
-			_draw_pixel_rect(Rect2(tx - 6, ty - 5, 6, 6), _get_fur_main())
+			_draw_pixel_rect(Rect2(tx - 3, ty - 2, 5, 5), fur_main)
+			_draw_pixel_rect(Rect2(tx - 6, ty - 5, 6, 6), fur_main)
 			_draw_pixel_rect(Rect2(tx - 8, ty - 8, 6, 5), Color(0.99, 0.96, 0.89))
 		"redpanda":
-			# Thick striped tail
-			_draw_pixel_rect(Rect2(tx - 3, ty - 2, 6, 6), _get_fur_main())
-			_draw_pixel_rect(Rect2(tx - 7, ty - 4, 7, 7), _get_fur_shadow())
-			_draw_pixel_rect(Rect2(tx - 10, ty - 7, 7, 7), _get_fur_main())
-			_draw_pixel_rect(Rect2(tx - 13, ty - 9, 6, 6), _get_fur_shadow())
+			# 4-ring striped tail
+			_draw_pixel_rect(Rect2(tx - 3, ty - 2, 6, 6), fur_main)
+			_draw_pixel_rect(Rect2(tx - 7, ty - 4, 6, 6), fur_shadow)
+			_draw_pixel_rect(Rect2(tx - 10, ty - 7, 6, 6), fur_main)
+			_draw_pixel_rect(Rect2(tx - 13, ty - 9, 5, 5), fur_shadow)
 		"capybara":
 			pass # Capybaras don't have visible tails
 		"owl":
-			# Tail feathers pointing down
-			_draw_pixel_rect(Rect2(tx - 2, ty, 4, 5), _get_fur_main())
-			_draw_pixel_rect(Rect2(tx - 3, ty + 2, 6, 2), _get_fur_shadow())
+			# Tail plumage feathers
+			_draw_pixel_rect(Rect2(tx - 2, ty, 4, 5), fur_main)
+			_draw_pixel_rect(Rect2(tx - 3, ty + 2, 6, 2), fur_shadow)
 		_:
 			# Shiba curled tail
 			_draw_pixel_rect(Rect2(tx, ty, 3, 4), fur_main)
@@ -1085,9 +1204,9 @@ func _draw_curled_tail(origin: Vector2, wag: float) -> void:
 			_draw_pixel_rect(Rect2(tx - 1, ty - 5, 4, 3), fur_cream)
 			_draw_pixel_rect(Rect2(tx + 1, ty - 4, 3, 2), fur_cream)
 
-# ==============================================================================
-# ✨ PARTICLE RENDERING (Hearts, Steam, Zzz, Stars)
-# ==============================================================================
+# ------------------------------------------------------------------------------
+# 🌟 PARTICLE PIXEL HELPERS
+# ------------------------------------------------------------------------------
 func _draw_all_particles() -> void:
 	for p in _particles:
 		var pos: Vector2 = p["pos"]
@@ -1110,7 +1229,6 @@ func _draw_all_particles() -> void:
 
 func _draw_pixel_heart(pos: Vector2, alpha: float) -> void:
 	var col: Color = Color(COL_HEART_PINK.r, COL_HEART_PINK.g, COL_HEART_PINK.b, alpha)
-	# 5x4 pixel heart
 	_draw_pixel_rect(Rect2(pos.x - 2, pos.y - 2, 2, 1), col)
 	_draw_pixel_rect(Rect2(pos.x + 1, pos.y - 2, 2, 1), col)
 	_draw_pixel_rect(Rect2(pos.x - 3, pos.y - 1, 6, 2), col)
@@ -1124,7 +1242,6 @@ func _draw_pixel_steam(pos: Vector2, alpha: float) -> void:
 
 func _draw_pixel_zzz(pos: Vector2, alpha: float) -> void:
 	var col: Color = Color(COL_ZZZ_BLUE.r, COL_ZZZ_BLUE.g, COL_ZZZ_BLUE.b, alpha)
-	# 4x4 pixel 'Z'
 	_draw_pixel_rect(Rect2(pos.x - 2, pos.y - 2, 4, 1), col)
 	_draw_pixel_rect(Rect2(pos.x, pos.y - 1, 2, 1), col)
 	_draw_pixel_rect(Rect2(pos.x - 1, pos.y, 2, 1), col)
@@ -1132,14 +1249,12 @@ func _draw_pixel_zzz(pos: Vector2, alpha: float) -> void:
 
 func _draw_pixel_star(pos: Vector2, alpha: float) -> void:
 	var col: Color = Color(COL_STAR_GOLD.r, COL_STAR_GOLD.g, COL_STAR_GOLD.b, alpha)
-	# 3x3 diamond sparkle
 	_draw_pixel_rect(Rect2(pos.x, pos.y - 2, 1, 5), col)
 	_draw_pixel_rect(Rect2(pos.x - 2, pos.y, 5, 1), col)
 	_draw_pixel_rect(Rect2(pos.x - 1, pos.y - 1, 3, 3), Color(1.0, 1.0, 1.0, alpha))
 
 func _draw_pixel_anger(pos: Vector2, alpha: float) -> void:
 	var col: Color = Color(0.95, 0.20, 0.25, alpha)
-	# 4-corner anime anger mark 💢
 	_draw_pixel_rect(Rect2(pos.x - 3, pos.y - 3, 2, 2), col)
 	_draw_pixel_rect(Rect2(pos.x + 2, pos.y - 3, 2, 2), col)
 	_draw_pixel_rect(Rect2(pos.x - 3, pos.y + 2, 2, 2), col)
@@ -1148,98 +1263,5 @@ func _draw_pixel_anger(pos: Vector2, alpha: float) -> void:
 
 func _draw_pixel_exclamation(pos: Vector2, alpha: float) -> void:
 	var col: Color = Color(1.0, 0.90, 0.20, alpha)
-	# 2x6 pixel exclamation mark !
 	_draw_pixel_rect(Rect2(pos.x, pos.y - 6, 2, 4), col)
 	_draw_pixel_rect(Rect2(pos.x, pos.y - 1, 2, 2), col)
-
-
-func _draw_redpanda_head(hx: float, hy: float, ear_tilt: float, fur_main: Color, fur_cream: Color, fur_shadow: Color, closed_eyes: bool, focused: bool, blush: bool, open_mouth: bool) -> void:
-	# Wide round face
-	_draw_pixel_rect(Rect2(hx - 7, hy - 4, 14, 10), fur_main)
-	# Cream cheeks and eyebrows
-	_draw_pixel_rect(Rect2(hx - 8, hy, 5, 5), fur_cream)
-	_draw_pixel_rect(Rect2(hx + 3, hy, 5, 5), fur_cream)
-	_draw_pixel_rect(Rect2(hx - 5, hy - 6, 3, 2), fur_cream)
-	_draw_pixel_rect(Rect2(hx + 2, hy - 6, 3, 2), fur_cream)
-	# Muzzle
-	_draw_pixel_rect(Rect2(hx - 3, hy + 2, 6, 4), fur_cream)
-	_draw_pixel_rect(Rect2(hx - 1, hy + 2, 2, 1), Color(0.1, 0.1, 0.1)) # nose
-	
-	# Ears (white tufts)
-	_draw_pixel_rect(Rect2(hx - 8, hy - 8 + ear_tilt, 4, 4), fur_cream)
-	_draw_pixel_rect(Rect2(hx - 7, hy - 7 + ear_tilt, 2, 2), fur_shadow)
-	_draw_pixel_rect(Rect2(hx + 4, hy - 8, 4, 4), fur_cream)
-	_draw_pixel_rect(Rect2(hx + 5, hy - 7, 2, 2), fur_shadow)
-	
-	if closed_eyes:
-		_draw_pixel_rect(Rect2(hx - 5, hy - 1, 3, 1), COL_DARK_EYE)
-		_draw_pixel_rect(Rect2(hx + 2, hy - 1, 3, 1), COL_DARK_EYE)
-	elif focused:
-		_draw_pixel_rect(Rect2(hx - 5, hy - 2, 3, 2), COL_DARK_EYE)
-		_draw_pixel_rect(Rect2(hx + 2, hy - 2, 3, 2), COL_DARK_EYE)
-	else:
-		_draw_pixel_rect(Rect2(hx - 5, hy - 2, 2, 3), COL_DARK_EYE)
-		_draw_pixel_rect(Rect2(hx + 3, hy - 2, 2, 3), COL_DARK_EYE)
-		
-	if blush:
-		_draw_pixel_rect(Rect2(hx - 7, hy + 1, 2, 2), COL_CHEEK_BLUSH)
-		_draw_pixel_rect(Rect2(hx + 5, hy + 1, 2, 2), COL_CHEEK_BLUSH)
-		
-	if open_mouth:
-		_draw_pixel_rect(Rect2(hx - 1, hy + 4, 2, 2), COL_DARK_EYE)
-
-func _draw_capybara_head(hx: float, hy: float, ear_tilt: float, fur_main: Color, fur_cream: Color, fur_shadow: Color, closed_eyes: bool, focused: bool, blush: bool, open_mouth: bool) -> void:
-	# Boxy heavy head
-	_draw_pixel_rect(Rect2(hx - 6, hy - 4, 12, 12), fur_main)
-	# Muzzle
-	_draw_pixel_rect(Rect2(hx - 5, hy + 3, 10, 6), fur_cream)
-	_draw_pixel_rect(Rect2(hx - 2, hy + 3, 4, 2), Color(0.2, 0.15, 0.1)) # nose
-	
-	# Small ears
-	_draw_pixel_rect(Rect2(hx - 7, hy - 4 + ear_tilt, 2, 3), fur_shadow)
-	_draw_pixel_rect(Rect2(hx + 5, hy - 4, 2, 3), fur_shadow)
-	
-	if closed_eyes:
-		_draw_pixel_rect(Rect2(hx - 5, hy - 1, 2, 1), COL_DARK_EYE)
-		_draw_pixel_rect(Rect2(hx + 3, hy - 1, 2, 1), COL_DARK_EYE)
-	else:
-		_draw_pixel_rect(Rect2(hx - 5, hy - 1, 2, 2), COL_DARK_EYE)
-		_draw_pixel_rect(Rect2(hx + 3, hy - 1, 2, 2), COL_DARK_EYE)
-		
-	if blush:
-		_draw_pixel_rect(Rect2(hx - 6, hy + 1, 2, 1), COL_CHEEK_BLUSH)
-		_draw_pixel_rect(Rect2(hx + 4, hy + 1, 2, 1), COL_CHEEK_BLUSH)
-		
-	if open_mouth:
-		_draw_pixel_rect(Rect2(hx - 2, hy + 6, 4, 2), COL_DARK_EYE)
-
-func _draw_owl_head(hx: float, hy: float, ear_tilt: float, fur_main: Color, fur_cream: Color, fur_shadow: Color, closed_eyes: bool, focused: bool, blush: bool, open_mouth: bool) -> void:
-	# Round feathery head
-	_draw_pixel_rect(Rect2(hx - 6, hy - 6, 12, 12), fur_main)
-	# Facial disc (heart shape)
-	_draw_pixel_rect(Rect2(hx - 7, hy - 4, 14, 9), fur_cream)
-	_draw_pixel_rect(Rect2(hx - 1, hy - 5, 2, 5), fur_main) # middle division
-	
-	# Small ear tufts
-	_draw_pixel_rect(Rect2(hx - 5, hy - 8 + ear_tilt, 2, 3), fur_shadow)
-	_draw_pixel_rect(Rect2(hx + 3, hy - 8, 2, 3), fur_shadow)
-	
-	# Beak
-	_draw_pixel_rect(Rect2(hx - 1, hy + 1, 2, 3), Color(0.9, 0.7, 0.1))
-	
-	if closed_eyes:
-		_draw_pixel_rect(Rect2(hx - 4, hy - 1, 3, 1), COL_DARK_EYE)
-		_draw_pixel_rect(Rect2(hx + 1, hy - 1, 3, 1), COL_DARK_EYE)
-	elif focused:
-		_draw_pixel_rect(Rect2(hx - 4, hy - 2, 3, 2), COL_DARK_EYE)
-		_draw_pixel_rect(Rect2(hx + 1, hy - 2, 3, 2), COL_DARK_EYE)
-	else:
-		# Big owl eyes
-		_draw_pixel_rect(Rect2(hx - 5, hy - 3, 4, 4), COL_DARK_EYE)
-		_draw_pixel_rect(Rect2(hx - 4, hy - 2, 1, 1), Color(1, 1, 1))
-		_draw_pixel_rect(Rect2(hx + 1, hy - 3, 4, 4), COL_DARK_EYE)
-		_draw_pixel_rect(Rect2(hx + 2, hy - 2, 1, 1), Color(1, 1, 1))
-		
-	if blush:
-		_draw_pixel_rect(Rect2(hx - 6, hy + 3, 2, 1), COL_CHEEK_BLUSH)
-		_draw_pixel_rect(Rect2(hx + 4, hy + 3, 2, 1), COL_CHEEK_BLUSH)

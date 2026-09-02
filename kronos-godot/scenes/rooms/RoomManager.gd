@@ -121,7 +121,46 @@ func switch_to_room(target_room_id: String) -> void:
 		return
 		
 	is_transitioning = true
+	var dir: int = GameState.get_room_direction(current_room_id, target_room_id) if GameState else 0
 	
+	if dir != 0:
+		_perform_directional_slide(target_room_id, dir)
+	else:
+		_perform_fade_transition(target_room_id)
+
+func _perform_directional_slide(target_room_id: String, dir: int) -> void:
+	var room_packed: PackedScene = ROOM_SCENES[target_room_id]
+	var next_room_node: BaseRoom = room_packed.instantiate() as BaseRoom
+	next_room_node.position.x = 240.0 * float(dir)
+	room_container.add_child(next_room_node)
+	
+	var old_room_node = current_room_node
+	
+	var tween: Tween = create_tween().set_parallel(true)
+	tween.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
+	if old_room_node and is_instance_valid(old_room_node):
+		tween.tween_property(old_room_node, "position:x", -240.0 * float(dir), 0.28)
+	tween.tween_property(next_room_node, "position:x", 0.0, 0.28)
+	
+	tween.chain().tween_callback(func():
+		if old_room_node and is_instance_valid(old_room_node):
+			old_room_node.queue_free()
+		current_room_node = next_room_node
+		current_room_id = target_room_id
+		
+		if room_camera:
+			current_room_width = current_room_node.room_width
+			room_camera.position.x = 120.0
+			
+		if GameState:
+			GameState.set_view_room(target_room_id)
+			
+		_sync_pets_for_current_room(dir)
+		_show_room_badge(current_room_node.room_name)
+		is_transitioning = false
+	)
+
+func _perform_fade_transition(target_room_id: String) -> void:
 	if transition_overlay:
 		transition_overlay.visible = true
 		transition_overlay.modulate.a = 0.0
@@ -159,7 +198,7 @@ func _perform_room_swap(target_room_id: String) -> void:
 	if GameState:
 		GameState.set_view_room(target_room_id)
 		
-	_sync_pets_for_current_room()
+	_sync_pets_for_current_room(0)
 	_show_room_badge(current_room_node.room_name)
 
 func _load_room_instant(room_id: String) -> void:
@@ -175,7 +214,7 @@ func _load_room_instant(room_id: String) -> void:
 		current_room_width = current_room_node.room_width
 		room_camera.position.x = 120.0
 	
-	_sync_pets_for_current_room()
+	_sync_pets_for_current_room(0)
 	_show_room_badge(current_room_node.room_name)
 
 func _show_room_badge(r_name: String) -> void:
@@ -195,7 +234,7 @@ func _show_room_badge(r_name: String) -> void:
 # ==============================================================================
 # 🐾 MULTI-PET HOUSEHOLD LOCATION & SPAWNING
 # ==============================================================================
-func _sync_pets_for_current_room() -> void:
+func _sync_pets_for_current_room(entry_direction: int = 0) -> void:
 	# Clean up previous spawned pets
 	for p in spawned_pets:
 		if is_instance_valid(p):
@@ -210,13 +249,12 @@ func _sync_pets_for_current_room() -> void:
 	
 	for pet_info in GameState.active_pets:
 		var p_room: String = pet_info.get("room", "room_bedroom")
-		# If pet has no room or matches view room, spawn here
-		if p_room == current_room_id or p_room == "":
+		if p_room.is_empty():
+			p_room = "room_bedroom"
+			pet_info["room"] = "room_bedroom"
+		# Only spawn pets that are actually in this specific room
+		if p_room == current_room_id:
 			room_pets.append(pet_info)
-			
-	# If no pets are explicitly in this room and active_pets has 1 pet, put them here
-	if room_pets.is_empty() and GameState.active_pets.size() == 1:
-		room_pets.append(GameState.active_pets[0])
 		
 	# Spawn each pet companion with properly bounded starting X positions
 	for i in range(room_pets.size()):
@@ -239,6 +277,10 @@ func _sync_pets_for_current_room() -> void:
 		pet_layer.add_child(pet_inst)
 		pet_inst.setup_pet(p_info)
 		pet_inst.set_room_anchors(a_min, a_max, a_desk, a_nap, a_drink, a_floor)
+		
+		if entry_direction != 0 and pet_inst.has_method("walk_in_from_door"):
+			pet_inst.walk_in_from_door(entry_direction)
+			
 		spawned_pets.append(pet_inst)
 
 func _on_pet_delivery_box_spawned(p_data: Dictionary, spawn_pos: Vector2) -> void:

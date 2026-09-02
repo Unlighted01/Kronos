@@ -1,0 +1,1179 @@
+[gd_scene load_steps=12 format=3 uid="uid://c8m7k2p9q1r4s"]
+
+[ext_resource type="Theme" uid="uid://b5g2j8k1m3n4p" path="res://themes/pixel_theme.tres" id="1_theme"]
+[ext_resource type="Script" path="res://scenes/productivity/DeckStudioTab.gd" id="2_deck"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card"]
+content_margin_left = 10.0
+content_margin_top = 8.0
+content_margin_right = 10.0
+content_margin_bottom = 8.0
+bg_color = Color(0.0470588, 0.054902, 0.0901961, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.145098, 0.164706, 0.25098, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_meter_bg"]
+bg_color = Color(0.0823529, 0.0980392, 0.156863, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.145098, 0.164706, 0.25098, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_m_learning"]
+bg_color = Color(0.960784, 0.619608, 0.0392157, 1)
+corner_radius_top_left = 2
+corner_radius_bottom_left = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_m_reviewing"]
+bg_color = Color(0.309804, 0.819608, 0.909804, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_m_mastered"]
+bg_color = Color(0.188235, 0.768627, 0.529412, 1)
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_arena_card"]
+content_margin_left = 16.0
+content_margin_top = 14.0
+content_margin_right = 16.0
+content_margin_bottom = 14.0
+bg_color = Color(0.0588235, 0.0705882, 0.117647, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.309804, 0.819608, 0.909804, 0.6)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+shadow_color = Color(0, 0, 0, 0.6)
+shadow_size = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qbox"]
+content_margin_left = 14.0
+content_margin_top = 12.0
+content_margin_right = 14.0
+content_margin_bottom = 12.0
+bg_color = Color(0.0823529, 0.0980392, 0.156863, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.2, 0.235294, 0.352941, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_abox"]
+content_margin_left = 14.0
+content_margin_top = 12.0
+content_margin_right = 14.0
+content_margin_bottom = 12.0
+bg_color = Color(0.0470588, 0.117647, 0.0980392, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.188235, 0.768627, 0.529412, 0.8)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_modal_bg"]
+bg_color = Color(0.027451, 0.0313726, 0.054902, 0.85)
+
+[node name="DeckStudioTab" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme = ExtResource("1_theme")
+script = ExtResource("2_deck")
+
+[node name="Scroll" type="ScrollContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+horizontal_scroll_mode = 0
+
+[node name="ContentVBox" type="VBoxContainer" parent="Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="TopRow" type="HBoxContainer" parent="Scroll/ContentVBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="MetricsCard" type="PanelContainer" parent="Scroll/ContentVBox/TopRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="VBox" type="VBoxContainer" parent="Scroll/ContentVBox/TopRow/MetricsCard"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="HeaderHBox" type="HBoxContainer" parent="Scroll/ContentVBox/TopRow/MetricsCard/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Title" type="Label" parent="Scroll/ContentVBox/TopRow/MetricsCard/VBox/HeaderHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.309804, 0.819608, 0.909804, 1)
+theme_override_font_sizes/font_size = 9
+text = "🧠 DECK OVERVIEW & MASTERY"
+
+[node name="KpLabel" type="Label" parent="Scroll/ContentVBox/TopRow/MetricsCard/VBox/HeaderHBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.960784, 0.803922, 0.47451, 1)
+theme_override_font_sizes/font_size = 9
+text = "⭐ 0 KP"
+
+[node name="StatsHBox" type="HBoxContainer" parent="Scroll/ContentVBox/TopRow/MetricsCard/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="DueBadge" type="Label" parent="Scroll/ContentVBox/TopRow/MetricsCard/VBox/StatsHBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.960784, 0.619608, 0.0392157, 1)
+theme_override_font_sizes/font_size = 8
+text = "🔥 0 Due"
+
+[node name="TotalCardsLabel" type="Label" parent="Scroll/ContentVBox/TopRow/MetricsCard/VBox/StatsHBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.701961, 0.752941, 0.85098, 1)
+theme_override_font_sizes/font_size = 8
+text = "📚 0 Cards"
+
+[node name="MasteredLabel" type="Label" parent="Scroll/ContentVBox/TopRow/MetricsCard/VBox/StatsHBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.301961, 0.85098, 0.490196, 1)
+theme_override_font_sizes/font_size = 8
+text = "🏆 0 Mastered"
+
+[node name="RetentionLabel" type="Label" parent="Scroll/ContentVBox/TopRow/MetricsCard/VBox/StatsHBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.309804, 0.819608, 0.909804, 1)
+theme_override_font_sizes/font_size = 8
+text = "📈 100% Ret."
+
+[node name="MasteryMeter" type="HBoxContainer" parent="Scroll/ContentVBox/TopRow/MetricsCard/VBox"]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="LearningSegment" type="Panel" parent="Scroll/ContentVBox/TopRow/MetricsCard/VBox/MasteryMeter"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.33
+theme_override_styles/panel = SubResource("StyleBoxFlat_m_learning")
+
+[node name="ReviewingSegment" type="Panel" parent="Scroll/ContentVBox/TopRow/MetricsCard/VBox/MasteryMeter"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.33
+theme_override_styles/panel = SubResource("StyleBoxFlat_m_reviewing")
+
+[node name="MasteredSegment" type="Panel" parent="Scroll/ContentVBox/TopRow/MetricsCard/VBox/MasteryMeter"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.34
+theme_override_styles/panel = SubResource("StyleBoxFlat_m_mastered")
+
+[node name="LegendLabel" type="Label" parent="Scroll/ContentVBox/TopRow/MetricsCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.580392, 0.639216, 0.721569, 1)
+theme_override_font_sizes/font_size = 7
+text = "🌱 Learning: 0  •  ⚡ Reviewing: 0  •  👑 Mastered: 0"
+
+[node name="ActionsCard" type="PanelContainer" parent="Scroll/ContentVBox/TopRow"]
+custom_minimum_size = Vector2(340, 0)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="VBox" type="VBoxContainer" parent="Scroll/ContentVBox/TopRow/ActionsCard"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="BtnStartDrill" type="Button" parent="Scroll/ContentVBox/TopRow/ActionsCard/VBox"]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.960784, 0.803922, 0.47451, 1)
+theme_override_font_sizes/font_size = 9
+text = "▶️ START STUDY DRILL (0 DUE)"
+
+[node name="BtnRow" type="HBoxContainer" parent="Scroll/ContentVBox/TopRow/ActionsCard/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="BtnNewCard" type="Button" parent="Scroll/ContentVBox/TopRow/ActionsCard/VBox/BtnRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 8
+text = "➕ New Card"
+
+[node name="BtnAIExtract" type="Button" parent="Scroll/ContentVBox/TopRow/ActionsCard/VBox/BtnRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.309804, 0.819608, 0.909804, 1)
+theme_override_font_sizes/font_size = 8
+text = "✨ AI Extract"
+
+[node name="BtnOpenImport" type="Button" parent="Scroll/ContentVBox/TopRow/ActionsCard/VBox/BtnRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 8
+text = "📥 Import"
+
+[node name="BtnExportMd" type="Button" parent="Scroll/ContentVBox/TopRow/ActionsCard/VBox/BtnRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 8
+text = "📋 Export"
+
+[node name="StarterRow" type="HBoxContainer" parent="Scroll/ContentVBox/TopRow/ActionsCard/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Tag" type="Label" parent="Scroll/ContentVBox/TopRow/ActionsCard/VBox/StarterRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.580392, 0.639216, 0.721569, 1)
+theme_override_font_sizes/font_size = 7
+text = "🚀 Packs:"
+
+[node name="BtnPackGodot" type="Button" parent="Scroll/ContentVBox/TopRow/ActionsCard/VBox/StarterRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 7
+text = "👾 Godot"
+
+[node name="BtnPackWeb" type="Button" parent="Scroll/ContentVBox/TopRow/ActionsCard/VBox/StarterRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 7
+text = "💻 Web"
+
+[node name="BtnPackLore" type="Button" parent="Scroll/ContentVBox/TopRow/ActionsCard/VBox/StarterRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 7
+text = "🐾 Lore"
+
+[node name="ForecastCard" type="PanelContainer" parent="Scroll/ContentVBox"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="VBox" type="VBoxContainer" parent="Scroll/ContentVBox/ForecastCard"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="HeaderHBox" type="HBoxContainer" parent="Scroll/ContentVBox/ForecastCard/VBox"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Scroll/ContentVBox/ForecastCard/VBox/HeaderHBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.309804, 0.819608, 0.909804, 1)
+theme_override_font_sizes/font_size = 8
+text = "📅 7-DAY SRS REVIEW WORKLOAD FORECAST"
+
+[node name="ForecastColumns" type="HBoxContainer" parent="Scroll/ContentVBox/ForecastCard/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="ColToday" type="PanelContainer" parent="Scroll/ContentVBox/ForecastCard/VBox/ForecastColumns"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="VBox" type="VBoxContainer" parent="Scroll/ContentVBox/ForecastCard/VBox/ForecastColumns/ColToday"]
+layout_mode = 2
+alignment = 1
+
+[node name="Title" type="Label" parent="Scroll/ContentVBox/ForecastCard/VBox/ForecastColumns/ColToday/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 1)
+theme_override_font_sizes/font_size = 7
+text = "TODAY (DUE)"
+horizontal_alignment = 1
+
+[node name="ValLabel" type="Label" parent="Scroll/ContentVBox/ForecastCard/VBox/ForecastColumns/ColToday/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 1)
+theme_override_font_sizes/font_size = 10
+text = "0"
+horizontal_alignment = 1
+
+[node name="ColTomorrow" type="PanelContainer" parent="Scroll/ContentVBox/ForecastCard/VBox/ForecastColumns"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="VBox" type="VBoxContainer" parent="Scroll/ContentVBox/ForecastCard/VBox/ForecastColumns/ColTomorrow"]
+layout_mode = 2
+alignment = 1
+
+[node name="Title" type="Label" parent="Scroll/ContentVBox/ForecastCard/VBox/ForecastColumns/ColTomorrow/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.58, 0.64, 0.72, 1)
+theme_override_font_sizes/font_size = 7
+text = "TOMORROW"
+horizontal_alignment = 1
+
+[node name="ValLabel" type="Label" parent="Scroll/ContentVBox/ForecastCard/VBox/ForecastColumns/ColTomorrow/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "0"
+horizontal_alignment = 1
+
+[node name="Col23" type="PanelContainer" parent="Scroll/ContentVBox/ForecastCard/VBox/ForecastColumns"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="VBox" type="VBoxContainer" parent="Scroll/ContentVBox/ForecastCard/VBox/ForecastColumns/Col23"]
+layout_mode = 2
+alignment = 1
+
+[node name="Title" type="Label" parent="Scroll/ContentVBox/ForecastCard/VBox/ForecastColumns/Col23/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.58, 0.64, 0.72, 1)
+theme_override_font_sizes/font_size = 7
+text = "IN 2-3 DAYS"
+horizontal_alignment = 1
+
+[node name="ValLabel" type="Label" parent="Scroll/ContentVBox/ForecastCard/VBox/ForecastColumns/Col23/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "0"
+horizontal_alignment = 1
+
+[node name="Col47" type="PanelContainer" parent="Scroll/ContentVBox/ForecastCard/VBox/ForecastColumns"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="VBox" type="VBoxContainer" parent="Scroll/ContentVBox/ForecastCard/VBox/ForecastColumns/Col47"]
+layout_mode = 2
+alignment = 1
+
+[node name="Title" type="Label" parent="Scroll/ContentVBox/ForecastCard/VBox/ForecastColumns/Col47/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.58, 0.64, 0.72, 1)
+theme_override_font_sizes/font_size = 7
+text = "IN 4-7 DAYS"
+horizontal_alignment = 1
+
+[node name="ValLabel" type="Label" parent="Scroll/ContentVBox/ForecastCard/VBox/ForecastColumns/Col47/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "0"
+horizontal_alignment = 1
+
+[node name="ColLater" type="PanelContainer" parent="Scroll/ContentVBox/ForecastCard/VBox/ForecastColumns"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="VBox" type="VBoxContainer" parent="Scroll/ContentVBox/ForecastCard/VBox/ForecastColumns/ColLater"]
+layout_mode = 2
+alignment = 1
+
+[node name="Title" type="Label" parent="Scroll/ContentVBox/ForecastCard/VBox/ForecastColumns/ColLater/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.58, 0.64, 0.72, 1)
+theme_override_font_sizes/font_size = 7
+text = "NEXT WEEK+"
+horizontal_alignment = 1
+
+[node name="ValLabel" type="Label" parent="Scroll/ContentVBox/ForecastCard/VBox/ForecastColumns/ColLater/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "0"
+horizontal_alignment = 1
+
+[node name="CardsTableCard" type="PanelContainer" parent="Scroll/ContentVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="VBox" type="VBoxContainer" parent="Scroll/ContentVBox/CardsTableCard"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="HeaderHBox" type="HBoxContainer" parent="Scroll/ContentVBox/CardsTableCard/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Title" type="Label" parent="Scroll/ContentVBox/CardsTableCard/VBox/HeaderHBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.309804, 0.819608, 0.909804, 1)
+theme_override_font_sizes/font_size = 9
+text = "📑 FLASHCARDS"
+
+[node name="TableCountLabel" type="Label" parent="Scroll/ContentVBox/CardsTableCard/VBox/HeaderHBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.580392, 0.639216, 0.721569, 1)
+theme_override_font_sizes/font_size = 8
+text = "(0)"
+
+[node name="Spacer" type="Control" parent="Scroll/ContentVBox/CardsTableCard/VBox/HeaderHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SubjectFilterOption" type="OptionButton" parent="Scroll/ContentVBox/CardsTableCard/VBox/HeaderHBox"]
+custom_minimum_size = Vector2(95, 22)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 8
+
+[node name="SortOption" type="OptionButton" parent="Scroll/ContentVBox/CardsTableCard/VBox/HeaderHBox"]
+custom_minimum_size = Vector2(105, 22)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 8
+
+[node name="SearchInput" type="LineEdit" parent="Scroll/ContentVBox/CardsTableCard/VBox/HeaderHBox"]
+custom_minimum_size = Vector2(100, 22)
+layout_mode = 2
+theme_override_font_sizes/font_size = 8
+placeholder_text = "Search..."
+clear_button_enabled = true
+
+[node name="CardsListVBox" type="VBoxContainer" parent="Scroll/ContentVBox/CardsTableCard/VBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="StudyArenaCard" type="PanelContainer" parent="Scroll/ContentVBox"]
+visible = false
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_arena_card")
+
+[node name="VBox" type="VBoxContainer" parent="Scroll/ContentVBox/StudyArenaCard"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TopRow" type="HBoxContainer" parent="Scroll/ContentVBox/StudyArenaCard/VBox"]
+layout_mode = 2
+
+[node name="ProgressLabel" type="Label" parent="Scroll/ContentVBox/StudyArenaCard/VBox/TopRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.960784, 0.784314, 0.258824, 1)
+theme_override_font_sizes/font_size = 9
+text = "Card 1 / 1"
+
+[node name="SubjectLabel" type="Label" parent="Scroll/ContentVBox/StudyArenaCard/VBox/TopRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.309804, 0.819608, 0.909804, 1)
+theme_override_font_sizes/font_size = 8
+text = "🏷️ [General]"
+
+[node name="Spacer" type="Control" parent="Scroll/ContentVBox/StudyArenaCard/VBox/TopRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="BtnExitDrill" type="Button" parent="Scroll/ContentVBox/StudyArenaCard/VBox/TopRow"]
+custom_minimum_size = Vector2(80, 20)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 8
+text = "✕ Exit Drill"
+
+[node name="CardDisplay" type="Control" parent="Scroll/ContentVBox/StudyArenaCard/VBox"]
+custom_minimum_size = Vector2(0, 150)
+layout_mode = 2
+pivot_offset = Vector2(360, 75)
+
+[node name="VBox" type="VBoxContainer" parent="Scroll/ContentVBox/StudyArenaCard/VBox/CardDisplay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 6
+
+[node name="QuestionPanel" type="PanelContainer" parent="Scroll/ContentVBox/StudyArenaCard/VBox/CardDisplay/VBox"]
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_qbox")
+
+[node name="VBox" type="VBoxContainer" parent="Scroll/ContentVBox/StudyArenaCard/VBox/CardDisplay/VBox/QuestionPanel"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="TagRow" type="HBoxContainer" parent="Scroll/ContentVBox/StudyArenaCard/VBox/CardDisplay/VBox/QuestionPanel/VBox"]
+layout_mode = 2
+
+[node name="Tag" type="Label" parent="Scroll/ContentVBox/StudyArenaCard/VBox/CardDisplay/VBox/QuestionPanel/VBox/TagRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.580392, 0.639216, 0.721569, 1)
+theme_override_font_sizes/font_size = 8
+text = "QUESTION:"
+
+[node name="Spacer" type="Control" parent="Scroll/ContentVBox/StudyArenaCard/VBox/CardDisplay/VBox/QuestionPanel/VBox/TagRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HintToggleBtn" type="Button" parent="Scroll/ContentVBox/StudyArenaCard/VBox/CardDisplay/VBox/QuestionPanel/VBox/TagRow"]
+visible = false
+custom_minimum_size = Vector2(70, 18)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.96, 0.8, 0.3, 1)
+theme_override_font_sizes/font_size = 7
+text = "💡 [H] Hint"
+
+[node name="BtnAISocraticHint" type="Button" parent="Scroll/ContentVBox/StudyArenaCard/VBox/CardDisplay/VBox/QuestionPanel/VBox/TagRow"]
+custom_minimum_size = Vector2(80, 18)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.309804, 0.819608, 0.909804, 1)
+theme_override_font_sizes/font_size = 7
+text = "✨ AI Analogy"
+
+[node name="QuestionText" type="Label" parent="Scroll/ContentVBox/StudyArenaCard/VBox/CardDisplay/VBox/QuestionPanel/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 11
+text = "Question text here..."
+autowrap_mode = 2
+
+[node name="HintPanel" type="PanelContainer" parent="Scroll/ContentVBox/StudyArenaCard/VBox/CardDisplay/VBox/QuestionPanel/VBox"]
+visible = false
+layout_mode = 2
+
+[node name="HintText" type="Label" parent="Scroll/ContentVBox/StudyArenaCard/VBox/CardDisplay/VBox/QuestionPanel/VBox/HintPanel"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.96, 0.8, 0.3, 0.9)
+theme_override_font_sizes/font_size = 8
+text = "Hint goes here..."
+
+[node name="AIAnalogyPanel" type="PanelContainer" parent="Scroll/ContentVBox/StudyArenaCard/VBox/CardDisplay/VBox/QuestionPanel/VBox"]
+visible = false
+layout_mode = 2
+
+[node name="VBox" type="VBoxContainer" parent="Scroll/ContentVBox/StudyArenaCard/VBox/CardDisplay/VBox/QuestionPanel/VBox/AIAnalogyPanel"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="Header" type="Label" parent="Scroll/ContentVBox/StudyArenaCard/VBox/CardDisplay/VBox/QuestionPanel/VBox/AIAnalogyPanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.309804, 0.819608, 0.909804, 1)
+theme_override_font_sizes/font_size = 7
+text = "🐾 COMPANION'S INTUITIVE ANALOGY:"
+
+[node name="AIAnalogyText" type="Label" parent="Scroll/ContentVBox/StudyArenaCard/VBox/CardDisplay/VBox/QuestionPanel/VBox/AIAnalogyPanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.92, 1.0, 1)
+theme_override_font_sizes/font_size = 8
+text = "Analogy goes here..."
+autowrap_mode = 2
+
+[node name="BtnRevealAnswer" type="Button" parent="Scroll/ContentVBox/StudyArenaCard/VBox/CardDisplay/VBox"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.960784, 0.784314, 0.258824, 1)
+theme_override_font_sizes/font_size = 10
+text = "🔄 Click or Press [Space] to Reveal Answer"
+
+[node name="AnswerPanel" type="PanelContainer" parent="Scroll/ContentVBox/StudyArenaCard/VBox/CardDisplay/VBox"]
+visible = false
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_abox")
+
+[node name="VBox" type="VBoxContainer" parent="Scroll/ContentVBox/StudyArenaCard/VBox/CardDisplay/VBox/AnswerPanel"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Tag" type="Label" parent="Scroll/ContentVBox/StudyArenaCard/VBox/CardDisplay/VBox/AnswerPanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.188235, 0.768627, 0.529412, 1)
+theme_override_font_sizes/font_size = 8
+text = "ANSWER:"
+
+[node name="AnswerText" type="Label" parent="Scroll/ContentVBox/StudyArenaCard/VBox/CardDisplay/VBox/AnswerPanel/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0.941176, 0.960784, 1, 1)
+theme_override_font_sizes/font_size = 11
+text = "Answer text here..."
+autowrap_mode = 2
+
+[node name="RatingRow" type="HBoxContainer" parent="Scroll/ContentVBox/StudyArenaCard/VBox"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="BtnRate1" type="Button" parent="Scroll/ContentVBox/StudyArenaCard/VBox/RatingRow"]
+custom_minimum_size = Vector2(85, 26)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(1, 0.35, 0.35, 1)
+theme_override_font_sizes/font_size = 8
+text = "[1] ❌ Again (1d)"
+
+[node name="BtnRate2" type="Button" parent="Scroll/ContentVBox/StudyArenaCard/VBox/RatingRow"]
+custom_minimum_size = Vector2(85, 26)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(1, 0.65, 0.2, 1)
+theme_override_font_sizes/font_size = 8
+text = "[2] ⚠️ Hard"
+
+[node name="BtnRate3" type="Button" parent="Scroll/ContentVBox/StudyArenaCard/VBox/RatingRow"]
+custom_minimum_size = Vector2(85, 26)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.3, 0.85, 0.5, 1)
+theme_override_font_sizes/font_size = 8
+text = "[3] ✅ Good"
+
+[node name="BtnRate4" type="Button" parent="Scroll/ContentVBox/StudyArenaCard/VBox/RatingRow"]
+custom_minimum_size = Vector2(85, 26)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.31, 0.82, 0.91, 1)
+theme_override_font_sizes/font_size = 8
+text = "[4] ⚡ Easy"
+
+[node name="BtnRate5" type="Button" parent="Scroll/ContentVBox/StudyArenaCard/VBox/RatingRow"]
+custom_minimum_size = Vector2(85, 26)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.96, 0.8, 0.3, 1)
+theme_override_font_sizes/font_size = 8
+text = "[5] 🌟 Perfect (+KP)"
+
+[node name="SessionCompleteCard" type="PanelContainer" parent="Scroll/ContentVBox"]
+visible = false
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_arena_card")
+
+[node name="VBox" type="VBoxContainer" parent="Scroll/ContentVBox/SessionCompleteCard"]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="Icon" type="Label" parent="Scroll/ContentVBox/SessionCompleteCard/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "🎉"
+horizontal_alignment = 1
+
+[node name="Title" type="Label" parent="Scroll/ContentVBox/SessionCompleteCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.309804, 0.819608, 0.909804, 1)
+theme_override_font_sizes/font_size = 12
+text = "STUDY DRILL SESSION COMPLETE!"
+horizontal_alignment = 1
+
+[node name="CompleteSummaryLabel" type="Label" parent="Scroll/ContentVBox/SessionCompleteCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.701961, 0.752941, 0.85098, 1)
+theme_override_font_sizes/font_size = 9
+text = "You reviewed 0 cards in this active recall session."
+horizontal_alignment = 1
+
+[node name="CompleteRewardsLabel" type="Label" parent="Scroll/ContentVBox/SessionCompleteCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.96, 0.8, 0.3, 1)
+theme_override_font_sizes/font_size = 9
+text = "⭐ +0 KP  •  ✨ +0 EXP"
+horizontal_alignment = 1
+
+[node name="Center" type="CenterContainer" parent="Scroll/ContentVBox/SessionCompleteCard/VBox"]
+layout_mode = 2
+
+[node name="BtnFinishDrill" type="Button" parent="Scroll/ContentVBox/SessionCompleteCard/VBox/Center"]
+custom_minimum_size = Vector2(140, 26)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 9
+text = "Back to Study Deck"
+
+[node name="ModalOverlay" type="PanelContainer" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_modal_bg")
+
+[node name="Center" type="CenterContainer" parent="ModalOverlay"]
+layout_mode = 2
+
+[node name="CardModal" type="PanelContainer" parent="ModalOverlay/Center"]
+visible = false
+custom_minimum_size = Vector2(360, 270)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="VBox" type="VBoxContainer" parent="ModalOverlay/Center/CardModal"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="TitleLabel" type="Label" parent="ModalOverlay/Center/CardModal/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.309804, 0.819608, 0.909804, 1)
+theme_override_font_sizes/font_size = 10
+text = "➕ Create New Flashcard"
+
+[node name="QLbl" type="Label" parent="ModalOverlay/Center/CardModal/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.580392, 0.639216, 0.721569, 1)
+theme_override_font_sizes/font_size = 8
+text = "Question / Concept:"
+
+[node name="QuestionInput" type="TextEdit" parent="ModalOverlay/Center/CardModal/VBox"]
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+theme_override_font_sizes/font_size = 9
+placeholder_text = "What is the capital of..."
+wrap_mode = 1
+
+[node name="ALbl" type="Label" parent="ModalOverlay/Center/CardModal/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.580392, 0.639216, 0.721569, 1)
+theme_override_font_sizes/font_size = 8
+text = "Answer / Solution:"
+
+[node name="AnswerInput" type="TextEdit" parent="ModalOverlay/Center/CardModal/VBox"]
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+theme_override_font_sizes/font_size = 9
+placeholder_text = "The answer is..."
+wrap_mode = 1
+
+[node name="HintLbl" type="Label" parent="ModalOverlay/Center/CardModal/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.580392, 0.639216, 0.721569, 1)
+theme_override_font_sizes/font_size = 8
+text = "Optional Hint:"
+
+[node name="HintInput" type="LineEdit" parent="ModalOverlay/Center/CardModal/VBox"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+theme_override_font_sizes/font_size = 8
+placeholder_text = "e.g. Starts with 'P'..."
+
+[node name="SubjLbl" type="Label" parent="ModalOverlay/Center/CardModal/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.580392, 0.639216, 0.721569, 1)
+theme_override_font_sizes/font_size = 8
+text = "Subject Tag:"
+
+[node name="SubjectInput" type="LineEdit" parent="ModalOverlay/Center/CardModal/VBox"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+theme_override_font_sizes/font_size = 8
+text = "General"
+
+[node name="BtnRow" type="HBoxContainer" parent="ModalOverlay/Center/CardModal/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 2
+
+[node name="CancelBtn" type="Button" parent="ModalOverlay/Center/CardModal/VBox/BtnRow"]
+custom_minimum_size = Vector2(70, 22)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 8
+text = "Cancel"
+
+[node name="BtnAIPolish" type="Button" parent="ModalOverlay/Center/CardModal/VBox/BtnRow"]
+custom_minimum_size = Vector2(90, 22)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.309804, 0.819608, 0.909804, 1)
+theme_override_font_sizes/font_size = 8
+text = "✨ AI Polish"
+
+[node name="SaveBtn" type="Button" parent="ModalOverlay/Center/CardModal/VBox/BtnRow"]
+custom_minimum_size = Vector2(90, 22)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 8
+text = "💾 Save Card"
+
+[node name="ImportModal" type="PanelContainer" parent="ModalOverlay/Center"]
+visible = false
+custom_minimum_size = Vector2(400, 280)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="VBox" type="VBoxContainer" parent="ModalOverlay/Center/ImportModal"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="HeaderHBox" type="HBoxContainer" parent="ModalOverlay/Center/ImportModal/VBox"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="ModalOverlay/Center/ImportModal/VBox/HeaderHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.309804, 0.819608, 0.909804, 1)
+theme_override_font_sizes/font_size = 10
+text = "📥 Multi-Format Bulk Importer"
+
+[node name="BtnSwitchToAI" type="Button" parent="ModalOverlay/Center/ImportModal/VBox/HeaderHBox"]
+custom_minimum_size = Vector2(130, 20)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.960784, 0.803922, 0.47451, 1)
+theme_override_font_sizes/font_size = 8
+text = "✨ AI PDF Extract ➔"
+
+[node name="Help" type="Label" parent="ModalOverlay/Center/ImportModal/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.580392, 0.639216, 0.721569, 1)
+theme_override_font_sizes/font_size = 8
+text = "Supported: Q: ... / A: ..., Front | Back | Hint, - Term: Def, or CSV"
+
+[node name="ImportTextEdit" type="TextEdit" parent="ModalOverlay/Center/ImportModal/VBox"]
+custom_minimum_size = Vector2(0, 130)
+layout_mode = 2
+theme_override_font_sizes/font_size = 8
+placeholder_text = "Q: What is GDScript?
+A: High-level language for Godot.
+Hint: Scripting language
+
+HTML | Hypertext Markup Language
+- CSS: Cascading Style Sheets"
+wrap_mode = 1
+
+[node name="SubjRow" type="HBoxContainer" parent="ModalOverlay/Center/ImportModal/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="SubjLbl" type="Label" parent="ModalOverlay/Center/ImportModal/VBox/SubjRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.580392, 0.639216, 0.721569, 1)
+theme_override_font_sizes/font_size = 8
+text = "Default Subject:"
+
+[node name="SubjInput" type="LineEdit" parent="ModalOverlay/Center/ImportModal/VBox/SubjRow"]
+custom_minimum_size = Vector2(100, 20)
+layout_mode = 2
+theme_override_font_sizes/font_size = 8
+text = "General"
+
+[node name="BtnRow" type="HBoxContainer" parent="ModalOverlay/Center/ImportModal/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 2
+
+[node name="CancelBtn" type="Button" parent="ModalOverlay/Center/ImportModal/VBox/BtnRow"]
+custom_minimum_size = Vector2(70, 22)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 8
+text = "Cancel"
+
+[node name="ImportBtn" type="Button" parent="ModalOverlay/Center/ImportModal/VBox/BtnRow"]
+custom_minimum_size = Vector2(110, 22)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 8
+text = "📥 Import Cards"
+
+[node name="AIExtractModal" type="PanelContainer" parent="ModalOverlay/Center"]
+visible = false
+clip_contents = true
+custom_minimum_size = Vector2(430, 330)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="VBox" type="VBoxContainer" parent="ModalOverlay/Center/AIExtractModal"]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="HeaderHBox" type="HBoxContainer" parent="ModalOverlay/Center/AIExtractModal/VBox"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="ModalOverlay/Center/AIExtractModal/VBox/HeaderHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.309804, 0.819608, 0.909804, 1)
+theme_override_font_sizes/font_size = 9
+text = "✨ AI Flashcard Synthesizer (PDF / Notes)"
+
+[node name="Help" type="Label" parent="ModalOverlay/Center/AIExtractModal/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.580392, 0.639216, 0.721569, 1)
+theme_override_font_sizes/font_size = 7
+text = "Select a PDF, Markdown, or Text file, or paste lecture notes below to extract cards."
+
+[node name="AIKeyBanner" type="PanelContainer" parent="ModalOverlay/Center/AIExtractModal/VBox"]
+layout_mode = 2
+
+[node name="HBox" type="HBoxContainer" parent="ModalOverlay/Center/AIExtractModal/VBox/AIKeyBanner"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="KeyIcon" type="Label" parent="ModalOverlay/Center/AIExtractModal/VBox/AIKeyBanner/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.960784, 0.803922, 0.47451, 1)
+theme_override_font_sizes/font_size = 7
+text = "🔑 API Key:"
+
+[node name="KeyProviderOption" type="OptionButton" parent="ModalOverlay/Center/AIExtractModal/VBox/AIKeyBanner/HBox"]
+custom_minimum_size = Vector2(95, 20)
+layout_mode = 2
+theme_override_font_sizes/font_size = 7
+item_count = 3
+selected = 0
+fit_to_longest_item = false
+popup/item_0/text = "Gemini Free"
+popup/item_0/id = 0
+popup/item_1/text = "OpenAI"
+popup/item_1/id = 1
+popup/item_2/text = "Local Ollama"
+popup/item_2/id = 2
+
+[node name="KeyInput" type="LineEdit" parent="ModalOverlay/Center/AIExtractModal/VBox/AIKeyBanner/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 7
+secret = true
+placeholder_text = "Paste Gemini API key..."
+
+[node name="TestKeyBtn" type="Button" parent="ModalOverlay/Center/AIExtractModal/VBox/AIKeyBanner/HBox"]
+custom_minimum_size = Vector2(55, 20)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.309804, 0.819608, 0.909804, 1)
+theme_override_font_sizes/font_size = 7
+text = "⚡ Test"
+
+[node name="GetKeyBtn" type="Button" parent="ModalOverlay/Center/AIExtractModal/VBox/AIKeyBanner/HBox"]
+custom_minimum_size = Vector2(65, 20)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.960784, 0.803922, 0.47451, 1)
+theme_override_font_sizes/font_size = 7
+text = "ℹ️ Get Key"
+
+[node name="FileRow" type="HBoxContainer" parent="ModalOverlay/Center/AIExtractModal/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="PickFileBtn" type="Button" parent="ModalOverlay/Center/AIExtractModal/VBox/FileRow"]
+custom_minimum_size = Vector2(120, 20)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 7
+text = "📁 Choose PDF..."
+
+[node name="SelectedFileLabel" type="Label" parent="ModalOverlay/Center/AIExtractModal/VBox/FileRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.960784, 0.803922, 0.47451, 1)
+theme_override_font_sizes/font_size = 7
+text = "No file selected (or paste text below)"
+text_overrun_behavior = 3
+
+[node name="SourceTextEdit" type="TextEdit" parent="ModalOverlay/Center/AIExtractModal/VBox"]
+custom_minimum_size = Vector2(0, 75)
+layout_mode = 2
+theme_override_font_sizes/font_size = 7
+placeholder_text = "Paste text, lecture slides, or documentation here..."
+wrap_mode = 1
+
+[node name="OptionsRow" type="HBoxContainer" parent="ModalOverlay/Center/AIExtractModal/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="SubjLbl" type="Label" parent="ModalOverlay/Center/AIExtractModal/VBox/OptionsRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.580392, 0.639216, 0.721569, 1)
+theme_override_font_sizes/font_size = 7
+text = "Subject:"
+
+[node name="SubjectInput" type="LineEdit" parent="ModalOverlay/Center/AIExtractModal/VBox/OptionsRow"]
+custom_minimum_size = Vector2(85, 20)
+layout_mode = 2
+theme_override_font_sizes/font_size = 7
+text = "General"
+
+[node name="CountLbl" type="Label" parent="ModalOverlay/Center/AIExtractModal/VBox/OptionsRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.580392, 0.639216, 0.721569, 1)
+theme_override_font_sizes/font_size = 7
+text = "Cards:"
+
+[node name="CountOption" type="OptionButton" parent="ModalOverlay/Center/AIExtractModal/VBox/OptionsRow"]
+custom_minimum_size = Vector2(75, 20)
+layout_mode = 2
+theme_override_font_sizes/font_size = 7
+item_count = 4
+selected = 1
+fit_to_longest_item = false
+popup/item_0/text = "5 Cards"
+popup/item_0/id = 5
+popup/item_1/text = "10 Cards"
+popup/item_1/id = 10
+popup/item_2/text = "15 Cards"
+popup/item_2/id = 15
+popup/item_3/text = "20 Cards"
+popup/item_3/id = 20
+
+[node name="FocusPromptInput" type="LineEdit" parent="ModalOverlay/Center/AIExtractModal/VBox/OptionsRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 7
+placeholder_text = "Focus (e.g. key terms)"
+
+[node name="SectionRow" type="HBoxContainer" parent="ModalOverlay/Center/AIExtractModal/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="SecLbl" type="Label" parent="ModalOverlay/Center/AIExtractModal/VBox/SectionRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.580392, 0.639216, 0.721569, 1)
+theme_override_font_sizes/font_size = 7
+text = "Section:"
+
+[node name="SectionOption" type="OptionButton" parent="ModalOverlay/Center/AIExtractModal/VBox/SectionRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 7
+clip_text = true
+fit_to_longest_item = false
+item_count = 1
+selected = 0
+popup/item_0/text = "All Document"
+popup/item_0/id = 0
+
+[node name="TokenEstimatorLabel" type="Label" parent="ModalOverlay/Center/AIExtractModal/VBox/SectionRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.309804, 0.819608, 0.909804, 1)
+theme_override_font_sizes/font_size = 7
+text = "📊 ~0 Tokens"
+
+[node name="StatusLbl" type="Label" parent="ModalOverlay/Center/AIExtractModal/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.580392, 0.639216, 0.721569, 1)
+theme_override_font_sizes/font_size = 7
+text = "Ready to generate"
+horizontal_alignment = 1
+
+[node name="PreviewScroll" type="ScrollContainer" parent="ModalOverlay/Center/AIExtractModal/VBox"]
+visible = false
+custom_minimum_size = Vector2(0, 90)
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="PreviewVBox" type="VBoxContainer" parent="ModalOverlay/Center/AIExtractModal/VBox/PreviewScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="BtnRow" type="HBoxContainer" parent="ModalOverlay/Center/AIExtractModal/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 2
+
+[node name="CancelBtn" type="Button" parent="ModalOverlay/Center/AIExtractModal/VBox/BtnRow"]
+custom_minimum_size = Vector2(70, 22)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 8
+text = "Cancel"
+
+[node name="GenerateBtn" type="Button" parent="ModalOverlay/Center/AIExtractModal/VBox/BtnRow"]
+custom_minimum_size = Vector2(130, 22)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.309804, 0.819608, 0.909804, 1)
+theme_override_font_sizes/font_size = 8
+text = "✨ Generate with AI"
+
+[node name="CommitBtn" type="Button" parent="ModalOverlay/Center/AIExtractModal/VBox/BtnRow"]
+visible = false
+custom_minimum_size = Vector2(140, 22)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.188235, 0.768627, 0.529412, 1)
+theme_override_font_sizes/font_size = 8
+text = "📥 Add All to Deck"
+
+[node name="FileDialog" type="FileDialog" parent="."]
+title = "Open Document"
+size = Vector2i(720, 480)
+ok_button_text = "Open"
+file_mode = 0
+access = 2
+use_native_dialog = true
+filters = PackedStringArray("*.pdf, *.md, *.txt, *.csv, *.json, *.gd, *.py, *.ts, *.js ; All Supported Documents (*.pdf, *.md, *.txt, ...)", "*.pdf ; PDF Documents (*.pdf)", "*.md ; Markdown Notes (*.md)", "*.txt ; Plain Text (*.txt)", "*.* ; All Files (*.*)")

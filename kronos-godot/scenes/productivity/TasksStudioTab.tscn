@@ -1,0 +1,471 @@
+[gd_scene load_steps=8 format=3 uid="uid://b7v8k4n2m1x9y"]
+
+[ext_resource type="Theme" uid="uid://b5g2j8k1m3n4p" path="res://themes/pixel_theme.tres" id="1_theme"]
+[ext_resource type="Script" path="res://scenes/productivity/TasksStudioTab.gd" id="2_tasks"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card"]
+content_margin_left = 10.0
+content_margin_top = 8.0
+content_margin_right = 10.0
+content_margin_bottom = 8.0
+bg_color = Color(0.0470588, 0.054902, 0.0901961, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.145098, 0.164706, 0.25098, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_lane"]
+content_margin_left = 8.0
+content_margin_top = 8.0
+content_margin_right = 8.0
+content_margin_bottom = 8.0
+bg_color = Color(0.0352941, 0.0431373, 0.0745098, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.12549, 0.145098, 0.219608, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_meter_bg"]
+bg_color = Color(0.0823529, 0.0980392, 0.156863, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.145098, 0.164706, 0.25098, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_meter_fill"]
+bg_color = Color(0.309804, 0.819608, 0.909804, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_modal_bg"]
+bg_color = Color(0.027451, 0.0313726, 0.054902, 0.85)
+
+[node name="TasksStudioTab" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme = ExtResource("1_theme")
+script = ExtResource("2_tasks")
+
+[node name="Scroll" type="ScrollContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+horizontal_scroll_mode = 0
+
+[node name="ContentVBox" type="VBoxContainer" parent="Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="TopRow" type="HBoxContainer" parent="Scroll/ContentVBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="CapacityCard" type="PanelContainer" parent="Scroll/ContentVBox/TopRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="VBox" type="VBoxContainer" parent="Scroll/ContentVBox/TopRow/CapacityCard"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Header" type="Label" parent="Scroll/ContentVBox/TopRow/CapacityCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.309804, 0.819608, 0.909804, 1)
+theme_override_font_sizes/font_size = 9
+text = "🎯 SPRINT CAPACITY & VELOCITY FORECASTER"
+
+[node name="MeterBox" type="PanelContainer" parent="Scroll/ContentVBox/TopRow/CapacityCard/VBox"]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_meter_bg")
+
+[node name="HBox" type="HBoxContainer" parent="Scroll/ContentVBox/TopRow/CapacityCard/VBox/MeterBox"]
+layout_mode = 2
+
+[node name="FillSegment" type="Panel" parent="Scroll/ContentVBox/TopRow/CapacityCard/VBox/MeterBox/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.5
+theme_override_styles/panel = SubResource("StyleBoxFlat_meter_fill")
+
+[node name="Spacer" type="Control" parent="Scroll/ContentVBox/TopRow/CapacityCard/VBox/MeterBox/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.5
+
+[node name="LoadLabel" type="Label" parent="Scroll/ContentVBox/TopRow/CapacityCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 1)
+theme_override_font_sizes/font_size = 8
+text = "🎯 0🍅 Planned (0.0h)  •  ⏱️ 0🍅 Spent (0.0h)"
+
+[node name="StatsLabel" type="Label" parent="Scroll/ContentVBox/TopRow/CapacityCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.580392, 0.639216, 0.721569, 1)
+theme_override_font_sizes/font_size = 7
+text = "⚡ Velocity: 0%  •  🔋 Daily Cap: 12🍅 (5.0h max)"
+
+[node name="QuickAddCard" type="PanelContainer" parent="Scroll/ContentVBox/TopRow"]
+custom_minimum_size = Vector2(360, 0)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="VBox" type="VBoxContainer" parent="Scroll/ContentVBox/TopRow/QuickAddCard"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="InputRow" type="HBoxContainer" parent="Scroll/ContentVBox/TopRow/QuickAddCard/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="QuickAddInput" type="LineEdit" parent="Scroll/ContentVBox/TopRow/QuickAddCard/VBox/InputRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 8
+placeholder_text = "Quick add: Task title #Dev [2p] !high"
+clear_button_enabled = true
+
+[node name="BtnQuickAdd" type="Button" parent="Scroll/ContentVBox/TopRow/QuickAddCard/VBox/InputRow"]
+custom_minimum_size = Vector2(65, 22)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 8
+text = "➕ Add"
+
+[node name="ChipsRow" type="HBoxContainer" parent="Scroll/ContentVBox/TopRow/QuickAddCard/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Tag" type="Label" parent="Scroll/ContentVBox/TopRow/QuickAddCard/VBox/ChipsRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.580392, 0.639216, 0.721569, 1)
+theme_override_font_sizes/font_size = 7
+text = "Shorthand:"
+
+[node name="BtnChipDev" type="Button" parent="Scroll/ContentVBox/TopRow/QuickAddCard/VBox/ChipsRow"]
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 7
+text = "#Dev"
+
+[node name="BtnChipStudy" type="Button" parent="Scroll/ContentVBox/TopRow/QuickAddCard/VBox/ChipsRow"]
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 7
+text = "#Study"
+
+[node name="BtnChipHigh" type="Button" parent="Scroll/ContentVBox/TopRow/QuickAddCard/VBox/ChipsRow"]
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 7
+text = "!high"
+
+[node name="BtnChipPom" type="Button" parent="Scroll/ContentVBox/TopRow/QuickAddCard/VBox/ChipsRow"]
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 7
+text = "[2p]"
+
+[node name="Spacer" type="Control" parent="Scroll/ContentVBox/TopRow/QuickAddCard/VBox/ChipsRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="BtnOpenModalAdd" type="Button" parent="Scroll/ContentVBox/TopRow/QuickAddCard/VBox/ChipsRow"]
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 7
+text = "⚙️ Full Form"
+
+[node name="FilterBarCard" type="PanelContainer" parent="Scroll/ContentVBox"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="HBox" type="HBoxContainer" parent="Scroll/ContentVBox/FilterBarCard"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Title" type="Label" parent="Scroll/ContentVBox/FilterBarCard/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.309804, 0.819608, 0.909804, 1)
+theme_override_font_sizes/font_size = 9
+text = "📋 KANBAN SPRINT MATRIX"
+
+[node name="Spacer" type="Control" parent="Scroll/ContentVBox/FilterBarCard/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="CategoryFilterOption" type="OptionButton" parent="Scroll/ContentVBox/FilterBarCard/HBox"]
+custom_minimum_size = Vector2(105, 22)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 8
+
+[node name="PriorityFilterOption" type="OptionButton" parent="Scroll/ContentVBox/FilterBarCard/HBox"]
+custom_minimum_size = Vector2(95, 22)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 8
+
+[node name="SearchInput" type="LineEdit" parent="Scroll/ContentVBox/FilterBarCard/HBox"]
+custom_minimum_size = Vector2(110, 22)
+layout_mode = 2
+theme_override_font_sizes/font_size = 8
+placeholder_text = "Search tasks..."
+clear_button_enabled = true
+
+[node name="KanbanBoard" type="HBoxContainer" parent="Scroll/ContentVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="ColBacklog" type="PanelContainer" parent="Scroll/ContentVBox/KanbanBoard"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_lane")
+
+[node name="VBox" type="VBoxContainer" parent="Scroll/ContentVBox/KanbanBoard/ColBacklog"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="HeaderHBox" type="HBoxContainer" parent="Scroll/ContentVBox/KanbanBoard/ColBacklog/VBox"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Scroll/ContentVBox/KanbanBoard/ColBacklog/VBox/HeaderHBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.580392, 0.639216, 0.721569, 1)
+theme_override_font_sizes/font_size = 8
+text = "📥 BACKLOG (0)"
+
+[node name="BacklogListVBox" type="VBoxContainer" parent="Scroll/ContentVBox/KanbanBoard/ColBacklog/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="ColSprint" type="PanelContainer" parent="Scroll/ContentVBox/KanbanBoard"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_lane")
+
+[node name="VBox" type="VBoxContainer" parent="Scroll/ContentVBox/KanbanBoard/ColSprint"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="HeaderHBox" type="HBoxContainer" parent="Scroll/ContentVBox/KanbanBoard/ColSprint/VBox"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Scroll/ContentVBox/KanbanBoard/ColSprint/VBox/HeaderHBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.960784, 0.619608, 0.0392157, 1)
+theme_override_font_sizes/font_size = 8
+text = "🎯 TODAY'S SPRINT (0)"
+
+[node name="SprintListVBox" type="VBoxContainer" parent="Scroll/ContentVBox/KanbanBoard/ColSprint/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="ColDone" type="PanelContainer" parent="Scroll/ContentVBox/KanbanBoard"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_lane")
+
+[node name="VBox" type="VBoxContainer" parent="Scroll/ContentVBox/KanbanBoard/ColDone"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="HeaderHBox" type="HBoxContainer" parent="Scroll/ContentVBox/KanbanBoard/ColDone/VBox"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Scroll/ContentVBox/KanbanBoard/ColDone/VBox/HeaderHBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.301961, 0.85098, 0.490196, 1)
+theme_override_font_sizes/font_size = 8
+text = "✅ DONE (0)"
+
+[node name="DoneListVBox" type="VBoxContainer" parent="Scroll/ContentVBox/KanbanBoard/ColDone/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="ModalOverlay" type="PanelContainer" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_modal_bg")
+
+[node name="Center" type="CenterContainer" parent="ModalOverlay"]
+layout_mode = 2
+
+[node name="TaskModal" type="PanelContainer" parent="ModalOverlay/Center"]
+custom_minimum_size = Vector2(360, 260)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="VBox" type="VBoxContainer" parent="ModalOverlay/Center/TaskModal"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="TitleLabel" type="Label" parent="ModalOverlay/Center/TaskModal/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.309804, 0.819608, 0.909804, 1)
+theme_override_font_sizes/font_size = 10
+text = "➕ Create Sprint Task"
+
+[node name="TLbl" type="Label" parent="ModalOverlay/Center/TaskModal/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.580392, 0.639216, 0.721569, 1)
+theme_override_font_sizes/font_size = 8
+text = "Task Title:"
+
+[node name="TitleInput" type="LineEdit" parent="ModalOverlay/Center/TaskModal/VBox"]
+custom_minimum_size = Vector2(0, 22)
+layout_mode = 2
+theme_override_font_sizes/font_size = 9
+placeholder_text = "What will you accomplish?"
+
+[node name="MetaRow" type="HBoxContainer" parent="ModalOverlay/Center/TaskModal/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="CatVBox" type="VBoxContainer" parent="ModalOverlay/Center/TaskModal/VBox/MetaRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Lbl" type="Label" parent="ModalOverlay/Center/TaskModal/VBox/MetaRow/CatVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.580392, 0.639216, 0.721569, 1)
+theme_override_font_sizes/font_size = 7
+text = "Category:"
+
+[node name="CategoryInput" type="LineEdit" parent="ModalOverlay/Center/TaskModal/VBox/MetaRow/CatVBox"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+theme_override_font_sizes/font_size = 8
+text = "Development"
+
+[node name="PrioVBox" type="VBoxContainer" parent="ModalOverlay/Center/TaskModal/VBox/MetaRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Lbl" type="Label" parent="ModalOverlay/Center/TaskModal/VBox/MetaRow/PrioVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.580392, 0.639216, 0.721569, 1)
+theme_override_font_sizes/font_size = 7
+text = "Priority:"
+
+[node name="PriorityOption" type="OptionButton" parent="ModalOverlay/Center/TaskModal/VBox/MetaRow/PrioVBox"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 8
+
+[node name="MetaRow2" type="HBoxContainer" parent="ModalOverlay/Center/TaskModal/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="StatusVBox" type="VBoxContainer" parent="ModalOverlay/Center/TaskModal/VBox/MetaRow2"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Lbl" type="Label" parent="ModalOverlay/Center/TaskModal/VBox/MetaRow2/StatusVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.580392, 0.639216, 0.721569, 1)
+theme_override_font_sizes/font_size = 7
+text = "Status Lane:"
+
+[node name="StatusOption" type="OptionButton" parent="ModalOverlay/Center/TaskModal/VBox/MetaRow2/StatusVBox"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 8
+
+[node name="PomVBox" type="VBoxContainer" parent="ModalOverlay/Center/TaskModal/VBox/MetaRow2"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Lbl" type="Label" parent="ModalOverlay/Center/TaskModal/VBox/MetaRow2/PomVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.580392, 0.639216, 0.721569, 1)
+theme_override_font_sizes/font_size = 7
+text = "Pomodoro Budget:"
+
+[node name="PomodoroSpinBox" type="SpinBox" parent="ModalOverlay/Center/TaskModal/VBox/MetaRow2/PomVBox"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+min_value = 1.0
+max_value = 16.0
+value = 2.0
+
+[node name="NLbl" type="Label" parent="ModalOverlay/Center/TaskModal/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.580392, 0.639216, 0.721569, 1)
+theme_override_font_sizes/font_size = 8
+text = "Notes (Optional):"
+
+[node name="NotesInput" type="TextEdit" parent="ModalOverlay/Center/TaskModal/VBox"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+theme_override_font_sizes/font_size = 8
+placeholder_text = "Key links, acceptance criteria..."
+wrap_mode = 1
+
+[node name="BtnRow" type="HBoxContainer" parent="ModalOverlay/Center/TaskModal/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 2
+
+[node name="CancelBtn" type="Button" parent="ModalOverlay/Center/TaskModal/VBox/BtnRow"]
+custom_minimum_size = Vector2(70, 22)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 8
+text = "Cancel"
+
+[node name="SaveBtn" type="Button" parent="ModalOverlay/Center/TaskModal/VBox/BtnRow"]
+custom_minimum_size = Vector2(90, 22)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 8
+text = "💾 Save Task"

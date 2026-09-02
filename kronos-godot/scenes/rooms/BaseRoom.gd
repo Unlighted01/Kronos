@@ -37,7 +37,8 @@ const COL_SWITCH_PLATE_BORDER: Color = Color(0.25, 0.28, 0.35, 1.0)
 const COL_SWITCH_LEVER: Color = Color(0.95, 0.96, 0.98, 1.0)
 const COL_SWITCH_LEVER_ON: Color = Color(0.96, 0.65, 0.15, 1.0)
 
-@onready var ambient_modulate: CanvasModulate = $AmbientModulate
+const DOOR_SCENE: PackedScene = preload("res://scenes/rooms/Door.tscn")
+@onready var ambient_modulate: CanvasModulate = get_node_or_null("AmbientModulate")
 
 # ==============================================================================
 # ⚙️ LIFECYCLE
@@ -51,12 +52,43 @@ func _ready() -> void:
 	wr.set_script(wr_script)
 	add_child(wr)
 	
+	_setup_connected_doors()
+	
 	if EventBus and EventBus.has_signal("floor_y_offset_changed"):
 		EventBus.floor_y_offset_changed.emit(0.0)
 	EventBus.room_light_toggled.connect(_on_room_light_toggled)
 	EventBus.decor_placed.connect(_on_decor_placed)
 	if EventBus.has_signal("weather_changed"):
 		EventBus.weather_changed.connect(func(w): _update_ambient_lighting())
+
+func _setup_connected_doors() -> void:
+	if not GameState:
+		return
+		
+	var topology: Dictionary = GameState.ROOM_TOPOLOGY.get(room_id, {})
+	if topology.is_empty():
+		return
+		
+	var left_room: String = topology.get("left", "")
+	var right_room: String = topology.get("right", "")
+	
+	if left_room != "" and not has_node("LeftDoor"):
+		var left_door: InteractiveDoor = DOOR_SCENE.instantiate() as InteractiveDoor
+		left_door.name = "LeftDoor"
+		left_door.target_room = left_room
+		left_door.door_direction = "left"
+		left_door.door_label = topology.get("left_label", "Exit")
+		left_door.position = Vector2(min_x - 18.0, floor_y)
+		add_child(left_door)
+		
+	if right_room != "" and not has_node("RightDoor"):
+		var right_door: InteractiveDoor = DOOR_SCENE.instantiate() as InteractiveDoor
+		right_door.name = "RightDoor"
+		right_door.target_room = right_room
+		right_door.door_direction = "right"
+		right_door.door_label = topology.get("right_label", "Exit")
+		right_door.position = Vector2(max_x + 18.0, floor_y)
+		add_child(right_door)
 
 func _on_room_light_toggled(toggled_room_id: String, _is_on: bool) -> void:
 	if toggled_room_id == room_id:

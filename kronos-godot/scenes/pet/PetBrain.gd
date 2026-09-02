@@ -936,7 +936,8 @@ func _physics_process(delta: float) -> void:
 			_process_special_interaction_state(delta)
 			
 	# Enforce room boundaries & target y level (including dynamic floor bobbing)
-	position.x = clampf(position.x, min_x, max_x)
+	if current_state != State.EXITING_ROOM and post_target_state != State.EXITING_ROOM:
+		position.x = clampf(position.x, min_x, max_x)
 	var effective_y: float = (floor_y if current_state == State.WALK_TO_TARGET else current_target_y) + _floor_bob_y
 	position.y = move_toward(position.y, effective_y, delta * 60.0)
 
@@ -949,8 +950,8 @@ func _get_time_profile() -> Dictionary:
 	return {
 		"hour": hour,
 		"is_night": is_night,
-		"roam_interval_min": 75.0 if is_night else 35.0,
-		"roam_interval_max": 130.0 if is_night else 65.0,
+		"roam_interval_min": 50.0 if is_night else 30.0,
+		"roam_interval_max": 95.0 if is_night else 60.0,
 		"nap_bias": 0.50 if is_night else 0.15
 	}
 
@@ -970,7 +971,15 @@ func _process_idle_state(delta: float) -> void:
 	var cur_room: String = assigned_room if assigned_room != "" else "room_bedroom"
 	var is_working: bool = (TimerEngine and TimerEngine.status == TimerEngine.TimerStatus.RUNNING and TimerEngine.current_phase == TimerEngine.TimerPhase.WORK)
 	
-	# 1. Check special weighted-random idle interaction cooldown
+	# 1. Check autonomous cross-room wander
+	if not is_working:
+		_roam_timer += delta
+		if _roam_timer >= _next_roam_interval:
+			_reset_roam_timer()
+			if _try_autonomous_room_roam():
+				return
+	
+	# 1.1 Check special weighted-random idle interaction cooldown
 	if not is_working:
 		_special_behavior_cooldown -= delta
 		if _special_behavior_cooldown <= 0.0:
@@ -1445,6 +1454,85 @@ func _on_object_state_changed(key: String, val: Variant) -> void:
 				walk_to(desk_x, State.STUDY, floor_y)
 			return
 
+func _try_autonomous_room_roam() -> bool:
+	if not GameState or GameState.active_pets.is_empty():
+		return false
+		
+	var cur_room: String = assigned_room if assigned_room != "" else "room_bedroom"
+	var topology: Dictionary = GameState.ROOM_TOPOLOGY.get(cur_room, {})
+	if topology.is_empty():
+		return false
+		
+	var left_room: String = topology.get("left", "")
+	var right_room: String = topology.get("right", "")
+	
+	var candidates: Array[String] = []
+	if left_room != "" and GameState.is_room_unlocked(left_room):
+		candidates.append(left_room)
+	if right_room != "" and GameState.is_room_unlocked(right_room):
+		candidates.append(right_room)
+		
+	if candidates.is_empty():
+		return false
+		
+	# Smart Need-Based Target Preference:
+	var chosen_target: String = ""
+	var p_energy: float = GameState.energy
+	var p_joy: float = GameState.joy
+	var hour: int = Time.get_time_dict_from_system().get("hour", 12)
+	
+	if p_energy < 40.0 and candidates.has("room_kitchen"):
+		chosen_target = "room_kitchen"
+	elif p_joy < 40.0 and candidates.has("room_livingroom"):
+		chosen_target = "room_livingroom"
+	elif (hour >= 22 or hour < 6) and candidates.has("room_bedroom"):
+		chosen_target = "room_bedroom"
+	else:
+		chosen_target = candidates.pick_random()
+		
+	if chosen_target == "":
+		return false
+		
+	# Determine exit direction
+	var is_moving_left: bool = (chosen_target == left_room)
+	var exit_door_x: float = min_x - 14.0 if is_moving_left else max_x + 14.0
+	
+	var r_name: String = GameState.ITEM_DEFINITIONS.get(chosen_target, {}).get("name", "next room")
+	if thought_bubble and visible:
+		thought_bubble.show_thought("Trotting to the %s... 🐾" % r_name, 3.0)
+		
+	walk_to_door_and_exit(chosen_target, exit_door_x)
+	return true
+
+func walk_to_door_and_exit(next_room: String, door_x: float) -> void:
+	_cancel_active_sequence()
+	_pending_target_room = next_room
+	target_x = door_x # Unclamped so pet crosses the doorway threshold
+	post_target_state = State.EXITING_ROOM
+	post_target_y = floor_y
+	current_target_y = floor_y
+	current_state = State.WALK_TO_TARGET
+	state_timer = 0.0
+	_set_renderer_state(PetRenderer.AnimState.WALK)
+	if renderer:
+		renderer.facing_right = (door_x > position.x)
+
+func walk_in_from_door(direction: int) -> void:
+	_cancel_active_sequence()
+	var start_x: float = min_x - 12.0 if direction > 0 else max_x + 12.0
+	var dest_x: float = min_x + 22.0 + get_slot_offset_x() if direction > 0 else max_x - 22.0 + get_slot_offset_x()
+	position.x = start_x
+	position.y = floor_y
+	modulate.a = 0.0
+	visible = true
+	
+	var tween: Tween = create_tween()
+	tween.tween_property(self, "modulate:a", 1.0, 0.18)
+	
+	walk_to(dest_x, State.IDLE, floor_y)
+	if renderer:
+		renderer.facing_right = (direction > 0)
+
 func _execute_room_transition_fade(next_room: String) -> void:
 	if not GameState or not GameState.is_room_unlocked(next_room):
 		current_state = State.IDLE
@@ -1457,9 +1545,13 @@ func _execute_room_transition_fade(next_room: String) -> void:
 			p["room"] = next_room
 			break
 			
-	# Fade out and free this pet from the current room view
+	EventBus.pet_room_changed.emit(next_room)
+	if DatabaseManager:
+		DatabaseManager.save_game()
+		
+	# Fade out smoothly as it steps through the door archway into the hallway
 	var tween: Tween = create_tween()
-	tween.tween_property(self, "modulate:a", 0.0, 0.30).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tween.tween_property(self, "modulate:a", 0.0, 0.25).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	tween.tween_callback(func():
 		queue_free()
 	)
@@ -1542,20 +1634,6 @@ func _join_work_session() -> void:
 		thought_bubble.show_random_thought("work_join", 3.0)
 		
 	var work_state: State = State.TYPE
-	match species:
-		"fox":
-			work_state = State.STUDY
-		"cat":
-			work_state = State.IDLE
-		"owl":
-			work_state = State.STUDY
-		"capybara":
-			work_state = State.NAP
-		"redpanda":
-			work_state = State.WINDOW_GAZE
-		_:
-			work_state = State.TYPE
-			
 	var offset: float = (float(pet_index) - 0.5) * 25.0
 	var work_x: float = clampf(desk_x + offset, min_x + 5.0, max_x - 5.0)
 	walk_to(work_x, work_state, floor_y)

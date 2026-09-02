@@ -3,6 +3,8 @@
 [ext_resource type="Theme" uid="uid://b5g2j8k1m3n4p" path="res://themes/pixel_theme.tres" id="1_theme"]
 [ext_resource type="Script" path="res://scenes/productivity/ProductivityStudio.gd" id="1_studio"]
 [ext_resource type="PackedScene" uid="uid://b8m9k0p1q2r3s" path="res://scenes/productivity/DTRStudioTab.tscn" id="2_dtr_tab"]
+[ext_resource type="PackedScene" uid="uid://c8m7k2p9q1r4s" path="res://scenes/productivity/DeckStudioTab.tscn" id="3_deck_tab"]
+[ext_resource type="PackedScene" uid="uid://b7v8k4n2m1x9y" path="res://scenes/productivity/TasksStudioTab.tscn" id="4_tasks_tab"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_root"]
 bg_color = Color(0.027451, 0.0313726, 0.0588235, 0.98)
@@ -173,71 +175,19 @@ layout_mode = 2
 visible = false
 layout_mode = 2
 
-[node name="DeckPlaceholder" type="PanelContainer" parent="RootPanel/VBox/ContentArea/TabContainer/DeckTab"]
+[node name="DeckStudioTab" parent="RootPanel/VBox/ContentArea/TabContainer/DeckTab" instance=ExtResource("3_deck_tab")]
 layout_mode = 2
-
-[node name="Center" type="CenterContainer" parent="RootPanel/VBox/ContentArea/TabContainer/DeckTab/DeckPlaceholder"]
-layout_mode = 2
-
-[node name="VBox" type="VBoxContainer" parent="RootPanel/VBox/ContentArea/TabContainer/DeckTab/DeckPlaceholder/Center"]
-layout_mode = 2
-theme_override_constants/separation = 8
-alignment = 1
-
-[node name="Icon" type="Label" parent="RootPanel/VBox/ContentArea/TabContainer/DeckTab/DeckPlaceholder/Center/VBox"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 24
-text = "🧠"
-horizontal_alignment = 1
-
-[node name="Title" type="Label" parent="RootPanel/VBox/ContentArea/TabContainer/DeckTab/DeckPlaceholder/Center/VBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.309804, 0.819608, 0.909804, 1)
-theme_override_font_sizes/font_size = 12
-text = "SUPERMEMO SM-2 FLASHCARD DECK & QUIZ ARENA"
-horizontal_alignment = 1
-
-[node name="Desc" type="Label" parent="RootPanel/VBox/ContentArea/TabContainer/DeckTab/DeckPlaceholder/Center/VBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.580392, 0.639216, 0.721569, 1)
-theme_override_font_sizes/font_size = 8
-text = "Spaced repetition study deck with smart document import and card flip arena."
-horizontal_alignment = 1
 
 [node name="TasksTab" type="MarginContainer" parent="RootPanel/VBox/ContentArea/TabContainer"]
 visible = false
 layout_mode = 2
+theme_override_constants/margin_left = 6
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 6
+theme_override_constants/margin_bottom = 6
 
-[node name="TasksPlaceholder" type="PanelContainer" parent="RootPanel/VBox/ContentArea/TabContainer/TasksTab"]
+[node name="TasksStudioTab" parent="RootPanel/VBox/ContentArea/TabContainer/TasksTab" instance=ExtResource("4_tasks_tab")]
 layout_mode = 2
-
-[node name="Center" type="CenterContainer" parent="RootPanel/VBox/ContentArea/TabContainer/TasksTab/TasksPlaceholder"]
-layout_mode = 2
-
-[node name="VBox" type="VBoxContainer" parent="RootPanel/VBox/ContentArea/TabContainer/TasksTab/TasksPlaceholder/Center"]
-layout_mode = 2
-theme_override_constants/separation = 8
-alignment = 1
-
-[node name="Icon" type="Label" parent="RootPanel/VBox/ContentArea/TabContainer/TasksTab/TasksPlaceholder/Center/VBox"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 24
-text = "📋"
-horizontal_alignment = 1
-
-[node name="Title" type="Label" parent="RootPanel/VBox/ContentArea/TabContainer/TasksTab/TasksPlaceholder/Center/VBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.960784, 0.784314, 0.258824, 1)
-theme_override_font_sizes/font_size = 12
-text = "SPRINT COMMAND BOARD & CAPACITY FORECASTER"
-horizontal_alignment = 1
-
-[node name="Desc" type="Label" parent="RootPanel/VBox/ContentArea/TabContainer/TasksTab/TasksPlaceholder/Center/VBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.580392, 0.639216, 0.721569, 1)
-theme_override_font_sizes/font_size = 8
-text = "Interactive task boards with Pomodoro budget estimations and focus velocity tracking."
-horizontal_alignment = 1
 
 [node name="StatusBar" type="PanelContainer" parent="RootPanel/VBox"]
 custom_minimum_size = Vector2(0, 24)

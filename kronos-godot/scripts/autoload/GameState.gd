@@ -1311,21 +1311,31 @@ func use_item(item_id: String) -> bool:
 # ==============================================================================
 # 👗 COSMETICS & ROOMS
 # ==============================================================================
-## Equips a cosmetic item into a slot ("head", "neck", etc.)
+## Equips a cosmetic item into a slot ("head", "neck", "face", etc.)
 func equip_cosmetic(slot: String, cosmetic_id: String) -> void:
-	if active_pets.is_empty(): return
-	var p = active_pets[selected_pet_index]
-	if not p.has("equipped_cosmetics"): p["equipped_cosmetics"] = {}
-	p["equipped_cosmetics"][slot] = cosmetic_id
+	equipped_cosmetics[slot] = cosmetic_id
+	equipped_cosmetic = cosmetic_id
+	if not active_pets.is_empty():
+		var p = active_pets[selected_pet_index]
+		if not p.has("equipped_cosmetics"): p["equipped_cosmetics"] = {}
+		p["equipped_cosmetics"][slot] = cosmetic_id
 	EventBus.cosmetic_equipped.emit(selected_pet_index, slot, cosmetic_id)
+	if DatabaseManager:
+		DatabaseManager.save_game()
 
 ## Unequips cosmetic from slot
 func unequip_cosmetic(slot: String) -> void:
-	if active_pets.is_empty(): return
-	var p = active_pets[selected_pet_index]
-	if p.has("equipped_cosmetics") and p["equipped_cosmetics"].has(slot):
-		p["equipped_cosmetics"].erase(slot)
-		EventBus.cosmetic_unequipped.emit(selected_pet_index, slot)
+	if equipped_cosmetics.has(slot):
+		equipped_cosmetics.erase(slot)
+	if equipped_cosmetic == slot:
+		equipped_cosmetic = ""
+	if not active_pets.is_empty():
+		var p = active_pets[selected_pet_index]
+		if p.has("equipped_cosmetics") and p["equipped_cosmetics"].has(slot):
+			p["equipped_cosmetics"].erase(slot)
+	EventBus.cosmetic_unequipped.emit(selected_pet_index, slot)
+	if DatabaseManager:
+		DatabaseManager.save_game()
 
 ## Checks if a specific cosmetic item is equipped
 func is_cosmetic_equipped(cosmetic_id: String) -> bool:
@@ -1334,6 +1344,12 @@ func is_cosmetic_equipped(cosmetic_id: String) -> bool:
 	for s in equipped_cosmetics.keys():
 		if equipped_cosmetics[s] == cosmetic_id:
 			return true
+	if not active_pets.is_empty():
+		var p = active_pets[selected_pet_index]
+		var ec = p.get("equipped_cosmetics", {})
+		for s in ec.keys():
+			if ec[s] == cosmetic_id:
+				return true
 	return false
 
 ## Returns item definition dict
@@ -1348,6 +1364,58 @@ func get_items_by_category(category: String) -> Array[Dictionary]:
 		if def.get("category", "") == category:
 			result.append(def)
 	return result
+
+const ROOM_ORDER: Array[String] = [
+	"room_greenhouse",
+	"room_kitchen",
+	"room_livingroom",
+	"room_bedroom",
+	"room_library"
+]
+
+const ROOM_TOPOLOGY: Dictionary = {
+	"room_greenhouse": {
+		"name": "Greenhouse",
+		"left": "",
+		"right": "room_kitchen",
+		"right_label": "Kitchen"
+	},
+	"room_kitchen": {
+		"name": "Kitchen",
+		"left": "room_greenhouse",
+		"right": "room_livingroom",
+		"left_label": "Greenhouse",
+		"right_label": "Living Room"
+	},
+	"room_livingroom": {
+		"name": "Living Room",
+		"left": "room_kitchen",
+		"right": "room_bedroom",
+		"left_label": "Kitchen",
+		"right_label": "Bedroom"
+	},
+	"room_bedroom": {
+		"name": "Study Bedroom",
+		"left": "room_livingroom",
+		"right": "room_library",
+		"left_label": "Living Room",
+		"right_label": "Library"
+	},
+	"room_library": {
+		"name": "Library",
+		"left": "room_bedroom",
+		"right": "",
+		"left_label": "Bedroom"
+	}
+}
+
+## Returns relative horizontal direction (-1 for Left, +1 for Right, 0 for Same) between two rooms
+func get_room_direction(from_room: String, to_room: String) -> int:
+	var from_idx: int = ROOM_ORDER.find(from_room)
+	var to_idx: int = ROOM_ORDER.find(to_room)
+	if from_idx == -1 or to_idx == -1 or from_idx == to_idx:
+		return 0
+	return 1 if to_idx > from_idx else -1
 
 ## Sets active room / environment currently viewed by the user
 func set_view_room(room_id: String) -> void:
@@ -1364,7 +1432,12 @@ func set_pet_room(room_id: String) -> void:
 	if pet_room == room_id:
 		return
 	pet_room = room_id
+	# Update active_pets array
+	if not active_pets.is_empty():
+		active_pets[selected_pet_index]["room"] = room_id
 	EventBus.pet_room_changed.emit(pet_room)
+	if DatabaseManager:
+		DatabaseManager.save_game()
 
 ## Summons ALL pets to the user's current view room
 func call_pet_to_view() -> void:
@@ -1374,6 +1447,8 @@ func call_pet_to_view() -> void:
 		p["room"] = active_view_room
 	EventBus.pet_room_changed.emit(pet_room)
 	EventBus.pet_called.emit(active_view_room)
+	if DatabaseManager:
+		DatabaseManager.save_game()
 
 ## Returns whether the pet is in the user's current view room
 func is_pet_in_current_view() -> bool:
@@ -1434,10 +1509,23 @@ func get_placed_decor_for_room(room_id: String) -> Array[String]:
 	return result
 
 # ==============================================================================
-# 📋 MICRO-TASKS API
+# 📋 SPRINT TASKS & POMODORO CAPACITY API
 # ==============================================================================
-## Adds a new micro-task
-func add_task(title: String) -> Dictionary:
+## Returns sanitized tasks array with default sprint/budget metadata
+func get_tasks() -> Array[Dictionary]:
+	for t in tasks:
+		if not t.has("category"): t["category"] = "General"
+		if not t.has("priority"): t["priority"] = "medium"
+		if not t.has("status"): t["status"] = "done" if t.get("completed", false) else "sprint"
+		if not t.has("pomodoro_estimate"): t["pomodoro_estimate"] = 1
+		if not t.has("pomodoro_spent"): t["pomodoro_spent"] = 0
+		if not t.has("notes"): t["notes"] = ""
+		if not t.has("created_at"): t["created_at"] = Time.get_unix_time_from_system()
+		if not t.has("completed_at"): t["completed_at"] = 0
+	return tasks
+
+## Adds a new sprint task with Pomodoro budget and priority
+func add_sprint_task(title: String, category: String = "General", priority: String = "medium", status: String = "sprint", pomodoros: int = 1, notes: String = "") -> Dictionary:
 	var clean_t: String = title.strip_edges()
 	if clean_t.is_empty():
 		return {}
@@ -1445,13 +1533,19 @@ func add_task(title: String) -> Dictionary:
 	var task: Dictionary = {
 		"id": "task_%d_%d" % [int(Time.get_unix_time_from_system()), randi() % 1000],
 		"title": clean_t,
-		"completed": false,
+		"category": category.strip_edges() if not category.strip_edges().is_empty() else "General",
+		"priority": priority.to_lower(), # "high", "medium", "low"
+		"status": status.to_lower(),     # "backlog", "sprint", "done"
+		"pomodoro_estimate": maxi(1, pomodoros),
+		"pomodoro_spent": 0,
+		"notes": notes.strip_edges(),
+		"completed": (status.to_lower() == "done"),
 		"created_at": Time.get_unix_time_from_system(),
-		"completed_at": 0
+		"completed_at": Time.get_unix_time_from_system() if (status.to_lower() == "done") else 0
 	}
 	
 	tasks.append(task)
-	if active_task_id.is_empty():
+	if active_task_id.is_empty() and status.to_lower() != "done":
 		set_active_task(task["id"])
 		
 	EventBus.task_added.emit(task)
@@ -1459,12 +1553,101 @@ func add_task(title: String) -> Dictionary:
 		DatabaseManager.save_game()
 	return task
 
+## Backwards-compatible shorthand adding task
+func add_task(title: String) -> Dictionary:
+	var parsed: Dictionary = quick_parse_task(title)
+	return add_sprint_task(
+		parsed.get("title", title),
+		parsed.get("category", "General"),
+		parsed.get("priority", "medium"),
+		"sprint",
+		parsed.get("pomodoros", 1)
+	)
+
+## Parses quick-add syntax e.g. "Ship feature #Dev [3p] !high"
+func quick_parse_task(raw_text: String) -> Dictionary:
+	var text = raw_text.strip_edges()
+	var category: String = "General"
+	var priority: String = "medium"
+	var pomodoros: int = 1
+	
+	# Priority parsing: !high, !urgent, !med, !low
+	var p_regex = RegEx.new()
+	p_regex.compile("!(high|urgent|med|medium|low)")
+	var p_match = p_regex.search(text)
+	if p_match:
+		var p_str = p_match.get_string(1).to_lower()
+		if p_str == "urgent" or p_str == "high": priority = "high"
+		elif p_str == "low": priority = "low"
+		else: priority = "medium"
+		text = text.replace(p_match.get_string(0), "").strip_edges()
+		
+	# Category parsing: #Dev, #Study, #Design, #Writing, #Admin, #Lore
+	var c_regex = RegEx.new()
+	c_regex.compile("#(\\w+)")
+	var c_match = c_regex.search(text)
+	if c_match:
+		var c_str = c_match.get_string(1).to_lower()
+		if c_str.begins_with("dev") or c_str.begins_with("code"): category = "Development"
+		elif c_str.begins_with("study") or c_str.begins_with("learn"): category = "Study"
+		elif c_str.begins_with("des") or c_str.begins_with("art"): category = "Design"
+		elif c_str.begins_with("writ") or c_str.begins_with("doc"): category = "Writing"
+		elif c_str.begins_with("admin"): category = "Admin"
+		elif c_str.begins_with("lore"): category = "Lore"
+		else: category = c_match.get_string(1).capitalize()
+		text = text.replace(c_match.get_string(0), "").strip_edges()
+		
+	# Pomodoro estimate: [3p], [2pom], [4]
+	var b_regex = RegEx.new()
+	b_regex.compile("\\[(\\d+)\\s*(?:p|pom|pomodoro)?\\]")
+	var b_match = b_regex.search(text)
+	if b_match:
+		pomodoros = maxi(1, int(b_match.get_string(1)))
+		text = text.replace(b_match.get_string(0), "").strip_edges()
+		
+	return {
+		"title": text if not text.is_empty() else raw_text,
+		"category": category,
+		"priority": priority,
+		"pomodoros": pomodoros
+	}
+
+## Updates an existing task's attributes
+func update_task(task_id: String, updates: Dictionary) -> bool:
+	for t in tasks:
+		if t.get("id", "") == task_id:
+			for k in updates.keys():
+				t[k] = updates[k]
+			if updates.has("completed"):
+				t["status"] = "done" if updates["completed"] else "sprint"
+			EventBus.task_toggled.emit(task_id, t.get("completed", false))
+			if DatabaseManager:
+				DatabaseManager.save_game()
+			return true
+	return false
+
+## Moves a task to a different Kanban status lane ("backlog", "sprint", "done")
+func move_task_status(task_id: String, new_status: String) -> bool:
+	var s_clean = new_status.to_lower()
+	for t in tasks:
+		if t.get("id", "") == task_id:
+			t["status"] = s_clean
+			t["completed"] = (s_clean == "done")
+			if s_clean == "done":
+				t["completed_at"] = Time.get_unix_time_from_system()
+			EventBus.task_toggled.emit(task_id, t["completed"])
+			if DatabaseManager:
+				DatabaseManager.save_game()
+			return true
+	return false
+
 ## Toggles a task completion state
 func toggle_task(task_id: String) -> bool:
 	for t in tasks:
 		if t.get("id", "") == task_id:
 			var next_state: bool = not t.get("completed", false)
 			t["completed"] = next_state
+			t["status"] = "done" if next_state else "sprint"
 			t["completed_at"] = Time.get_unix_time_from_system() if next_state else 0
 			EventBus.task_toggled.emit(task_id, next_state)
 			if DatabaseManager:
@@ -1487,13 +1670,16 @@ func delete_task(task_id: String) -> bool:
 			return true
 	return false
 
-## Sets the active focus task
+## Sets the active focus task and syncs category to TimerEngine
 func set_active_task(task_id: String) -> void:
 	active_task_id = task_id
-	var title: String = get_active_task_title()
+	var t = get_active_task()
+	var title: String = t.get("title", "General Deep Work") if not t.is_empty() else "General Deep Work"
+	var category: String = t.get("category", "Development") if not t.is_empty() else "Development"
 	EventBus.active_task_selected.emit(active_task_id, title)
 	if TimerEngine:
 		TimerEngine.active_task_name = title
+		TimerEngine.active_category = category
 	if DatabaseManager:
 		DatabaseManager.save_game()
 
@@ -1508,6 +1694,49 @@ func get_active_task() -> Dictionary:
 func get_active_task_title() -> String:
 	var t = get_active_task()
 	return t.get("title", "General Deep Work") if not t.is_empty() else "General Deep Work"
+
+## Computes comprehensive daily Sprint Capacity and Pomodoro velocity
+func get_sprint_capacity() -> Dictionary:
+	var all_t: Array[Dictionary] = get_tasks()
+	var planned_pomodoros: int = 0
+	var spent_pomodoros: int = 0
+	var backlog_count: int = 0
+	var sprint_count: int = 0
+	var done_count: int = 0
+	
+	for t in all_t:
+		var status = t.get("status", "sprint").to_lower()
+		var p_est = int(t.get("pomodoro_estimate", 1))
+		var p_spent = int(t.get("pomodoro_spent", 0))
+		
+		match status:
+			"backlog":
+				backlog_count += 1
+			"sprint":
+				sprint_count += 1
+				planned_pomodoros += p_est
+				spent_pomodoros += p_spent
+			"done":
+				done_count += 1
+				spent_pomodoros += maxi(p_spent, p_est)
+				
+	var capacity_limit_poms: int = 12 # 12 Pomodoros = 5.0h deep work (Healthy Daily Ceiling)
+	var velocity_pct: float = 0.0
+	if planned_pomodoros > 0:
+		velocity_pct = minf(100.0, float(spent_pomodoros) / float(planned_pomodoros) * 100.0)
+		
+	return {
+		"planned_poms": planned_pomodoros,
+		"spent_poms": spent_pomodoros,
+		"planned_minutes": planned_pomodoros * 25,
+		"spent_minutes": spent_pomodoros * 25,
+		"capacity_limit_poms": capacity_limit_poms,
+		"capacity_load_pct": minf(100.0, float(planned_pomodoros) / float(capacity_limit_poms) * 100.0),
+		"velocity_pct": velocity_pct,
+		"backlog_count": backlog_count,
+		"sprint_count": sprint_count,
+		"done_count": done_count
+	}
 
 # ==============================================================================
 # 📜 DAILY PET QUESTS API
@@ -1600,8 +1829,8 @@ func _connect_quest_listeners() -> void:
 # ==============================================================================
 # 📚 FLASHCARD STUDY DECK MANAGEMENT
 # ==============================================================================
-## Edits an existing flashcard
-func edit_flashcard(card_id: String, new_q: String, new_a: String, new_subject: String = "General") -> bool:
+## Edits an existing flashcard (with optional hint)
+func edit_flashcard(card_id: String, new_q: String, new_a: String, new_subject: String = "General", new_hint: String = "") -> bool:
 	var q_trimmed: String = new_q.strip_edges()
 	var a_trimmed: String = new_a.strip_edges()
 	if q_trimmed == "" or a_trimmed == "":
@@ -1611,14 +1840,15 @@ func edit_flashcard(card_id: String, new_q: String, new_a: String, new_subject: 
 			flashcard_deck[i]["q"] = q_trimmed
 			flashcard_deck[i]["a"] = a_trimmed
 			flashcard_deck[i]["subject"] = new_subject.strip_edges() if new_subject.strip_edges() != "" else "General"
+			flashcard_deck[i]["hint"] = new_hint.strip_edges()
 			EventBus.flashcards_updated.emit()
 			if DatabaseManager:
 				DatabaseManager.save_game()
 			return true
 	return false
 
-## Adds a new flashcard to the deck
-func add_flashcard(question: String, answer: String, subject: String = "General") -> String:
+## Adds a new flashcard to the deck with SM-2 metadata and optional hint initialized
+func add_flashcard(question: String, answer: String, subject: String = "General", hint: String = "") -> String:
 	var q_trimmed: String = question.strip_edges()
 	var a_trimmed: String = answer.strip_edges()
 	if q_trimmed == "" or a_trimmed == "":
@@ -1628,7 +1858,15 @@ func add_flashcard(question: String, answer: String, subject: String = "General"
 		"id": card_id,
 		"q": q_trimmed,
 		"a": a_trimmed,
-		"subject": subject.strip_edges() if subject.strip_edges() != "" else "General"
+		"hint": hint.strip_edges(),
+		"subject": subject.strip_edges() if subject.strip_edges() != "" else "General",
+		"ef": 2.5,
+		"repetitions": 0,
+		"interval_days": 0,
+		"last_reviewed_unix": 0,
+		"next_due_unix": 0,
+		"total_reviews": 0,
+		"lapses": 0
 	}
 	flashcard_deck.append(card)
 	EventBus.flashcards_updated.emit()
@@ -1647,9 +1885,331 @@ func delete_flashcard(card_id: String) -> bool:
 			return true
 	return false
 
-## Returns current list of flashcards
+## Returns current list of flashcards (with backwards compatibility fallback for missing SM-2 fields)
 func get_flashcards() -> Array[Dictionary]:
+	for card in flashcard_deck:
+		if not card.has("ef"): card["ef"] = 2.5
+		if not card.has("repetitions"): card["repetitions"] = 0
+		if not card.has("interval_days"): card["interval_days"] = 0
+		if not card.has("last_reviewed_unix"): card["last_reviewed_unix"] = 0
+		if not card.has("next_due_unix"): card["next_due_unix"] = 0
+		if not card.has("total_reviews"): card["total_reviews"] = 0
+		if not card.has("lapses"): card["lapses"] = 0
+		if not card.has("hint"): card["hint"] = ""
 	return flashcard_deck
+
+## Submits an SM-2 active recall review rating (1 = Again, 2 = Hard, 3 = Good, 4 = Easy, 5 = Perfect)
+func submit_sm2_review(card_id: String, quality: int) -> Dictionary:
+	var q_clamped: int = clampi(quality, 1, 5)
+	var card_idx: int = -1
+	for i in range(flashcard_deck.size()):
+		if flashcard_deck[i].get("id", "") == card_id:
+			card_idx = i
+			break
+			
+	if card_idx == -1:
+		return {}
+		
+	var card: Dictionary = flashcard_deck[card_idx]
+	var old_ef: float = card.get("ef", 2.5)
+	var old_reps: int = card.get("repetitions", 0)
+	var old_interval: int = card.get("interval_days", 0)
+	
+	# SuperMemo SM-2 Easiness Factor formula:
+	# EF' = EF + (0.1 - (5 - q) * (0.08 + (5 - q) * 0.02))
+	var q_factor: float = float(5 - q_clamped)
+	var new_ef: float = maxf(1.3, old_ef + (0.1 - q_factor * (0.08 + q_factor * 0.02)))
+	
+	var new_reps: int = old_reps
+	var new_interval: int = 1
+	
+	if q_clamped < 3:
+		# Failed recall -> Reset repetitions to 0, schedule 1 day
+		new_reps = 0
+		new_interval = 1
+		card["lapses"] = card.get("lapses", 0) + 1
+	else:
+		# Passed recall -> Increment repetitions & compute interval
+		if old_reps == 0:
+			new_interval = 1
+		elif old_reps == 1:
+			new_interval = 6
+		else:
+			new_interval = maxi(1, int(round(float(old_interval) * new_ef)))
+		new_reps = old_reps + 1
+		
+	var now_unix: int = int(Time.get_unix_time_from_system())
+	var next_due: int = now_unix + (new_interval * 86400)
+	
+	card["ef"] = new_ef
+	card["repetitions"] = new_reps
+	card["interval_days"] = new_interval
+	card["last_reviewed_unix"] = now_unix
+	card["next_due_unix"] = next_due
+	card["total_reviews"] = card.get("total_reviews", 0) + 1
+	flashcard_deck[card_idx] = card
+	
+	# Gamified KP (Knowledge Points) & EXP Rewards
+	var earned_kp: int = 2
+	var earned_exp: int = 10
+	match q_clamped:
+		1: earned_kp = 1; earned_exp = 5
+		2: earned_kp = 2; earned_exp = 10
+		3: earned_kp = 5; earned_exp = 20
+		4: earned_kp = 8; earned_exp = 35
+		5: earned_kp = 12; earned_exp = 50
+		
+	add_knowledge_points(earned_kp, "sm2_review")
+	add_exp(earned_exp)
+	
+	EventBus.flashcards_updated.emit()
+	if DatabaseManager:
+		DatabaseManager.save_game()
+		
+	return {
+		"card": card,
+		"interval": new_interval,
+		"earned_kp": earned_kp,
+		"earned_exp": earned_exp,
+		"repetitions": new_reps,
+		"ef": new_ef
+	}
+
+## Returns all flashcards currently due for spaced review
+func get_due_flashcards(subject_filter: String = "all") -> Array[Dictionary]:
+	var cards: Array[Dictionary] = get_flashcards()
+	var now_unix: int = int(Time.get_unix_time_from_system())
+	var due_list: Array[Dictionary] = []
+	
+	for c in cards:
+		if subject_filter != "all" and not c.get("subject", "").to_lower().contains(subject_filter.to_lower()):
+			continue
+		var due_unix: int = int(c.get("next_due_unix", 0))
+		if due_unix <= now_unix:
+			due_list.append(c)
+			
+	return due_list
+
+## Computes comprehensive Spaced Repetition retention, breakdown, and deck metrics
+func get_srs_stats() -> Dictionary:
+	var cards: Array[Dictionary] = get_flashcards()
+	var now_unix: int = int(Time.get_unix_time_from_system())
+	var total: int = cards.size()
+	var due_count: int = 0
+	var learning_count: int = 0
+	var reviewing_count: int = 0
+	var mastered_count: int = 0
+	var total_reviews: int = 0
+	var total_lapses: int = 0
+	
+	for c in cards:
+		var due_unix: int = int(c.get("next_due_unix", 0))
+		var reps: int = int(c.get("repetitions", 0))
+		var ef: float = float(c.get("ef", 2.5))
+		
+		if due_unix <= now_unix:
+			due_count += 1
+			
+		if reps >= 5 and ef >= 2.2:
+			mastered_count += 1
+		elif reps >= 2:
+			reviewing_count += 1
+		else:
+			learning_count += 1
+			
+		total_reviews += int(c.get("total_reviews", 0))
+		total_lapses += int(c.get("lapses", 0))
+		
+	var retention_pct: float = 100.0
+	if total_reviews > 0:
+		retention_pct = maxf(0.0, 100.0 - (float(total_lapses) / float(total_reviews) * 100.0))
+		
+	return {
+		"total_cards": total,
+		"due_cards": due_count,
+		"learning_cards": learning_count,
+		"reviewing_cards": reviewing_count,
+		"mastered_cards": mastered_count,
+		"retention_pct": retention_pct,
+		"total_reviews": total_reviews
+	}
+
+## Calculates upcoming 7-day review forecast buckets
+func get_srs_forecast() -> Dictionary:
+	var cards: Array[Dictionary] = get_flashcards()
+	var now_unix: int = int(Time.get_unix_time_from_system())
+	
+	var today_count: int = 0
+	var tomorrow_count: int = 0
+	var days_2_3_count: int = 0
+	var days_4_7_count: int = 0
+	var later_count: int = 0
+	
+	for c in cards:
+		var due_unix: int = int(c.get("next_due_unix", 0))
+		var diff_sec: int = due_unix - now_unix
+		var diff_days: float = float(diff_sec) / 86400.0
+		
+		if diff_days <= 0.0:
+			today_count += 1
+		elif diff_days <= 1.0:
+			tomorrow_count += 1
+		elif diff_days <= 3.0:
+			days_2_3_count += 1
+		elif diff_days <= 7.0:
+			days_4_7_count += 1
+		else:
+			later_count += 1
+			
+	return {
+		"today": today_count,
+		"tomorrow": tomorrow_count,
+		"days_2_3": days_2_3_count,
+		"days_4_7": days_4_7_count,
+		"later": later_count
+	}
+
+## Bulk imports flashcards from Markdown, Question/Answer pairs, or CSV/TSV
+func bulk_import_flashcards(raw_text: String, default_subject: String = "General") -> int:
+	var lines: PackedStringArray = raw_text.split("\n")
+	var imported_count: int = 0
+	var pending_q: String = ""
+	var pending_a: String = ""
+	var pending_hint: String = ""
+	var subj: String = default_subject.strip_edges() if default_subject.strip_edges() != "" else "General"
+	
+	for raw_line in lines:
+		var line: String = raw_line.strip_edges()
+		if line.is_empty():
+			continue
+			
+		# Pattern 1: Q: ... and A: ...
+		if line.begins_with("Q:") or line.begins_with("q:"):
+			if not pending_q.is_empty() and not pending_a.is_empty():
+				add_flashcard(pending_q, pending_a, subj, pending_hint)
+				imported_count += 1
+				pending_q = ""
+				pending_a = ""
+				pending_hint = ""
+			pending_q = line.substr(2).strip_edges()
+			continue
+		elif line.begins_with("A:") or line.begins_with("a:"):
+			pending_a = line.substr(2).strip_edges()
+			if not pending_q.is_empty() and not pending_a.is_empty():
+				add_flashcard(pending_q, pending_a, subj, pending_hint)
+				imported_count += 1
+				pending_q = ""
+				pending_a = ""
+				pending_hint = ""
+			continue
+		elif line.begins_with("Hint:") or line.begins_with("hint:"):
+			pending_hint = line.substr(5).strip_edges()
+			continue
+			
+		# Pattern 2: Front | Back (Pipe delimiter)
+		if "|" in line:
+			var parts = line.split("|")
+			if parts.size() >= 2 and not parts[0].strip_edges().is_empty() and not parts[1].strip_edges().is_empty():
+				var h_part: String = parts[2].strip_edges() if parts.size() > 2 else ""
+				add_flashcard(parts[0].strip_edges(), parts[1].strip_edges(), subj, h_part)
+				imported_count += 1
+				continue
+				
+		# Pattern 3: - Term: Definition or Term: Definition
+		if ":" in line:
+			var clean = line
+			if clean.begins_with("-") or clean.begins_with("•"):
+				clean = clean.substr(1).strip_edges()
+			var parts = clean.split(":", true, 1)
+			if parts.size() == 2 and not parts[0].strip_edges().is_empty() and not parts[1].strip_edges().is_empty():
+				add_flashcard(parts[0].strip_edges(), parts[1].strip_edges(), subj)
+				imported_count += 1
+				continue
+				
+		# Pattern 4: Tab or CSV delimiter
+		if "\t" in line:
+			var parts = line.split("\t")
+			if parts.size() >= 2 and not parts[0].strip_edges().is_empty() and not parts[1].strip_edges().is_empty():
+				var h_part: String = parts[2].strip_edges() if parts.size() > 2 else ""
+				add_flashcard(parts[0].strip_edges(), parts[1].strip_edges(), subj, h_part)
+				imported_count += 1
+				continue
+				
+	# Final check for pending Q/A
+	if not pending_q.is_empty() and not pending_a.is_empty():
+		add_flashcard(pending_q, pending_a, subj, pending_hint)
+		imported_count += 1
+		
+	return imported_count
+
+## Loads pre-crafted curated Starter Packs for quick onboarding
+func load_starter_deck(pack_id: String) -> int:
+	var added: int = 0
+	match pack_id:
+		"godot":
+			var godot_cards: Array[Dictionary] = [
+				{"q": "What is GDScript Autoload?", "a": "A singleton node instantiated automatically at game startup, accessible globally from any script.", "s": "Godot", "h": "Think singleton pattern."},
+				{"q": "How do you defer a physics or node tree modification during a signal callback?", "a": "Call `set_deferred('prop_name', value)` or `call_deferred('func_name')`.", "s": "Godot", "h": "Deferred execution."},
+				{"q": "What is the replacement for Godot 3's `update()` in Godot 4 `_draw()`?", "a": "`queue_redraw()` triggers a canvas redraw on the next frame.", "s": "Godot", "h": "Queue canvas redraw."},
+				{"q": "How does `_physics_process(delta)` differ from `_process(delta)`?", "a": "`_physics_process` runs at a fixed tick rate (default 60Hz) for physics; `_process` runs every render frame.", "s": "Godot", "h": "Fixed vs variable delta."},
+				{"q": "What is a PackedScene in Godot?", "a": "A serialized scene resource saved to disk (`.tscn`) that can be instantiated dynamically via `instantiate()`.", "s": "Godot", "h": "Prefab / template."},
+				{"q": "How do you connect a signal using a callable in GDScript?", "a": "`my_node.signal_name.connect(_on_handler_function)`", "s": "Godot", "h": "Signal connection syntax."}
+			]
+			for c in godot_cards:
+				add_flashcard(c["q"], c["a"], c["s"], c["h"])
+				added += 1
+		"web":
+			var web_cards: Array[Dictionary] = [
+				{"q": "What is TypeScript Strict Mode?", "a": "Enables strict type-checking flags like `noImplicitAny`, `strictNullChecks`, and `strictFunctionTypes`.", "s": "TypeScript", "h": "Zero implicit any."},
+				{"q": "Why must every React `useEffect` have a cleanup function when setting intervals/listeners?", "a": "To prevent memory leaks and duplicate listeners on component unmount or re-render.", "s": "TypeScript", "h": "Return teardown function."},
+				{"q": "What is the CSS `image-rendering: pixelated` property used for?", "a": "Preserves crisp nearest-neighbor scaling for pixel art without anti-aliasing blur.", "s": "Design", "h": "Nearest-neighbor."},
+				{"q": "What is Memoization (`useMemo` / `useCallback`)?", "a": "Caching expensive computation results or function references between renders based on dependency arrays.", "s": "TypeScript", "h": "Performance caching."}
+			]
+			for c in web_cards:
+				add_flashcard(c["q"], c["a"], c["s"], c["h"])
+				added += 1
+		"lore":
+			var lore_cards: Array[Dictionary] = [
+				{"q": "Who is Kronos the Shiba?", "a": "Your celestial Sovereign companion who safeguards your focus sanctuary and rewards deep work with coins and KP.", "s": "Lore", "h": "Companion mascot."},
+				{"q": "What is the Energy Buff Threshold in Kronos?", "a": "When Pet Energy is ≥ 70%, focus coin generation speed is boosted by +50% (+1 coin every 6.7s).", "s": "Lore", "h": "70% buff threshold."},
+				{"q": "What is Flowmodoro mode?", "a": "A stop-watch style timer where you focus freely, and your break time is dynamically earned as 1/5th of focused time.", "s": "Lore", "h": "Dynamic break math."}
+			]
+			for c in lore_cards:
+				add_flashcard(c["q"], c["a"], c["s"], c["h"])
+				added += 1
+				
+	return added
+
+## Exports flashcards to Notion / Obsidian Markdown format
+func export_deck_markdown() -> String:
+	var cards: Array[Dictionary] = get_flashcards()
+	var md: String = "# 🧠 Kronos Study Deck Export\n"
+	md += "*Generated on " + Time.get_datetime_string_from_system() + " • Total Cards: " + str(cards.size()) + "*\n\n---\n\n"
+	
+	for c in cards:
+		md += "### " + c.get("q", "Question") + "\n"
+		md += "- **Subject**: `" + c.get("subject", "General") + "`\n"
+		var h = c.get("hint", "").strip_edges()
+		if not h.is_empty():
+			md += "- **Hint**: *" + h + "*\n"
+		md += "- **Answer**: " + c.get("a", "Answer") + "\n"
+		md += "- **SM-2 Status**: Interval: " + str(c.get("interval_days", 0)) + "d | EF: " + str(c.get("ef", 2.5)) + " | Reps: " + str(c.get("repetitions", 0)) + "\n\n"
+		
+	return md
+
+## Exports flashcards to Anki CSV format
+func export_deck_csv() -> String:
+	var cards: Array[Dictionary] = get_flashcards()
+	var csv: String = "Front,Back,Subject,Hint,IntervalDays,EF\n"
+	for c in cards:
+		var q = c.get("q", "").replace('"', '""')
+		var a = c.get("a", "").replace('"', '""')
+		var s = c.get("subject", "General").replace('"', '""')
+		var h = c.get("hint", "").replace('"', '""')
+		var i = str(c.get("interval_days", 0))
+		var ef = str(c.get("ef", 2.5))
+		csv += '"%s","%s","%s","%s",%s,%s\n' % [q, a, s, h, i, ef]
+	return csv
 
 ## Records a minigame score, returns true if a new high score was set
 func record_minigame_score(game_id: String, score: int) -> bool:
@@ -1823,7 +2383,18 @@ func deserialize(data: Dictionary) -> void:
 	if raw_inv is Array:
 		for item in raw_inv:
 			if item is Dictionary:
-				inventory.append(item)
+				var norm_item: Dictionary = item.duplicate()
+				if norm_item.has("id") and not norm_item.has("item_id"):
+					norm_item["item_id"] = norm_item["id"]
+				if norm_item.has("count") and not norm_item.has("quantity"):
+					norm_item["quantity"] = norm_item["count"]
+				inventory.append(norm_item)
+				
+	# If fresh profile or empty inventory, provide starter snacks
+	if inventory.is_empty():
+		inventory.append({"item_id": "snack_coffee", "quantity": 2, "metadata": ITEM_DEFINITIONS.get("snack_coffee", {})})
+		inventory.append({"item_id": "snack_croissant", "quantity": 2, "metadata": ITEM_DEFINITIONS.get("snack_croissant", {})})
+		inventory.append({"item_id": "snack_donut", "quantity": 1, "metadata": ITEM_DEFINITIONS.get("snack_donut", {})})
 				
 	var raw_tasks = data.get("tasks", [])
 	tasks.clear()
@@ -2025,13 +2596,21 @@ func add_pet_affection(p_id: String = "", amount: int = 5) -> void:
 		DatabaseManager.save_game()
 
 func _connect_achievement_listeners() -> void:
-	EventBus.session_completed.connect(func(_type, _coins, _xp, _streak):
+	EventBus.session_completed.connect(func(type, _coins, _xp, _streak):
 		check_achievement_progress("focus_sprints", 1)
 		check_achievement_progress("streak", 0, streak)
 		var hour: int = Time.get_time_dict_from_system().get("hour", 12)
 		if hour >= 0 and hour < 5:
 			check_achievement_progress("night_sprints", 1)
 		add_pet_affection("", 10)
+		
+		# If work session completed and active task exists, increment pomodoro_spent
+		if type == "work" and not active_task_id.is_empty():
+			for t in tasks:
+				if t.get("id", "") == active_task_id:
+					t["pomodoro_spent"] = int(t.get("pomodoro_spent", 0)) + 1
+					EventBus.task_toggled.emit(active_task_id, t.get("completed", false))
+					break
 	)
 	EventBus.coins_changed.connect(func(_bal, delta, _reason):
 		if delta > 0:

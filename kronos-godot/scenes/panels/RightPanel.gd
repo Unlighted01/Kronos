@@ -34,6 +34,7 @@ class_name RightPanel
 @onready var friendship_hearts_label: Label = $VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox/FriendshipCard/VBox/HBox/FriendshipHearts
 @onready var friendship_bar: ProgressBar = $VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox/FriendshipCard/VBox/FriendshipBar
 @onready var streak_badge: Label = $VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox/StreakCard/StreakLabel
+@onready var call_pet_btn: Button = $VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox/CallPetCard/CallPetBtn
 
 # Bag Tab References
 @onready var bag_list_vbox: VBoxContainer = $VBox/TabContainer/BAG/ScrollContainer/BagVBox
@@ -56,6 +57,15 @@ class_name RightPanel
 @onready var cycle_input: LineEdit = $VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/TimerCard/VBox/Grid/CycleVBox/CycleInput
 @onready var mode_toggle_btn: OptionButton = $VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/TimerCard/VBox/ModeRow/ModeToggleBtn
 @onready var apply_timer_btn: Button = $VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/TimerCard/VBox/ApplyTimerBtn
+
+# AI BYOK Config References
+@onready var ai_provider_dropdown: OptionButton = $VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/AICard/VBox/ProviderRow/ProviderDropdown
+@onready var ai_key_input: LineEdit = $VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/AICard/VBox/KeyRow/KeyInput
+@onready var ai_key_toggle_btn: Button = $VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/AICard/VBox/KeyRow/KeyToggleBtn
+@onready var ai_help_btn: Button = $VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/AICard/VBox/AIHeaderRow/AIHelpBtn
+@onready var ai_test_btn: Button = $VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/AICard/VBox/TestRow/TestAIBtn
+@onready var ai_status_lbl: Label = $VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/AICard/VBox/AIStatusLbl
+
 @onready var manual_save_btn: Button = $VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/SaveCard/VBox/ManualSaveBtn
 @onready var save_status_label: Label = $VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/SaveCard/VBox/SaveStatusLabel
 
@@ -134,6 +144,21 @@ func _connect_ui_signals() -> void:
 		
 	if manual_save_btn:
 		manual_save_btn.pressed.connect(_on_manual_save_pressed)
+		
+	if call_pet_btn:
+		call_pet_btn.pressed.connect(_on_call_pet_pressed)
+
+	# AI BYOK Signals
+	if ai_provider_dropdown:
+		ai_provider_dropdown.item_selected.connect(_on_ai_provider_selected)
+	if ai_key_input:
+		ai_key_input.text_changed.connect(_on_ai_key_changed)
+	if ai_key_toggle_btn:
+		ai_key_toggle_btn.pressed.connect(_on_ai_key_toggle_pressed)
+	if ai_help_btn:
+		ai_help_btn.pressed.connect(_on_ai_help_pressed)
+	if ai_test_btn:
+		ai_test_btn.pressed.connect(_on_ai_test_pressed)
 
 func _connect_event_bus() -> void:
 	EventBus.exp_changed.connect(_on_exp_changed)
@@ -255,6 +280,32 @@ func _refresh_vitals_tab() -> void:
 	# Streak
 	if streak_badge:
 		streak_badge.text = "%d 🔥" % GameState.streak
+		
+	# Call Companion Button State
+	if call_pet_btn:
+		var in_view: bool = GameState.is_pet_in_current_view()
+		if in_view:
+			call_pet_btn.text = "🐾 COMPANION IS HERE"
+			call_pet_btn.disabled = true
+			call_pet_btn.modulate = Color(0.6, 0.8, 0.6, 0.7)
+		else:
+			var pet_r: String = GameState.pet_room
+			var r_name: String = GameState.ITEM_DEFINITIONS.get(pet_r, {}).get("name", "Another Room")
+			call_pet_btn.text = "🔔 CALL COMPANION (In %s)" % r_name
+			call_pet_btn.disabled = false
+			call_pet_btn.modulate = Color(0.31, 0.82, 0.91)
+
+func _on_call_pet_pressed() -> void:
+	if not GameState:
+		return
+	var cur_view: String = GameState.active_view_room
+	var cur_name: String = GameState.ITEM_DEFINITIONS.get(cur_view, {}).get("name", "this room")
+	GameState.call_pet_to_view()
+	if AudioManager:
+		AudioManager.play_sfx("bell")
+	if NotificationManager:
+		NotificationManager.show_toast("🔔 Called your companion to the %s!" % cur_name, NotificationManager.ToastType.SUCCESS)
+	_refresh_vitals_tab()
 
 # ==============================================================================
 # 🎒 TAB 2: INVENTORY BAG
@@ -293,16 +344,36 @@ func _refresh_bag_tab() -> void:
 		bag_list_vbox.add_child(card)
 
 func _create_bag_item_card(item: Dictionary) -> PanelContainer:
-	var item_id: String = item.get("id", "")
-	var count: int = item.get("count", 1)
+	var item_id: String = item.get("item_id", item.get("id", ""))
+	var count: int = item.get("quantity", item.get("count", 1))
 	var item_def: Dictionary = GameState.get_item_def(item_id)
-	var item_name: String = item_def.get("name", item_id.capitalize())
-	var item_type: String = item_def.get("type", "consumable")
+	if item_def.is_empty():
+		item_def = item.get("metadata", {})
+		
+	var item_name: String = item_def.get("name", item_id.replace("_", " ").capitalize())
+	var item_category: String = item_def.get("category", item_def.get("type", "snack")).to_lower()
 	var icon: String = item_def.get("icon", "📦")
 	var description: String = item_def.get("description", "")
 	
 	var card: PanelContainer = PanelContainer.new()
 	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	
+	var sbox: StyleBoxFlat = StyleBoxFlat.new()
+	sbox.content_margin_left = 6
+	sbox.content_margin_top = 6
+	sbox.content_margin_right = 6
+	sbox.content_margin_bottom = 6
+	sbox.bg_color = Color(0.06, 0.08, 0.13, 0.95)
+	sbox.border_width_left = 1
+	sbox.border_width_top = 1
+	sbox.border_width_right = 1
+	sbox.border_width_bottom = 1
+	sbox.border_color = Color(0.18, 0.22, 0.32, 0.8)
+	sbox.corner_radius_top_left = 4
+	sbox.corner_radius_top_right = 4
+	sbox.corner_radius_bottom_right = 4
+	sbox.corner_radius_bottom_left = 4
+	card.add_theme_stylebox_override("panel", sbox)
 	
 	var main_vbox: VBoxContainer = VBoxContainer.new()
 	main_vbox.add_theme_constant_override("separation", 3)
@@ -315,13 +386,13 @@ func _create_bag_item_card(item: Dictionary) -> PanelContainer:
 	
 	var icon_lbl: Label = Label.new()
 	icon_lbl.text = icon
-	icon_lbl.add_theme_font_size_override("font_size", 10)
+	icon_lbl.add_theme_font_size_override("font_size", 12)
 	top_hbox.add_child(icon_lbl)
 	
 	var name_lbl: Label = Label.new()
 	name_lbl.text = item_name
 	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	name_lbl.add_theme_font_size_override("font_size", 8)
+	name_lbl.add_theme_font_size_override("font_size", 9)
 	top_hbox.add_child(name_lbl)
 	
 	if count > 1:
@@ -331,42 +402,63 @@ func _create_bag_item_card(item: Dictionary) -> PanelContainer:
 		count_badge.modulate = Color(0.96, 0.78, 0.25)
 		top_hbox.add_child(count_badge)
 		
-	var desc_lbl: Label = Label.new()
-	desc_lbl.text = description
-	desc_lbl.add_theme_font_size_override("font_size", 7)
-	desc_lbl.modulate = Color(0.58, 0.64, 0.72)
-	desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	main_vbox.add_child(desc_lbl)
-	
+	if not description.is_empty():
+		var desc_lbl: Label = Label.new()
+		desc_lbl.text = description
+		desc_lbl.add_theme_font_size_override("font_size", 7)
+		desc_lbl.modulate = Color(0.58, 0.64, 0.72)
+		desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		main_vbox.add_child(desc_lbl)
+		
 	var action_btn: Button = Button.new()
-	action_btn.custom_minimum_size = Vector2(0, 20)
+	action_btn.custom_minimum_size = Vector2(0, 22)
 	action_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	action_btn.focus_mode = Control.FOCUS_NONE
+	action_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	action_btn.add_theme_font_size_override("font_size", 8)
 	
-	match item_type:
-		"food", "snack", "drink", "consumable":
-			action_btn.text = "🍴 USE / FEED"
+	match item_category:
+		"snack", "food", "drink", "consumable":
+			var e_boost = float(item_def.get("energy_boost", 0.0))
+			var j_boost = float(item_def.get("joy_boost", 0.0))
+			var stat_str = ""
+			if e_boost > 0: stat_str += "+%d ⚡" % int(e_boost)
+			if j_boost > 0: stat_str += " +%d 💖" % int(j_boost)
+			
+			action_btn.text = "🍴 FEED PET (%s)" % stat_str if not stat_str.is_empty() else "🍴 FEED PET"
+			action_btn.add_theme_color_override("font_color", Color(0.30, 0.85, 0.50))
 			action_btn.pressed.connect(func(): _on_use_item_pressed(item_id))
+			
 		"cosmetic", "hat", "accessory", "collar", "glasses":
-			var slot: String = item_def.get("slot", "hat")
+			var slot: String = item_def.get("slot", "head")
 			var is_eq: bool = GameState.is_cosmetic_equipped(item_id)
 			action_btn.text = "✓ UNEQUIP" if is_eq else "👕 EQUIP"
 			action_btn.modulate = Color(0.96, 0.78, 0.25) if is_eq else Color(0.31, 0.82, 0.91)
 			action_btn.pressed.connect(func(): _on_equip_toggle_pressed(slot, item_id))
-		"furniture", "decor":
+			
+		"decor", "furniture":
 			var is_placed: bool = GameState.is_decor_placed(item_id)
 			action_btn.text = "📦 STORE" if is_placed else "🏡 PLACE IN ROOM"
 			action_btn.modulate = Color(0.4, 0.85, 0.5) if is_placed else Color(0.31, 0.82, 0.91)
 			action_btn.pressed.connect(func(): _on_decor_toggle_pressed(item_id))
+			
 		_:
-			action_btn.text = "USE"
+			action_btn.text = "🍴 USE / FEED"
 			action_btn.pressed.connect(func(): _on_use_item_pressed(item_id))
 			
 	main_vbox.add_child(action_btn)
 	return card
 
 func _on_use_item_pressed(item_id: String) -> void:
+	var def: Dictionary = GameState.get_item_def(item_id)
+	var i_name: String = def.get("name", item_id.replace("_", " ").capitalize())
 	if GameState.use_item(item_id):
+		if AudioManager:
+			AudioManager.play_sfx("coin_pop")
+		if NotificationManager:
+			NotificationManager.show_toast("🍴 Fed %s to your companion!" % i_name, NotificationManager.ToastType.SUCCESS)
+		if EventBus:
+			EventBus.pet_interacted.emit("eating")
 		_refresh_bag_tab()
 		_refresh_vitals_tab()
 		if DatabaseManager:
@@ -375,14 +467,27 @@ func _on_use_item_pressed(item_id: String) -> void:
 func _on_equip_toggle_pressed(slot: String, cosmetic_id: String) -> void:
 	if GameState.is_cosmetic_equipped(cosmetic_id):
 		GameState.unequip_cosmetic(slot)
+		if NotificationManager:
+			NotificationManager.show_toast("👕 Unequipped cosmetic.", NotificationManager.ToastType.INFO)
 	else:
 		GameState.equip_cosmetic(slot, cosmetic_id)
+		if AudioManager:
+			AudioManager.play_sfx("achievement")
+		if NotificationManager:
+			NotificationManager.show_toast("✨ Equipped cosmetic!", NotificationManager.ToastType.SUCCESS)
 	_refresh_bag_tab()
 	if DatabaseManager:
 		DatabaseManager.save_game()
 
 func _on_decor_toggle_pressed(item_id: String) -> void:
-	GameState.toggle_decor(item_id)
+	var placed: bool = GameState.toggle_decor(item_id)
+	if AudioManager:
+		AudioManager.play_sfx("click")
+	if NotificationManager:
+		if placed:
+			NotificationManager.show_toast("🏡 Decor placed in room!", NotificationManager.ToastType.SUCCESS)
+		else:
+			NotificationManager.show_toast("📦 Decor stored in bag.", NotificationManager.ToastType.INFO)
 	_refresh_bag_tab()
 	if DatabaseManager:
 		DatabaseManager.save_game()
@@ -411,6 +516,7 @@ func _refresh_config_ui() -> void:
 		cycle_input.text = str(TimerEngine.pomodoro_cycle_goal)
 		
 	_refresh_audio_ui()
+	_refresh_ai_ui()
 
 func _refresh_audio_ui() -> void:
 	if not GameState or not GameState.audio_settings:
@@ -466,6 +572,82 @@ func _on_pet_nudge_toggled() -> void:
 
 func _on_pet_nudges_toggled() -> void:
 	_on_pet_nudge_toggled()
+
+# ==============================================================================
+# 🤖 AI BYOK CONFIGURATION HANDLERS
+# ==============================================================================
+func _refresh_ai_ui() -> void:
+	if not AIService:
+		return
+	if ai_provider_dropdown:
+		ai_provider_dropdown.selected = int(AIService.provider)
+	if ai_key_input:
+		ai_key_input.text = AIService.api_key
+	_update_ai_help_tooltip()
+
+func _update_ai_help_tooltip() -> void:
+	if not AIService or not ai_help_btn:
+		return
+	match AIService.provider:
+		AIService.Provider.GEMINI:
+			ai_help_btn.text = "ℹ️ Free Gemini Key"
+			ai_help_btn.tooltip_text = "Google Gemini offers a 100% free tier. Click to open aistudio.google.com"
+		AIService.Provider.OPENAI:
+			ai_help_btn.text = "ℹ️ OpenAI Key"
+			ai_help_btn.tooltip_text = "OpenAI API Key from platform.openai.com"
+		AIService.Provider.OLLAMA:
+			ai_help_btn.text = "ℹ️ Setup Ollama"
+			ai_help_btn.tooltip_text = "Local Ollama is 100% free & offline. Click to visit ollama.com"
+
+func _on_ai_provider_selected(index: int) -> void:
+	if not AIService:
+		return
+	AIService.save_ai_config(index as AIService.Provider, ai_key_input.text if ai_key_input else "")
+	_update_ai_help_tooltip()
+	if ai_status_lbl:
+		ai_status_lbl.text = "Provider: %s" % AIService.PROVIDER_NAMES[index]
+		ai_status_lbl.modulate = Color(0.31, 0.82, 0.91)
+
+func _on_ai_key_changed(new_key: String) -> void:
+	if not AIService:
+		return
+	AIService.save_ai_config(AIService.provider, new_key)
+	if ai_status_lbl:
+		ai_status_lbl.text = "✓ Key saved. Click 'Test Connection'."
+		ai_status_lbl.modulate = Color(0.31, 0.82, 0.91)
+
+func _on_ai_key_toggle_pressed() -> void:
+	if ai_key_input:
+		ai_key_input.secret = not ai_key_input.secret
+
+func _on_ai_help_pressed() -> void:
+	if AIService:
+		AIService.open_get_key_url()
+
+func _on_ai_test_pressed() -> void:
+	if not AIService or not ai_status_lbl:
+		return
+	ai_status_lbl.text = "Testing connection..."
+	ai_status_lbl.modulate = Color(0.96, 0.62, 0.04)
+	if ai_test_btn:
+		ai_test_btn.disabled = true
+		
+	AIService.test_connection(func(success: bool, msg: String):
+		if ai_test_btn:
+			ai_test_btn.disabled = false
+		if success:
+			ai_status_lbl.text = "✓ Connected & Ready!"
+			ai_status_lbl.modulate = Color(0.24, 0.86, 0.52)
+			if AudioManager:
+				AudioManager.play_sfx("achievement")
+			if NotificationManager:
+				NotificationManager.show_toast("🤖 AI connected successfully!", NotificationManager.ToastType.SUCCESS)
+		else:
+			ai_status_lbl.text = "✗ " + msg.substr(0, 35)
+			ai_status_lbl.modulate = Color(1.0, 0.35, 0.35)
+			if NotificationManager:
+				NotificationManager.show_toast("⚠️ AI Connection failed: " + msg, NotificationManager.ToastType.ERROR)
+	)
 
 func _on_scale_dropdown_selected(index: int) -> void:
 	var scales: Array[float] = [1.25, 1.5, 2.0]
@@ -608,7 +790,7 @@ func _on_session_completed(_type: String, _coins: int, _xp: int, _streak: int) -
 	_refresh_vitals_tab()
 
 func _on_close_pressed() -> void:
-	hide()
+	EventBus.panel_visibility_changed.emit("right", false)
 
 func _on_active_pet_selected(_idx: int, pet_data: Dictionary) -> void:
 	if pet_name_lbl:

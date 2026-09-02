@@ -96,10 +96,11 @@ func _input(event: InputEvent) -> void:
 	elif event is InputEventMouseMotion and is_dragging:
 		var cur_mouse_pos: Vector2i = DisplayServer.mouse_get_position()
 		var delta_pos: Vector2i = cur_mouse_pos - drag_start_mouse_pos
-		var new_pos: Vector2i = drag_start_window_pos + delta_pos
-		var cur_size: Vector2i = DisplayServer.window_get_size(0)
-		var clamped: Vector2i = _clamp_to_screen_bounds(new_pos, cur_size)
-		DisplayServer.window_set_position(clamped, 0)
+		if delta_pos.length_squared() >= 9:
+			var new_pos: Vector2i = drag_start_window_pos + delta_pos
+			var cur_size: Vector2i = DisplayServer.window_get_size(0)
+			var clamped: Vector2i = _clamp_to_screen_bounds(new_pos, cur_size)
+			DisplayServer.window_set_position(clamped, 0)
 
 func _setup_window() -> void:
 	DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, true, 0)
@@ -115,9 +116,7 @@ func _setup_window() -> void:
 	# Productivity Studio Window is created lazily on first open
 
 func _connect_signals() -> void:
-	# Header Dragging on HeaderBar and Title Label
-	if drag_header:
-		drag_header.gui_input.connect(_on_header_gui_input)
+	# Header Dragging ONLY on Title Label (never entire HeaderBar containing buttons)
 	if title_label:
 		title_label.gui_input.connect(_on_header_gui_input)
 		
@@ -771,16 +770,20 @@ func _on_toast_requested(msg: String, toast_type: int) -> void:
 	panel.add_theme_stylebox_override("panel", style)
 	
 	var lbl: Label = Label.new()
-	lbl.text = msg
+	var display_msg = msg if msg.length() <= 120 else msg.substr(0, 116) + "..."
+	lbl.text = display_msg
 	lbl.add_theme_font_size_override("font_size", 7)
 	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	lbl.custom_minimum_size = Vector2(240.0, 0)
 	panel.add_child(lbl)
 	
 	add_child(panel)
 	
 	# Position near top of middle panel
 	panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
-	panel.position.y = 28.0
+	panel.position.y = 32.0
 	panel.modulate.a = 0.0
 	
 	var tween = create_tween()

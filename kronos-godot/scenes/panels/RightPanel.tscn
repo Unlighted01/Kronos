@@ -4,6 +4,7 @@
 [ext_resource type="Script" path="res://scenes/panels/RightPanel.gd" id="2_rpanel"]
 
 [node name="RightPanel" type="PanelContainer"]
+clip_contents = true
 custom_minimum_size = Vector2(200, 320)
 layout_mode = 2
 size_flags_vertical = 3
@@ -11,6 +12,7 @@ theme = ExtResource("1_theme")
 script = ExtResource("2_rpanel")
 
 [node name="VBox" type="VBoxContainer" parent="."]
+clip_contents = true
 layout_mode = 2
 theme_override_constants/separation = 4
 
@@ -301,6 +303,16 @@ theme_override_font_sizes/font_size = 8
 text = "🔥 0 FOCUS STREAK"
 horizontal_alignment = 1
 
+[node name="CallPetCard" type="PanelContainer" parent="VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox"]
+layout_mode = 2
+
+[node name="CallPetBtn" type="Button" parent="VBox/TabContainer/VITALS/ScrollContainer/VitalsVBox/CallPetCard"]
+custom_minimum_size = Vector2(0, 22)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.309804, 0.819608, 0.909804, 1)
+theme_override_font_sizes/font_size = 8
+text = "🔔 CALL COMPANION HERE"
+
 [node name="BAG" type="Control" parent="VBox/TabContainer"]
 visible = false
 layout_mode = 2
@@ -352,7 +364,10 @@ theme_override_constants/separation = 4
 layout_mode = 2
 theme_override_colors/font_color = Color(0.580392, 0.639216, 0.721569, 1)
 theme_override_font_sizes/font_size = 8
+text = "UI SCALE"
+
 [node name="ScaleDropdown" type="OptionButton" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/ScaleCard/VBox"]
+custom_minimum_size = Vector2(0, 20)
 layout_mode = 2
 item_count = 3
 selected = 0
@@ -360,7 +375,7 @@ popup/item_0/text = "1.25x (Default)"
 popup/item_0/id = 0
 popup/item_1/text = "1.5x (Large)"
 popup/item_1/id = 1
-popup/item_2/text = "2x (2K / 4K Crisp)"
+popup/item_2/text = "2.0x (Crisp)"
 popup/item_2/id = 2
 
 [node name="PinCard" type="PanelContainer" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox"]
@@ -562,7 +577,93 @@ text = "4"
 [node name="ApplyTimerBtn" type="Button" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/TimerCard/VBox"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 7
 text = "APPLY TIMERS"
+
+[node name="AICard" type="PanelContainer" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox"]
+layout_mode = 2
+
+[node name="VBox" type="VBoxContainer" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/AICard"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="AIHeaderRow" type="HBoxContainer" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/AICard/VBox"]
+layout_mode = 2
+
+[node name="AILabel" type="Label" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/AICard/VBox/AIHeaderRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.309804, 0.819608, 0.909804, 1)
+theme_override_font_sizes/font_size = 7
+text = "🤖 AI API (BYOK)"
+
+[node name="AIHelpBtn" type="Button" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/AICard/VBox/AIHeaderRow"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 7
+text = "ℹ️ Free Key"
+tooltip_text = "Click to open guide on getting a free Google Gemini or OpenAI API key"
+
+[node name="ProviderRow" type="HBoxContainer" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/AICard/VBox"]
+layout_mode = 2
+
+[node name="ProviderLbl" type="Label" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/AICard/VBox/ProviderRow"]
+custom_minimum_size = Vector2(44, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 7
+text = "PROVIDER"
+
+[node name="ProviderDropdown" type="OptionButton" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/AICard/VBox/ProviderRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 7
+item_count = 3
+selected = 0
+fit_to_longest_item = false
+popup/item_0/text = "Gemini Free"
+popup/item_0/id = 0
+popup/item_1/text = "OpenAI"
+popup/item_1/id = 1
+popup/item_2/text = "Local Ollama"
+popup/item_2/id = 2
+
+[node name="KeyRow" type="HBoxContainer" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/AICard/VBox"]
+layout_mode = 2
+
+[node name="KeyLbl" type="Label" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/AICard/VBox/KeyRow"]
+custom_minimum_size = Vector2(44, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 7
+text = "API KEY"
+
+[node name="KeyInput" type="LineEdit" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/AICard/VBox/KeyRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 7
+secret = true
+placeholder_text = "Paste API key..."
+
+[node name="KeyToggleBtn" type="Button" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/AICard/VBox/KeyRow"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 7
+text = "👁️"
+tooltip_text = "Toggle API Key visibility"
+
+[node name="TestRow" type="HBoxContainer" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/AICard/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="TestAIBtn" type="Button" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/AICard/VBox/TestRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 7
+text = "⚡ TEST CONNECTION"
+
+[node name="AIStatusLbl" type="Label" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/AICard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.58, 0.64, 0.72, 1)
+theme_override_font_sizes/font_size = 6
+text = "Ready to test"
+horizontal_alignment = 1
 
 [node name="SaveCard" type="PanelContainer" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox"]
 layout_mode = 2
@@ -574,18 +675,19 @@ theme_override_constants/separation = 4
 [node name="SaveLabel" type="Label" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/SaveCard/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.580392, 0.639216, 0.721569, 1)
-theme_override_font_sizes/font_size = 8
+theme_override_font_sizes/font_size = 7
 text = "DATA PERSISTENCE"
 
 [node name="ManualSaveBtn" type="Button" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/SaveCard/VBox"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 7
 text = "💾 SAVE GAME"
 
 [node name="SaveStatusLabel" type="Label" parent="VBox/TabContainer/CONFIG/ScrollContainer/ConfigVBox/SaveCard/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.580392, 0.639216, 0.721569, 1)
-theme_override_font_sizes/font_size = 7
+theme_override_font_sizes/font_size = 6
 text = "Auto-save active (60s)"
 horizontal_alignment = 1
 
