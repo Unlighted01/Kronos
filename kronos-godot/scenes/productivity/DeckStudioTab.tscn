@@ -229,6 +229,15 @@ theme_override_colors/font_color = Color(0.960784, 0.803922, 0.47451, 1)
 theme_override_font_sizes/font_size = 9
 text = "▶️ START STUDY DRILL (0 DUE)"
 
+[node name="BtnTutorQuiz" type="Button" parent="Scroll/ContentVBox/TopRow/ActionsCard/VBox"]
+custom_minimum_size = Vector2(0, 22)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.309804, 0.819608, 0.909804, 1)
+theme_override_font_sizes/font_size = 8
+text = "🎙️ QUIZ ME (LIBRARY AI TUTOR)"
+
 [node name="BtnRow" type="HBoxContainer" parent="Scroll/ContentVBox/TopRow/ActionsCard/VBox"]
 layout_mode = 2
 theme_override_constants/separation = 4
@@ -1168,6 +1177,169 @@ mouse_default_cursor_shape = 2
 theme_override_colors/font_color = Color(0.188235, 0.768627, 0.529412, 1)
 theme_override_font_sizes/font_size = 8
 text = "📥 Add All to Deck"
+
+[node name="AITutorModal" type="PanelContainer" parent="ModalOverlay/Center"]
+visible = false
+clip_contents = true
+custom_minimum_size = Vector2(460, 360)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_modal_bg")
+
+[node name="VBox" type="VBoxContainer" parent="ModalOverlay/Center/AITutorModal"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TitleRow" type="HBoxContainer" parent="ModalOverlay/Center/AITutorModal/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Title" type="Label" parent="ModalOverlay/Center/AITutorModal/VBox/TitleRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.960784, 0.803922, 0.47451, 1)
+theme_override_font_sizes/font_size = 9
+text = "🐾 AI Companion Tutor • Socratic Oral Exam"
+
+[node name="CloseBtn" type="Button" parent="ModalOverlay/Center/AITutorModal/VBox/TitleRow"]
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 8
+text = "✖"
+
+[node name="PetBanner" type="HBoxContainer" parent="ModalOverlay/Center/AITutorModal/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="PetIcon" type="Label" parent="ModalOverlay/Center/AITutorModal/VBox/PetBanner"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "🐾"
+
+[node name="PetIntroLbl" type="Label" parent="ModalOverlay/Center/AITutorModal/VBox/PetBanner"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.309804, 0.819608, 0.909804, 1)
+theme_override_font_sizes/font_size = 7
+text = "Welcome to the Study Library! Explain the concept below in your own words. I'll evaluate your understanding!"
+autowrap_mode = 2
+
+[node name="QuestionCard" type="PanelContainer" parent="ModalOverlay/Center/AITutorModal/VBox"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="QVBox" type="VBoxContainer" parent="ModalOverlay/Center/AITutorModal/VBox/QuestionCard"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="QSubjRow" type="HBoxContainer" parent="ModalOverlay/Center/AITutorModal/VBox/QuestionCard/QVBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="QSubjBadge" type="Label" parent="ModalOverlay/Center/AITutorModal/VBox/QuestionCard/QVBox/QSubjRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.960784, 0.619608, 0.0392157, 1)
+theme_override_font_sizes/font_size = 7
+text = "[General]"
+
+[node name="QCardIndexLbl" type="Label" parent="ModalOverlay/Center/AITutorModal/VBox/QuestionCard/QVBox/QSubjRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.580392, 0.639216, 0.721569, 1)
+theme_override_font_sizes/font_size = 7
+text = "Card 1 of 5"
+horizontal_alignment = 2
+
+[node name="QuestionText" type="Label" parent="ModalOverlay/Center/AITutorModal/VBox/QuestionCard/QVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.98, 0.98, 1, 1)
+theme_override_font_sizes/font_size = 8
+text = "What is the primary function of the cell membrane?"
+autowrap_mode = 2
+
+[node name="HintRow" type="HBoxContainer" parent="ModalOverlay/Center/AITutorModal/VBox/QuestionCard/QVBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="ELI5Btn" type="Button" parent="ModalOverlay/Center/AITutorModal/VBox/QuestionCard/QVBox/HintRow"]
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.960784, 0.784314, 0.258824, 1)
+theme_override_font_sizes/font_size = 7
+text = "💡 Ask for Analogy (ELI5)"
+
+[node name="HintLbl" type="Label" parent="ModalOverlay/Center/AITutorModal/VBox/QuestionCard/QVBox/HintRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.580392, 0.639216, 0.721569, 1)
+theme_override_font_sizes/font_size = 6
+autowrap_mode = 2
+
+[node name="AnswerInput" type="TextEdit" parent="ModalOverlay/Center/AITutorModal/VBox"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme_override_font_sizes/font_size = 7
+placeholder_text = "Explain the answer in your own words (conversational explanation)..."
+wrap_mode = 1
+
+[node name="EvalFeedbackPanel" type="PanelContainer" parent="ModalOverlay/Center/AITutorModal/VBox"]
+visible = false
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="EvalVBox" type="VBoxContainer" parent="ModalOverlay/Center/AITutorModal/VBox/EvalFeedbackPanel"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="VerdictRow" type="HBoxContainer" parent="ModalOverlay/Center/AITutorModal/VBox/EvalFeedbackPanel/EvalVBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="VerdictBadge" type="Label" parent="ModalOverlay/Center/AITutorModal/VBox/EvalFeedbackPanel/EvalVBox/VerdictRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.24, 0.86, 0.52, 1)
+theme_override_font_sizes/font_size = 8
+text = "🟢 Mastered (5/5)"
+
+[node name="EvalFeedbackLbl" type="Label" parent="ModalOverlay/Center/AITutorModal/VBox/EvalFeedbackPanel/EvalVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.909804, 0.92549, 0.960784, 1)
+theme_override_font_sizes/font_size = 7
+text = "Sparky: Great job! You captured the full mechanism."
+autowrap_mode = 2
+
+[node name="SocraticHintLbl" type="Label" parent="ModalOverlay/Center/AITutorModal/VBox/EvalFeedbackPanel/EvalVBox"]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.960784, 0.784314, 0.258824, 1)
+theme_override_font_sizes/font_size = 7
+autowrap_mode = 2
+
+[node name="ActionBtnRow" type="HBoxContainer" parent="ModalOverlay/Center/AITutorModal/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 2
+
+[node name="SubmitAnswerBtn" type="Button" parent="ModalOverlay/Center/AITutorModal/VBox/ActionBtnRow"]
+custom_minimum_size = Vector2(130, 22)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.309804, 0.819608, 0.909804, 1)
+theme_override_font_sizes/font_size = 8
+text = "⚡ Submit Explanation"
+
+[node name="NextQuestionBtn" type="Button" parent="ModalOverlay/Center/AITutorModal/VBox/ActionBtnRow"]
+visible = false
+custom_minimum_size = Vector2(140, 22)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.24, 0.86, 0.52, 1)
+theme_override_font_sizes/font_size = 8
+text = "⏭️ Next Card (+15 KP)"
 
 [node name="FileDialog" type="FileDialog" parent="."]
 title = "Open Document"

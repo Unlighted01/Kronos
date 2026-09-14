@@ -493,3 +493,69 @@ func show_random_thought(category: String, duration: float = 3.5) -> void:
 		var text: String = pool[randi() % pool.size()]
 		show_thought(text, duration)
 
+# ==============================================================================
+# 🐾 MULTI-PET SOCIAL & EXPEDITION DIALOGUE HELPERS
+# ==============================================================================
+func show_social_initiator(partner_name: String) -> String:
+	var templates: Array[String] = [
+		"Hey %s! Smell the fresh morning air? ☕",
+		"Look at that, %s! Nice room today! ✨",
+		"Psst %s, wanna play for a second? 🐾",
+		"Kian is doing great today, %s! 🚀",
+		"Tag, you're it, %s! 🐾💨"
+	]
+	var template: String = templates.pick_random()
+	var text: String = template % partner_name
+	show_thought(text, 3.2)
+	return text
+
+func show_social_reply(partner_name: String) -> String:
+	var templates: Array[String] = [
+		"I hear ya! Cozy vibes only ✨",
+		"Heck yeah! Right with you! 🐾",
+		"Already on it! *happy hop* 🎉",
+		"Rooting for Kian always! 💖",
+		"Best roommate ever! 🌸",
+		"You can't catch me, %s! 💨"
+	]
+	var template: String = templates.pick_random()
+	var text: String = template % partner_name if "%s" in template else template
+	show_thought(text, 3.2)
+	return text
+
+func show_buddy_invite(buddy_name: String, room_name: String) -> void:
+	var text: String = "Hey %s! Let's check out the %s! 🐾" % [buddy_name, room_name]
+	show_thought(text, 3.0)
+
+func show_buddy_accept() -> void:
+	var replies: Array[String] = [
+		"Coming right behind you! ✨",
+		"Lead the way! 🐾",
+		"Right with you! 🥐",
+		"Adventure time! 🚀"
+	]
+	show_thought(replies.pick_random(), 2.8)
+
+func show_fetch_depart(target_name: String) -> void:
+	var text: String = "I'll go find %s and bring them here! 🏃‍♂️🐾" % target_name
+	show_thought(text, 3.0)
+
+func show_fetch_return(target_name: String) -> void:
+	var text: String = "Found %s! We're both here now! 🎉" % target_name
+	show_thought(text, 3.5)
+
+func show_expedition_depart(destination: String = "garden") -> void:
+	var templates: Array[String] = [
+		"Heading outside to the %s for a bit! 🌿",
+		"Going on an outdoor patrol! Back soon~ 🐾",
+		"Catching some fresh air outside! ⛅"
+	]
+	var template: String = templates.pick_random()
+	var text: String = template % destination if "%s" in template else "Heading outside for some fresh air! 🌿"
+	show_thought(text, 3.2)
+
+func show_expedition_return(souvenir_name: String) -> void:
+	var text: String = "I'm back! Brought you %s! 🎁✨" % souvenir_name
+	show_thought(text, 4.0)
+
+

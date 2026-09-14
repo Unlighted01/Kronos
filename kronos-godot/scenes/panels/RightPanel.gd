@@ -73,15 +73,16 @@ class_name RightPanel
 # 📊 INTERNAL STATE
 # ==============================================================================
 var _current_scale_preset: float = 1.25
+var _pet_target_modal: PanelContainer = null
 
 # ==============================================================================
 # ⚙️ LIFECYCLE
 # ==============================================================================
 func _ready() -> void:
 	if pet_prev_btn:
-		pet_prev_btn.queue_free()
+		pet_prev_btn.pressed.connect(func(): _cycle_active_pet(-1))
 	if pet_next_btn:
-		pet_next_btn.queue_free()
+		pet_next_btn.pressed.connect(func(): _cycle_active_pet(1))
 
 	if TimerEngine and mode_toggle_btn:
 		mode_toggle_btn.selected = TimerEngine.current_mode
@@ -93,6 +94,7 @@ func _ready() -> void:
 	_connect_event_bus()
 	
 	# Initial UI updates
+	_update_pet_selector_header()
 	_refresh_vitals_tab()
 	_refresh_bag_tab()
 	_refresh_config_ui()
@@ -263,9 +265,11 @@ func _refresh_vitals_tab() -> void:
 		
 	# Friendship / Affection
 	var pet = GameState.active_pets[GameState.selected_pet_index] if GameState.selected_pet_index < GameState.active_pets.size() else null
-	var affection_lvl: int = pet.get("affection_level", 1) if pet else 1
-	var affection_exp: int = pet.get("affection_exp", 0) if pet else 0
-	var req_aff_exp: int = affection_lvl * 50
+	var pet_id: String = pet.get("id", "pet_shiba") if pet else "pet_shiba"
+	var aff: Dictionary = GameState.get_pet_affection(pet_id)
+	var affection_lvl: int = aff.get("level", 1)
+	var affection_exp: int = aff.get("xp", 0)
+	var req_aff_exp: int = aff.get("max_xp", 50)
 	
 	if friendship_hearts_label:
 		var hearts_str: String = ""
@@ -283,28 +287,66 @@ func _refresh_vitals_tab() -> void:
 		
 	# Call Companion Button State
 	if call_pet_btn:
-		var in_view: bool = GameState.is_pet_in_current_view()
-		if in_view:
-			call_pet_btn.text = "🐾 COMPANION IS HERE"
-			call_pet_btn.disabled = true
-			call_pet_btn.modulate = Color(0.6, 0.8, 0.6, 0.7)
-		else:
-			var pet_r: String = GameState.pet_room
-			var r_name: String = GameState.ITEM_DEFINITIONS.get(pet_r, {}).get("name", "Another Room")
-			call_pet_btn.text = "🔔 CALL COMPANION (In %s)" % r_name
+		var sel_idx: int = GameState.selected_pet_index
+		var is_outside: bool = GameState.is_pet_outside(sel_idx)
+		if is_outside:
+			var rem: float = GameState.get_pet_expedition_remaining(sel_idx)
+			var mins: int = int(rem / 60.0)
+			var secs: int = int(rem) % 60
+			call_pet_btn.text = "🌿 OUTSIDE (%02d:%02d) - WHISTLE" % [mins, secs]
 			call_pet_btn.disabled = false
-			call_pet_btn.modulate = Color(0.31, 0.82, 0.91)
+			call_pet_btn.modulate = Color(0.95, 0.78, 0.25)
+		else:
+			var in_view: bool = (GameState.active_pets[sel_idx].get("room", "") == GameState.active_view_room) if sel_idx < GameState.active_pets.size() else true
+			if in_view:
+				call_pet_btn.text = "🐾 COMPANION IS HERE"
+				call_pet_btn.disabled = true
+				call_pet_btn.modulate = Color(0.6, 0.8, 0.6, 0.7)
+			else:
+				var pet_r: String = GameState.active_pets[sel_idx].get("room", "room_bedroom") if sel_idx < GameState.active_pets.size() else "room_bedroom"
+				var r_name: String = GameState.ITEM_DEFINITIONS.get(pet_r, {}).get("name", "Another Room")
+				call_pet_btn.text = "🏃 FETCH TO HERE (In %s)" % r_name
+				call_pet_btn.disabled = false
+				call_pet_btn.modulate = Color(0.31, 0.82, 0.91)
 
 func _on_call_pet_pressed() -> void:
 	if not GameState:
 		return
+	var sel_idx: int = GameState.selected_pet_index
+	if GameState.is_pet_outside(sel_idx):
+		# Whistle inside early!
+		GameState.recall_pet_from_outside(sel_idx)
+		if AudioManager:
+			AudioManager.play_sfx("bell")
+		if NotificationManager:
+			NotificationManager.show_toast("🔔 Whistled companion inside from stroll!", NotificationManager.ToastType.SUCCESS)
+		_refresh_vitals_tab()
+		return
+		
 	var cur_view: String = GameState.active_view_room
 	var cur_name: String = GameState.ITEM_DEFINITIONS.get(cur_view, {}).get("name", "this room")
-	GameState.call_pet_to_view()
-	if AudioManager:
-		AudioManager.play_sfx("bell")
-	if NotificationManager:
-		NotificationManager.show_toast("🔔 Called your companion to the %s!" % cur_name, NotificationManager.ToastType.SUCCESS)
+	
+	# If other pets are in the current room, dispatch one to fetch!
+	var in_room_fetcher: int = -1
+	for i in range(GameState.active_pets.size()):
+		if i != sel_idx and GameState.active_pets[i].get("room", "") == cur_view and not GameState.active_pets[i].get("is_outside", false):
+			in_room_fetcher = i
+			break
+			
+	if in_room_fetcher != -1:
+		GameState.send_pet_to_fetch(in_room_fetcher, sel_idx)
+		if AudioManager:
+			AudioManager.play_sfx("chirp")
+		if NotificationManager:
+			var fetcher_name: String = GameState.active_pets[in_room_fetcher].get("name", "Companion")
+			var target_name: String = GameState.active_pets[sel_idx].get("name", "friend")
+			NotificationManager.show_toast("🐾 %s went to fetch %s!" % [fetcher_name, target_name], NotificationManager.ToastType.INFO)
+	else:
+		GameState.call_pet_to_view()
+		if AudioManager:
+			AudioManager.play_sfx("bell")
+		if NotificationManager:
+			NotificationManager.show_toast("🔔 Called your companion to the %s!" % cur_name, NotificationManager.ToastType.SUCCESS)
 	_refresh_vitals_tab()
 
 # ==============================================================================
@@ -431,10 +473,18 @@ func _create_bag_item_card(item: Dictionary) -> PanelContainer:
 			
 		"cosmetic", "hat", "accessory", "collar", "glasses":
 			var slot: String = item_def.get("slot", "head")
-			var is_eq: bool = GameState.is_cosmetic_equipped(item_id)
-			action_btn.text = "✓ UNEQUIP" if is_eq else "👕 EQUIP"
-			action_btn.modulate = Color(0.96, 0.78, 0.25) if is_eq else Color(0.31, 0.82, 0.91)
-			action_btn.pressed.connect(func(): _on_equip_toggle_pressed(slot, item_id))
+			var wearing_pet_idx: int = GameState.get_pet_wearing_cosmetic(item_id)
+			var is_eq: bool = wearing_pet_idx != -1
+			if is_eq:
+				var wearing_pet: Dictionary = GameState.active_pets[wearing_pet_idx] if wearing_pet_idx < GameState.active_pets.size() else {}
+				var pet_n: String = wearing_pet.get("name", "Companion")
+				action_btn.text = "✓ UNEQUIP (%s)" % pet_n if GameState.active_pets.size() > 1 else "✓ UNEQUIP"
+				action_btn.modulate = Color(0.96, 0.78, 0.25)
+				action_btn.pressed.connect(func(): _on_unequip_cosmetic_pressed(slot, item_id, wearing_pet_idx))
+			else:
+				action_btn.text = "👕 EQUIP"
+				action_btn.modulate = Color(0.31, 0.82, 0.91)
+				action_btn.pressed.connect(func(): _on_equip_cosmetic_pressed(slot, item_id))
 			
 		"decor", "furniture":
 			var is_placed: bool = GameState.is_decor_placed(item_id)
@@ -450,13 +500,48 @@ func _create_bag_item_card(item: Dictionary) -> PanelContainer:
 	return card
 
 func _on_use_item_pressed(item_id: String) -> void:
+	if not GameState:
+		return
+	if GameState.active_pets.size() > 1:
+		_open_pet_target_modal("feed", item_id)
+	else:
+		_feed_pet_directly(0, item_id)
+
+func _on_equip_cosmetic_pressed(slot: String, cosmetic_id: String) -> void:
+	if not GameState:
+		return
+	if GameState.active_pets.size() > 1:
+		_open_pet_target_modal("equip", cosmetic_id, slot)
+	else:
+		_equip_pet_directly(0, slot, cosmetic_id)
+
+func _on_unequip_cosmetic_pressed(slot: String, cosmetic_id: String, pet_idx: int) -> void:
+	if not GameState:
+		return
+	var def: Dictionary = GameState.get_item_def(cosmetic_id)
+	var c_name: String = def.get("name", cosmetic_id.replace("_", " ").capitalize())
+	var p_name: String = "Companion"
+	if pet_idx >= 0 and pet_idx < GameState.active_pets.size():
+		p_name = GameState.active_pets[pet_idx].get("name", "Companion")
+	GameState.unequip_cosmetic(slot, pet_idx)
+	if NotificationManager:
+		NotificationManager.show_toast("👕 Unequipped %s from %s." % [c_name, p_name], NotificationManager.ToastType.INFO)
+	_refresh_bag_tab()
+	if DatabaseManager:
+		DatabaseManager.save_game()
+
+func _feed_pet_directly(pet_idx: int, item_id: String) -> void:
 	var def: Dictionary = GameState.get_item_def(item_id)
 	var i_name: String = def.get("name", item_id.replace("_", " ").capitalize())
-	if GameState.use_item(item_id):
+	var p_name: String = "your companion"
+	if pet_idx >= 0 and pet_idx < GameState.active_pets.size():
+		p_name = GameState.active_pets[pet_idx].get("name", "your companion")
+		
+	if GameState.use_item(item_id, pet_idx):
 		if AudioManager:
 			AudioManager.play_sfx("coin_pop")
 		if NotificationManager:
-			NotificationManager.show_toast("🍴 Fed %s to your companion!" % i_name, NotificationManager.ToastType.SUCCESS)
+			NotificationManager.show_toast("🍴 Fed %s to %s!" % [i_name, p_name], NotificationManager.ToastType.SUCCESS)
 		if EventBus:
 			EventBus.pet_interacted.emit("eating")
 		_refresh_bag_tab()
@@ -464,20 +549,216 @@ func _on_use_item_pressed(item_id: String) -> void:
 		if DatabaseManager:
 			DatabaseManager.save_game()
 
-func _on_equip_toggle_pressed(slot: String, cosmetic_id: String) -> void:
-	if GameState.is_cosmetic_equipped(cosmetic_id):
-		GameState.unequip_cosmetic(slot)
-		if NotificationManager:
-			NotificationManager.show_toast("👕 Unequipped cosmetic.", NotificationManager.ToastType.INFO)
-	else:
-		GameState.equip_cosmetic(slot, cosmetic_id)
-		if AudioManager:
-			AudioManager.play_sfx("achievement")
-		if NotificationManager:
-			NotificationManager.show_toast("✨ Equipped cosmetic!", NotificationManager.ToastType.SUCCESS)
+func _equip_pet_directly(pet_idx: int, slot: String, cosmetic_id: String) -> void:
+	var def: Dictionary = GameState.get_item_def(cosmetic_id)
+	var c_name: String = def.get("name", cosmetic_id.replace("_", " ").capitalize())
+	var p_name: String = "your companion"
+	if pet_idx >= 0 and pet_idx < GameState.active_pets.size():
+		p_name = GameState.active_pets[pet_idx].get("name", "your companion")
+		
+	GameState.equip_cosmetic(slot, cosmetic_id, pet_idx)
+	if AudioManager:
+		AudioManager.play_sfx("achievement")
+	if NotificationManager:
+		NotificationManager.show_toast("✨ Equipped %s on %s!" % [c_name, p_name], NotificationManager.ToastType.SUCCESS)
 	_refresh_bag_tab()
 	if DatabaseManager:
 		DatabaseManager.save_game()
+
+# ==============================================================================
+# 🐾 PET TARGET SELECTION MODAL
+# ==============================================================================
+func _close_pet_target_modal() -> void:
+	if _pet_target_modal and is_instance_valid(_pet_target_modal):
+		_pet_target_modal.queue_free()
+		_pet_target_modal = null
+
+func _open_pet_target_modal(action_type: String, item_id: String, slot: String = "") -> void:
+	_close_pet_target_modal()
+	if not GameState or GameState.active_pets.is_empty():
+		return
+		
+	var def: Dictionary = GameState.get_item_def(item_id)
+	var i_name: String = def.get("name", item_id.replace("_", " ").capitalize())
+	var i_icon: String = def.get("icon", "📦")
+	
+	_pet_target_modal = PanelContainer.new()
+	_pet_target_modal.name = "PetTargetModal"
+	_pet_target_modal.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_pet_target_modal.mouse_filter = Control.MOUSE_FILTER_STOP
+	
+	var bg_style: StyleBoxFlat = StyleBoxFlat.new()
+	bg_style.bg_color = Color(0.04, 0.05, 0.09, 0.96)
+	bg_style.border_color = Color(0.24, 0.28, 0.42, 1.0)
+	bg_style.set_border_width_all(2)
+	bg_style.content_margin_left = 10
+	bg_style.content_margin_right = 10
+	bg_style.content_margin_top = 10
+	bg_style.content_margin_bottom = 10
+	_pet_target_modal.add_theme_stylebox_override("panel", bg_style)
+	
+	var main_vbox: VBoxContainer = VBoxContainer.new()
+	main_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	main_vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	main_vbox.add_theme_constant_override("separation", 6)
+	_pet_target_modal.add_child(main_vbox)
+	
+	# Header Row
+	var header_hbox: HBoxContainer = HBoxContainer.new()
+	header_hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	main_vbox.add_child(header_hbox)
+	
+	var title_lbl: Label = Label.new()
+	title_lbl.text = "🍴 CHOOSE COMPANION" if action_type == "feed" else "👕 CHOOSE COMPANION"
+	title_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title_lbl.add_theme_font_size_override("font_size", 9)
+	title_lbl.add_theme_color_override("font_color", Color(1.0, 0.84, 0.0))
+	header_hbox.add_child(title_lbl)
+	
+	var close_btn_m: Button = Button.new()
+	close_btn_m.text = "✕"
+	close_btn_m.custom_minimum_size = Vector2(20, 20)
+	close_btn_m.focus_mode = Control.FOCUS_NONE
+	close_btn_m.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	close_btn_m.add_theme_font_size_override("font_size", 8)
+	close_btn_m.pressed.connect(_close_pet_target_modal)
+	header_hbox.add_child(close_btn_m)
+	
+	# Item Preview Banner
+	var preview_panel: PanelContainer = PanelContainer.new()
+	var p_style: StyleBoxFlat = StyleBoxFlat.new()
+	p_style.bg_color = Color(0.08, 0.11, 0.18)
+	p_style.border_color = Color(0.18, 0.22, 0.32)
+	p_style.set_border_width_all(1)
+	p_style.content_margin_left = 6
+	p_style.content_margin_right = 6
+	p_style.content_margin_top = 4
+	p_style.content_margin_bottom = 4
+	preview_panel.add_theme_stylebox_override("panel", p_style)
+	
+	var preview_hbox: HBoxContainer = HBoxContainer.new()
+	preview_hbox.add_theme_constant_override("separation", 6)
+	preview_panel.add_child(preview_hbox)
+	
+	var p_icon: Label = Label.new()
+	p_icon.text = i_icon
+	p_icon.add_theme_font_size_override("font_size", 12)
+	preview_hbox.add_child(p_icon)
+	
+	var p_desc: Label = Label.new()
+	if action_type == "feed":
+		var e_b = int(def.get("energy_boost", 0))
+		var j_b = int(def.get("joy_boost", 0))
+		p_desc.text = "%s (+%d⚡ +%d💖)" % [i_name, e_b, j_b]
+	else:
+		p_desc.text = "%s (%s slot)" % [i_name, slot.capitalize()]
+	p_desc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	p_desc.add_theme_font_size_override("font_size", 8)
+	p_desc.modulate = Color(0.85, 0.90, 1.0)
+	preview_hbox.add_child(p_desc)
+	main_vbox.add_child(preview_panel)
+	
+	var sub_lbl: Label = Label.new()
+	sub_lbl.text = "Select pet to receive item:"
+	sub_lbl.add_theme_font_size_override("font_size", 7)
+	sub_lbl.modulate = Color(0.60, 0.68, 0.80)
+	main_vbox.add_child(sub_lbl)
+	
+	# Scrollable Pet List
+	var scroll: ScrollContainer = ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	main_vbox.add_child(scroll)
+	
+	var pet_vbox: VBoxContainer = VBoxContainer.new()
+	pet_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	pet_vbox.add_theme_constant_override("separation", 4)
+	scroll.add_child(pet_vbox)
+	
+	for p_idx in range(GameState.active_pets.size()):
+		var pet_info: Dictionary = GameState.active_pets[p_idx]
+		var p_name: String = pet_info.get("name", "Companion")
+		var p_species: String = pet_info.get("species", "shiba")
+		var p_emoji: String = _get_species_emoji(p_species)
+		var p_energy: float = float(pet_info.get("energy", 80.0))
+		var p_joy: float = float(pet_info.get("joy", 80.0))
+		var p_room_id: String = pet_info.get("room", "room_bedroom")
+		var room_name: String = GameState.ITEM_DEFINITIONS.get(p_room_id, {}).get("name", "Bedroom")
+		
+		var pet_btn: Button = Button.new()
+		pet_btn.custom_minimum_size = Vector2(0, 36)
+		pet_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		pet_btn.focus_mode = Control.FOCUS_NONE
+		pet_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+		
+		var row_box: HBoxContainer = HBoxContainer.new()
+		row_box.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		row_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		row_box.add_theme_constant_override("separation", 6)
+		pet_btn.add_child(row_box)
+		
+		var row_icon: Label = Label.new()
+		row_icon.text = p_emoji
+		row_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		row_icon.add_theme_font_size_override("font_size", 12)
+		row_box.add_child(row_icon)
+		
+		var info_vbox: VBoxContainer = VBoxContainer.new()
+		info_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		info_vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		info_vbox.add_theme_constant_override("separation", 1)
+		row_box.add_child(info_vbox)
+		
+		var name_row: Label = Label.new()
+		name_row.text = p_name
+		name_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		name_row.add_theme_font_size_override("font_size", 8)
+		name_row.modulate = Color(1.0, 0.90, 0.50) if p_idx == GameState.selected_pet_index else Color.WHITE
+		info_vbox.add_child(name_row)
+		
+		var detail_row: Label = Label.new()
+		detail_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		detail_row.add_theme_font_size_override("font_size", 7)
+		if action_type == "feed":
+			detail_row.text = "⚡ %d%%   💖 %d%%   (%s)" % [int(p_energy), int(p_joy), room_name]
+			detail_row.modulate = Color(0.40, 0.85, 0.55) if p_energy >= 80.0 else Color(0.96, 0.70, 0.25)
+		else:
+			var ec: Dictionary = pet_info.get("equipped_cosmetics", {})
+			var cur_worn: String = ec.get(slot, "")
+			if cur_worn.is_empty():
+				detail_row.text = "%s: [None]" % slot.capitalize()
+				detail_row.modulate = Color(0.65, 0.70, 0.80)
+			else:
+				var worn_def: Dictionary = GameState.get_item_def(cur_worn)
+				var worn_name: String = worn_def.get("name", cur_worn)
+				detail_row.text = "%s: %s" % [slot.capitalize(), worn_name]
+				detail_row.modulate = Color(0.31, 0.82, 0.91)
+		info_vbox.add_child(detail_row)
+		
+		# Connect button click
+		var captured_idx: int = p_idx
+		pet_btn.pressed.connect(func():
+			_close_pet_target_modal()
+			if action_type == "feed":
+				_feed_pet_directly(captured_idx, item_id)
+			elif action_type == "equip":
+				_equip_pet_directly(captured_idx, slot, item_id)
+		)
+		pet_vbox.add_child(pet_btn)
+		
+	# Cancel Button
+	var cancel_btn: Button = Button.new()
+	cancel_btn.text = "✕ CANCEL"
+	cancel_btn.custom_minimum_size = Vector2(0, 24)
+	cancel_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	cancel_btn.focus_mode = Control.FOCUS_NONE
+	cancel_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	cancel_btn.add_theme_font_size_override("font_size", 8)
+	cancel_btn.pressed.connect(_close_pet_target_modal)
+	main_vbox.add_child(cancel_btn)
+	
+	add_child(_pet_target_modal)
 
 func _on_decor_toggle_pressed(item_id: String) -> void:
 	var placed: bool = GameState.toggle_decor(item_id)
@@ -780,10 +1061,10 @@ func _on_item_used(_item_id: String, _data: Dictionary) -> void:
 	_refresh_bag_tab()
 	_refresh_vitals_tab()
 
-func _on_cosmetic_equipped(_slot: String, _cosmetic_id: String) -> void:
+func _on_cosmetic_equipped(_pet_idx: int, _slot: String, _cosmetic_id: String) -> void:
 	_refresh_bag_tab()
 
-func _on_cosmetic_unequipped(_slot: String) -> void:
+func _on_cosmetic_unequipped(_pet_idx: int, _slot: String) -> void:
 	_refresh_bag_tab()
 
 func _on_session_completed(_type: String, _coins: int, _xp: int, _streak: int) -> void:
@@ -792,14 +1073,56 @@ func _on_session_completed(_type: String, _coins: int, _xp: int, _streak: int) -
 func _on_close_pressed() -> void:
 	EventBus.panel_visibility_changed.emit("right", false)
 
-func _on_active_pet_selected(_idx: int, pet_data: Dictionary) -> void:
-	if pet_name_lbl:
-		pet_name_lbl.text = "🐾 " + pet_data.get("name", "Companion")
+func _on_active_pet_selected(_idx: int, _pet_data: Dictionary) -> void:
+	_update_pet_selector_header()
 	_refresh_vitals_tab()
 	_refresh_bag_tab()
 
 func _on_pet_list_changed(_pets: Array) -> void:
-	if GameState.selected_pet_index < GameState.active_pets.size():
-		var sel = GameState.active_pets[GameState.selected_pet_index]
-		if sel and pet_name_lbl:
-			pet_name_lbl.text = "🐾 " + sel.get("name", "Companion")
+	_update_pet_selector_header()
+	_refresh_vitals_tab()
+	_refresh_bag_tab()
+
+func _cycle_active_pet(dir: int) -> void:
+	if not GameState or GameState.active_pets.is_empty():
+		return
+	var total: int = GameState.active_pets.size()
+	if total <= 1:
+		return
+	var next_idx: int = (GameState.selected_pet_index + dir + total) % total
+	GameState.select_pet(next_idx)
+	if AudioManager:
+		AudioManager.play_sfx("click")
+
+func _update_pet_selector_header() -> void:
+	if not GameState:
+		return
+	var total: int = GameState.active_pets.size()
+	var has_multiple: bool = total > 1
+	if pet_prev_btn and is_instance_valid(pet_prev_btn):
+		pet_prev_btn.visible = has_multiple
+	if pet_next_btn and is_instance_valid(pet_next_btn):
+		pet_next_btn.visible = has_multiple
+	if pet_name_lbl and is_instance_valid(pet_name_lbl):
+		if GameState.selected_pet_index >= 0 and GameState.selected_pet_index < total:
+			var p = GameState.active_pets[GameState.selected_pet_index]
+			var icon_str = _get_species_emoji(p.get("species", "shiba"))
+			var status_suffix: String = ""
+			if p.get("is_outside", false):
+				var rem = GameState.get_pet_expedition_remaining(GameState.selected_pet_index)
+				var mins = int(rem / 60.0)
+				var secs = int(rem) % 60
+				status_suffix = " 🌿 (%02d:%02d)" % [mins, secs]
+			pet_name_lbl.text = "%s %s%s" % [icon_str, p.get("name", "Companion"), status_suffix]
+
+func _get_species_emoji(species: String) -> String:
+	match species:
+		"shiba": return "🐕"
+		"cat": return "🐱"
+		"bunny": return "🐰"
+		"penguin": return "🐧"
+		"fox": return "🦊"
+		"redpanda": return "🐼"
+		"capybara": return "🦫"
+		"owl": return "🦉"
+		_: return "🐾"

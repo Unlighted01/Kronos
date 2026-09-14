@@ -96,6 +96,9 @@ signal pet_interacted(interaction_type: String)
 ## Emitted when an inventory item is used (snack/buff)
 signal item_used(item_id: String, item_data: Dictionary)
 
+## Emitted when a specific pet companion is fed an item
+signal pet_fed(pet_index: int, item_id: String, item_data: Dictionary)
+
 ## Emitted when an item is added to inventory
 signal item_acquired(item_id: String, quantity: int)
 
@@ -148,6 +151,24 @@ signal room_light_toggled(room_id: String, is_on: bool)
 
 ## Emitted when an interactive room object state changes (e.g. bed open, window open)
 signal object_state_changed(object_id: String, state_value: Variant)
+
+# ==============================================================================
+# 🐾 PET LIVING HOUSEHOLD & EXPEDITION SIGNALS
+# ==============================================================================
+## Emitted when two pets engage in living social dialogue
+signal pet_social_started(initiator_idx: int, partner_idx: int, topic: String)
+
+## Emitted when a pet invites a buddy to travel to another room
+signal pet_invited_to_room(leader_idx: int, follower_idx: int, target_room: String)
+
+## Emitted when a pet departs to fetch another pet back to the current room
+signal pet_fetch_started(fetcher_idx: int, target_idx: int)
+
+## Emitted when a pet embarks on an outdoor stroll / expedition
+signal pet_expedition_started(pet_idx: int, duration_sec: float, destination: String)
+
+## Emitted when a pet returns from an outdoor stroll with a souvenir gift
+signal pet_expedition_returned(pet_idx: int, souvenir: Dictionary)
 
 # ==============================================================================
 # 🪟 WINDOW & WORKSPACE SIGNALS

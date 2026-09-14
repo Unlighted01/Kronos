@@ -132,8 +132,30 @@ const DocumentParser = preload("res://scripts/utils/DocumentParser.gd")
 @onready var ai_cancel_btn: Button = $ModalOverlay/Center/AIExtractModal/VBox/BtnRow/CancelBtn
 @onready var file_dialog: FileDialog = $FileDialog
 
+# 4. AI Companion Tutor Oral Exam Modal
+@onready var btn_tutor_quiz: Button = $Scroll/ContentVBox/TopRow/ActionsCard/VBox/BtnTutorQuiz
+@onready var ai_tutor_modal: PanelContainer = $ModalOverlay/Center/AITutorModal
+@onready var tutor_close_btn: Button = $ModalOverlay/Center/AITutorModal/VBox/TitleRow/CloseBtn
+@onready var tutor_pet_icon: Label = $ModalOverlay/Center/AITutorModal/VBox/PetBanner/PetIcon
+@onready var tutor_pet_intro_lbl: Label = $ModalOverlay/Center/AITutorModal/VBox/PetBanner/PetIntroLbl
+@onready var tutor_subj_badge: Label = $ModalOverlay/Center/AITutorModal/VBox/QuestionCard/QVBox/QSubjRow/QSubjBadge
+@onready var tutor_card_index_lbl: Label = $ModalOverlay/Center/AITutorModal/VBox/QuestionCard/QVBox/QSubjRow/QCardIndexLbl
+@onready var tutor_question_text: Label = $ModalOverlay/Center/AITutorModal/VBox/QuestionCard/QVBox/QuestionText
+@onready var tutor_eli5_btn: Button = $ModalOverlay/Center/AITutorModal/VBox/QuestionCard/QVBox/HintRow/ELI5Btn
+@onready var tutor_hint_lbl: Label = $ModalOverlay/Center/AITutorModal/VBox/QuestionCard/QVBox/HintRow/HintLbl
+@onready var tutor_answer_input: TextEdit = $ModalOverlay/Center/AITutorModal/VBox/AnswerInput
+@onready var tutor_eval_panel: PanelContainer = $ModalOverlay/Center/AITutorModal/VBox/EvalFeedbackPanel
+@onready var tutor_verdict_badge: Label = $ModalOverlay/Center/AITutorModal/VBox/EvalFeedbackPanel/EvalVBox/VerdictRow/VerdictBadge
+@onready var tutor_eval_feedback_lbl: Label = $ModalOverlay/Center/AITutorModal/VBox/EvalFeedbackPanel/EvalVBox/EvalFeedbackLbl
+@onready var tutor_socratic_hint_lbl: Label = $ModalOverlay/Center/AITutorModal/VBox/EvalFeedbackPanel/EvalVBox/SocraticHintLbl
+@onready var tutor_submit_btn: Button = $ModalOverlay/Center/AITutorModal/VBox/ActionBtnRow/SubmitAnswerBtn
+@onready var tutor_next_btn: Button = $ModalOverlay/Center/AITutorModal/VBox/ActionBtnRow/NextQuestionBtn
+
 var _ai_generated_cards_cache: Array[Dictionary] = []
 var _document_sections: Array[Dictionary] = []
+var _tutor_queue: Array[Dictionary] = []
+var _tutor_current_idx: int = 0
+var _is_tutor_grading: bool = false
 
 # ==============================================================================
 # 🎨 SUBJECT COLOR PALETTE
@@ -268,6 +290,25 @@ func _connect_signals() -> void:
 		import_submit_btn.pressed.connect(_submit_bulk_import)
 	if import_cancel_btn:
 		import_cancel_btn.pressed.connect(_close_modals)
+		
+	# AI Companion Tutor Oral Exam Modal
+	if btn_tutor_quiz:
+		btn_tutor_quiz.pressed.connect(_on_btn_tutor_quiz_pressed)
+	if tutor_close_btn:
+		tutor_close_btn.pressed.connect(_close_modals)
+	if tutor_eli5_btn:
+		tutor_eli5_btn.pressed.connect(_on_tutor_eli5_pressed)
+	if tutor_submit_btn:
+		tutor_submit_btn.pressed.connect(_on_tutor_submit_pressed)
+	if tutor_next_btn:
+		tutor_next_btn.pressed.connect(_on_tutor_next_pressed)
+	if tutor_answer_input:
+		tutor_answer_input.gui_input.connect(func(event: InputEvent):
+			if event is InputEventKey and event.pressed and not event.is_echo():
+				if (event.ctrl_pressed or event.meta_pressed) and event.keycode == KEY_ENTER:
+					tutor_answer_input.accept_event()
+					_on_tutor_submit_pressed()
+		)
 
 func _input(event: InputEvent) -> void:
 	# Keyboard shortcuts during Active Study Drill
@@ -1300,7 +1341,206 @@ func _on_ai_commit_pressed() -> void:
 
 func _close_modals() -> void:
 	if modal_overlay: modal_overlay.visible = false
+	if card_modal: card_modal.visible = false
+	if import_modal: import_modal.visible = false
 	if ai_extract_modal: ai_extract_modal.visible = false
+	if ai_tutor_modal: ai_tutor_modal.visible = false
+
+# ==============================================================================
+# 🎙️ SECTION 6: AI COMPANION TUTOR • STUDY LIBRARY ORAL EXAM
+# ==============================================================================
+func _on_btn_tutor_quiz_pressed() -> void:
+	if not GameState:
+		return
+		
+	# 🔒 Rule: AI Tutor is gated by the Study Library room!
+	if not GameState.is_room_unlocked("room_library"):
+		if NotificationManager:
+			NotificationManager.show_toast("🔒 Unlock the Vintage Library from the Shop to access your AI Pet Tutor!", NotificationManager.ToastType.WARNING)
+		return
+		
+	if not GameState.is_in_study_library():
+		if NotificationManager:
+			NotificationManager.show_toast("📚 Moving to the Study Library to start your AI Pet tutoring session!", NotificationManager.ToastType.INFO)
+		EventBus.room_switch_requested.emit("room_library")
+		
+	var due_list: Array[Dictionary] = GameState.get_due_flashcards(_active_subject_filter)
+	if due_list.is_empty():
+		due_list = GameState.get_flashcards()
+		
+	if due_list.is_empty():
+		if NotificationManager:
+			NotificationManager.show_toast("📚 Deck is empty! Add cards first.", NotificationManager.ToastType.WARNING)
+		return
+		
+	_tutor_queue = due_list.duplicate()
+	_tutor_queue.shuffle()
+	_tutor_current_idx = 0
+	_open_tutor_modal()
+
+func _open_tutor_modal() -> void:
+	if _tutor_queue.is_empty():
+		return
+		
+	if card_modal: card_modal.visible = false
+	if import_modal: import_modal.visible = false
+	if ai_extract_modal: ai_extract_modal.visible = false
+	if ai_tutor_modal: ai_tutor_modal.visible = true
+	if modal_overlay: modal_overlay.visible = true
+	
+	_display_current_tutor_card()
+
+func _display_current_tutor_card() -> void:
+	if _tutor_current_idx < 0 or _tutor_current_idx >= _tutor_queue.size():
+		# Completed queue
+		if NotificationManager:
+			NotificationManager.show_toast("🎓 Library Oral Session Complete! You finished reviewing your deck.", NotificationManager.ToastType.SUCCESS)
+		_close_modals()
+		refresh_all()
+		return
+		
+	var card: Dictionary = _tutor_queue[_tutor_current_idx]
+	var pet_name = GameState.get_pet_name() if GameState else "Companion"
+	var pet_species = GameState.get_active_pet_species() if GameState else "shiba"
+	var emoji = "🐾"
+	match pet_species:
+		"shiba": emoji = "🐕"
+		"cat": emoji = "🐱"
+		"bunny": emoji = "🐰"
+		"penguin": emoji = "🐧"
+		"fox": emoji = "🦊"
+		"redpanda": emoji = "🐼"
+		"capybara": emoji = "🦫"
+		"owl": emoji = "🦉"
+		
+	if tutor_pet_icon: tutor_pet_icon.text = emoji
+	if tutor_pet_intro_lbl: tutor_pet_intro_lbl.text = "I'm %s, your Socratic study tutor! Explain this concept in your own natural language:" % pet_name
+	if tutor_subj_badge: tutor_subj_badge.text = "[%s]" % card.get("subject", "General")
+	if tutor_card_index_lbl: tutor_card_index_lbl.text = "Card %d of %d" % [_tutor_current_idx + 1, _tutor_queue.size()]
+	if tutor_question_text: tutor_question_text.text = card.get("q", "")
+	if tutor_hint_lbl: tutor_hint_lbl.text = ""
+	if tutor_answer_input:
+		tutor_answer_input.text = ""
+		tutor_answer_input.editable = true
+	if tutor_eval_panel: tutor_eval_panel.visible = false
+	if tutor_socratic_hint_lbl: tutor_socratic_hint_lbl.visible = false
+	if tutor_submit_btn:
+		tutor_submit_btn.visible = true
+		tutor_submit_btn.disabled = false
+		tutor_submit_btn.text = "⚡ Submit Explanation"
+	if tutor_next_btn: tutor_next_btn.visible = false
+
+func _on_tutor_eli5_pressed() -> void:
+	if _tutor_current_idx < 0 or _tutor_current_idx >= _tutor_queue.size():
+		return
+	var card = _tutor_queue[_tutor_current_idx]
+	if tutor_hint_lbl:
+		tutor_hint_lbl.text = "Thinking of an intuitive analogy..."
+		
+	AIService.explain_concept(card.get("q", ""), card.get("a", ""), func(success: bool, analogy: String, _err_str: String):
+		if tutor_hint_lbl:
+			if success and not analogy.is_empty():
+				tutor_hint_lbl.text = "💡 " + analogy
+			else:
+				var static_hint = card.get("hint", "")
+				tutor_hint_lbl.text = "💡 " + (static_hint if not static_hint.is_empty() else "Focus on the key mechanism and function.")
+	)
+
+func _on_tutor_submit_pressed() -> void:
+	if _is_tutor_grading or _tutor_current_idx < 0 or _tutor_current_idx >= _tutor_queue.size():
+		return
+	var user_ans = tutor_answer_input.text.strip_edges() if tutor_answer_input else ""
+	if user_ans.length() < 3:
+		if NotificationManager:
+			NotificationManager.show_toast("✍️ Please write a brief explanation in your own words.", NotificationManager.ToastType.INFO)
+		return
+		
+	var card = _tutor_queue[_tutor_current_idx]
+	_is_tutor_grading = true
+	if tutor_submit_btn:
+		tutor_submit_btn.disabled = true
+		tutor_submit_btn.text = "⏳ Grading Explanation..."
+		
+	var pet_name = GameState.get_pet_name() if GameState else "Companion"
+	AIService.grade_oral_answer(card.get("q", ""), card.get("a", ""), user_ans, pet_name, "cozy", func(success: bool, eval_data: Dictionary, _err_msg: String):
+		_is_tutor_grading = false
+		if tutor_submit_btn:
+			tutor_submit_btn.visible = false
+			
+		if not success or eval_data.is_empty():
+			# Heuristic fallback if offline/no key
+			var score = 3
+			var expected = str(card.get("a", "")).to_lower()
+			var user_l = user_ans.to_lower()
+			if user_l in expected or expected in user_l or user_l.length() >= 20:
+				score = 4
+			eval_data = {
+				"score": score,
+				"verdict": "mastered" if score >= 4 else "partial",
+				"feedback": "%s: Good effort! Conceptual explanation received." % pet_name,
+				"follow_up_hint": "Reference answer: " + card.get("a", ""),
+				"eli5_analogy": ""
+			}
+			
+		_display_tutor_evaluation(eval_data)
+	)
+
+func _display_tutor_evaluation(eval_data: Dictionary) -> void:
+	var score: int = int(eval_data.get("score", 3))
+	var verdict: String = str(eval_data.get("verdict", "partial")).to_lower()
+	var feedback: String = str(eval_data.get("feedback", "Good effort!"))
+	var hint: String = str(eval_data.get("follow_up_hint", ""))
+	var eli5: String = str(eval_data.get("eli5_analogy", ""))
+	
+	if tutor_eval_panel: tutor_eval_panel.visible = true
+	if tutor_verdict_badge:
+		match verdict:
+			"mastered":
+				tutor_verdict_badge.text = "🟢 Mastered (%d/5)" % max(4, score)
+				tutor_verdict_badge.modulate = Color(0.24, 0.86, 0.52)
+			"partial":
+				tutor_verdict_badge.text = "🟡 Partial Understanding (%d/5)" % score
+				tutor_verdict_badge.modulate = Color(0.96, 0.78, 0.25)
+			"missed":
+				tutor_verdict_badge.text = "🔴 Needs Review (%d/5)" % min(2, score)
+				tutor_verdict_badge.modulate = Color(1.0, 0.35, 0.35)
+				
+	if tutor_eval_feedback_lbl:
+		tutor_eval_feedback_lbl.text = feedback
+		
+	if tutor_socratic_hint_lbl:
+		if not hint.is_empty():
+			tutor_socratic_hint_lbl.visible = true
+			tutor_socratic_hint_lbl.text = "💡 " + hint
+		elif not eli5.is_empty():
+			tutor_socratic_hint_lbl.visible = true
+			tutor_socratic_hint_lbl.text = "💡 Analogy: " + eli5
+		else:
+			tutor_socratic_hint_lbl.visible = false
+			
+	# Update SM-2 Leitner state in GameState
+	if _tutor_current_idx >= 0 and _tutor_current_idx < _tutor_queue.size():
+		var card = _tutor_queue[_tutor_current_idx]
+		var c_id = card.get("id", "")
+		if GameState and not c_id.is_empty():
+			GameState.submit_sm2_review(c_id, score)
+			if score >= 4:
+				GameState.add_knowledge_points(15, "tutor_oral_mastery")
+				GameState.add_coins(5, "tutor_oral_mastery")
+				if EventBus: EventBus.pet_interacted.emit("petted")
+			else:
+				GameState.add_knowledge_points(5, "tutor_oral_practice")
+			
+	if tutor_next_btn:
+		tutor_next_btn.visible = true
+		if verdict == "mastered":
+			tutor_next_btn.text = "⏭️ Next Card (+15 KP)"
+		else:
+			tutor_next_btn.text = "⏭️ Next Card (+5 KP)"
+
+func _on_tutor_next_pressed() -> void:
+	_tutor_current_idx += 1
+	_display_current_tutor_card()
 
 func _save_single_card() -> void:
 	if not GameState:

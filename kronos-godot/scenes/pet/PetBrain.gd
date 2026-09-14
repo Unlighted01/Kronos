@@ -22,7 +22,11 @@ enum State {
 	CHEF_SNIFF,
 	EXITING_ROOM,
 	PLAY,
-	SPECIAL_INTERACTION
+	SPECIAL_INTERACTION,
+	SOCIALIZING,
+	FOLLOWING,
+	FETCHING,
+	DEPARTING_OUTSIDE
 }
 
 # ==============================================================================
@@ -134,6 +138,21 @@ var _pending_target_room: String = ""
 
 # Dynamic room floor height offset (e.g. Charon's Skiff bobbing)
 var _floor_bob_y: float = 0.0
+
+# Living Household Social & Multi-Pet State
+var _social_cooldown: float = 15.0
+var _is_social_partner: bool = false
+var _social_partner_node: PetBrain = null
+var _buddy_leader_node: PetBrain = null
+
+# Companion Fetch State
+var _fetch_check_timer: float = 0.0
+var _next_fetch_check: float = 60.0
+var _fetching_target_pet_id: String = ""
+
+# Autonomous Outdoor Stroll / Expedition State
+var _expedition_check_timer: float = 0.0
+var _next_expedition_check: float = 90.0
 
 # ==============================================================================
 # 🎲 WEIGHTED-RANDOM IDLE INTERACTION SYSTEM
@@ -873,6 +892,8 @@ func _connect_event_bus() -> void:
 	EventBus.session_completed.connect(_on_session_completed)
 	EventBus.session_skipped.connect(_on_session_skipped)
 	EventBus.item_used.connect(_on_item_used)
+	if EventBus.has_signal("pet_fed"):
+		EventBus.pet_fed.connect(_on_pet_fed)
 	EventBus.room_changed.connect(_on_room_changed)
 	EventBus.pet_room_changed.connect(_on_pet_room_changed)
 	EventBus.pet_called.connect(_on_pet_called)
@@ -934,9 +955,22 @@ func _physics_process(delta: float) -> void:
 			_process_play_state(delta)
 		State.SPECIAL_INTERACTION:
 			_process_special_interaction_state(delta)
+		State.SOCIALIZING:
+			_process_socializing_state(delta)
+		State.FOLLOWING:
+			_process_following_state(delta)
+		State.FETCHING:
+			_process_fetching_state(delta)
+		State.DEPARTING_OUTSIDE:
+			_process_departing_outside_state(delta)
 			
 	# Enforce room boundaries & target y level (including dynamic floor bobbing)
-	if current_state != State.EXITING_ROOM and post_target_state != State.EXITING_ROOM:
+	var is_exiting_bounds: bool = (
+		current_state == State.EXITING_ROOM or post_target_state == State.EXITING_ROOM or
+		current_state == State.DEPARTING_OUTSIDE or post_target_state == State.DEPARTING_OUTSIDE or
+		current_state == State.FETCHING or post_target_state == State.FETCHING
+	)
+	if not is_exiting_bounds:
 		position.x = clampf(position.x, min_x, max_x)
 	var effective_y: float = (floor_y if current_state == State.WALK_TO_TARGET else current_target_y) + _floor_bob_y
 	position.y = move_toward(position.y, effective_y, delta * 60.0)
@@ -985,6 +1019,32 @@ func _process_idle_state(delta: float) -> void:
 		if _special_behavior_cooldown <= 0.0:
 			if _try_start_weighted_idle_interaction():
 				return
+				
+	# 1.2 Multi-Pet Living Household Social Interaction Check
+	if not _is_social_partner and not is_working:
+		_social_cooldown -= delta
+		if _social_cooldown <= 0.0:
+			_social_cooldown = randf_range(20.0, 45.0)
+			if _try_multi_pet_social():
+				return
+
+	# 1.3 Autonomous Outdoor Stroll / Expedition Check (3-5 min)
+	if not is_working:
+		_expedition_check_timer += delta
+		if _expedition_check_timer >= _next_expedition_check:
+			_expedition_check_timer = 0.0
+			_next_expedition_check = randf_range(90.0, 180.0)
+			if _try_start_autonomous_expedition():
+				return
+
+	# 1.4 Autonomous Companion Fetch Check
+	if not is_working:
+		_fetch_check_timer += delta
+		if _fetch_check_timer >= _next_fetch_check:
+			_fetch_check_timer = 0.0
+			_next_fetch_check = randf_range(90.0, 180.0)
+			if _try_autonomous_companion_fetch():
+				return
 	
 	# 1.5 Weather Overrides
 	if state_timer > 2.0 and GameState:
@@ -1007,10 +1067,11 @@ func _process_idle_state(delta: float) -> void:
 	if state_timer >= randf_range(4.0, 8.0):
 		state_timer = 0.0
 		
-		# Work is MANDATORY when timer is running — pets spread out, unique animations
+		# Designated Study Buddy works alongside user; other companions live freely
 		if is_working:
-			_join_work_session()
-			return
+			if GameState and pet_index == GameState.get_study_buddy_idx():
+				_join_work_session()
+				return
 			
 		# Context-Aware Room Prop Behaviors
 		if _try_room_specific_activity(cur_room, profile):
@@ -1498,8 +1559,24 @@ func _try_autonomous_room_roam() -> bool:
 	var exit_door_x: float = min_x - 14.0 if is_moving_left else max_x + 14.0
 	
 	var r_name: String = GameState.ITEM_DEFINITIONS.get(chosen_target, {}).get("name", "next room")
-	if thought_bubble and visible:
-		thought_bubble.show_thought("Trotting to the %s... 🐾" % r_name, 3.0)
+	
+	# Buddy Invitation (40% chance to invite an idle roommate)
+	var invited_buddy: PetBrain = null
+	if randf() < 0.40 and get_parent():
+		for child in get_parent().get_children():
+			if child is PetBrain and child != self and is_instance_valid(child) and child.visible:
+				if child.current_state in [State.IDLE, State.WINDOW_GAZE, State.WARM_PAWS] and not child._is_social_partner:
+					invited_buddy = child
+					break
+					
+	if invited_buddy:
+		if thought_bubble and visible:
+			thought_bubble.show_buddy_invite(invited_buddy.pet_name, r_name)
+		invited_buddy.accept_buddy_invite(self, chosen_target, exit_door_x)
+		EventBus.pet_invited_to_room.emit(pet_index, invited_buddy.pet_index, chosen_target)
+	else:
+		if thought_bubble and visible:
+			thought_bubble.show_thought("Trotting to the %s... 🐾" % r_name, 3.0)
 		
 	walk_to_door_and_exit(chosen_target, exit_door_x)
 	return true
@@ -1566,27 +1643,37 @@ func _sync_initial_state() -> void:
 func _on_timer_state_changed(is_running: bool, is_paused: bool) -> void:
 	if is_running:
 		if TimerEngine.current_phase == TimerEngine.TimerPhase.WORK:
-			var cur_room: String = GameState.pet_room if GameState else "room_bedroom"
-			if cur_room == "room_bedroom":
-				_join_work_session()
-			else:
-				if thought_bubble and visible:
-					thought_bubble.show_thought("Focus mode started! 🚀", 3.0)
+			if GameState:
+				if GameState.study_buddy_idx == -1:
+					GameState.assign_study_buddy(assigned_room)
+				if pet_index == GameState.get_study_buddy_idx():
+					_join_work_session()
+				else:
+					if current_state == State.TYPE:
+						current_state = State.IDLE
 		else:
+			if GameState:
+				GameState.clear_study_buddy()
 			_start_break_behavior()
 	elif is_paused:
 		if current_state == State.TYPE:
 			_set_renderer_state(PetRenderer.AnimState.IDLE)
 	else:
+		if GameState:
+			GameState.clear_study_buddy()
 		if current_state == State.TYPE:
 			current_state = State.IDLE
 
 func _on_phase_changed(new_phase: String, _duration: float) -> void:
 	if new_phase == "work":
-		var cur_room: String = GameState.pet_room if GameState else "room_bedroom"
-		if cur_room == "room_bedroom":
-			_join_work_session()
+		if GameState:
+			if GameState.study_buddy_idx == -1:
+				GameState.assign_study_buddy(assigned_room)
+			if pet_index == GameState.get_study_buddy_idx():
+				_join_work_session()
 	else:
+		if GameState:
+			GameState.clear_study_buddy()
 		_start_break_behavior()
 
 func _on_session_completed(session_type: String, _coins: int, _xp: int, _streak: int) -> void:
@@ -1677,10 +1764,22 @@ func _on_pet_interacted(interaction_type: String) -> void:
 		if renderer:
 			renderer._spawn_particle("heart")
 
-func _on_item_used(item_id: String, _item_data: Dictionary) -> void:
+func _on_pet_fed(target_pet_idx: int, item_id: String, item_data: Dictionary) -> void:
 	if not visible:
 		return
-		
+	if target_pet_idx >= 0 and target_pet_idx != pet_index:
+		return
+	_react_to_food_item(item_id, item_data)
+
+func _on_item_used(item_id: String, item_data: Dictionary) -> void:
+	if not visible:
+		return
+	# If multiple pets exist, _on_pet_fed handles targeted reaction to prevent all pets reacting simultaneously
+	if GameState and GameState.active_pets.size() > 1:
+		return
+	_react_to_food_item(item_id, item_data)
+
+func _react_to_food_item(item_id: String, _item_data: Dictionary) -> void:
 	match item_id:
 		"snack_coffee":
 			if thought_bubble:
@@ -1921,7 +2020,7 @@ func _try_start_weighted_idle_interaction() -> bool:
 	return true
 
 func _start_behavior_sequence(b: Dictionary) -> void:
-	_active_sequence = b
+	_active_sequence = b.duplicate(true)
 	_sequence_stage = 1
 	_sequence_timer = 0.0
 	
@@ -2012,7 +2111,7 @@ func _cancel_active_sequence() -> void:
 	if _sequence_tween and _sequence_tween.is_valid():
 		_sequence_tween.kill()
 		_sequence_tween = null
-	_active_sequence.clear()
+	_active_sequence = {}
 	_sequence_stage = 0
 	_sequence_timer = 0.0
 	rotation = 0.0
@@ -2058,3 +2157,216 @@ func _on_coins_changed(_new_balance: int, amount_delta: int, _reason: String) ->
 		if renderer:
 			renderer._spawn_particle("star")
 		_play_happy_hop_tween()
+
+# ==============================================================================
+# 🐾 LIVING HOUSEHOLD, BUDDY TRAVEL, FETCH & EXPEDITION HANDLERS
+# ==============================================================================
+func _process_socializing_state(delta: float) -> void:
+	velocity.x = 0.0
+	_set_renderer_state(PetRenderer.AnimState.IDLE)
+	
+	if state_timer == delta:
+		# First frame of social interaction arrival!
+		if is_instance_valid(_social_partner_node):
+			if renderer:
+				renderer.facing_right = (_social_partner_node.position.x > position.x)
+			if _social_partner_node.renderer:
+				_social_partner_node.renderer.facing_right = (position.x > _social_partner_node.position.x)
+				
+			var p_name: String = _social_partner_node.pet_name
+			var topic: String = ""
+			if thought_bubble and visible:
+				topic = thought_bubble.show_social_initiator(p_name)
+			if renderer:
+				renderer._spawn_particle("heart")
+			_play_happy_hop_tween()
+			
+			EventBus.pet_social_started.emit(pet_index, _social_partner_node.pet_index, topic)
+			
+			# Partner responds after 0.8s
+			var partner_ref = _social_partner_node
+			var self_name = pet_name
+			var timer = get_tree().create_timer(0.8)
+			timer.timeout.connect(func():
+				if is_instance_valid(partner_ref) and partner_ref.visible:
+					partner_ref.play_social_response(self_name)
+			)
+			
+			if GameState:
+				GameState.adjust_pet_joy(pet_index, 5.0)
+				GameState.adjust_pet_joy(_social_partner_node.pet_index, 5.0)
+				
+	if state_timer >= 3.6:
+		if is_instance_valid(_social_partner_node):
+			_social_partner_node._is_social_partner = false
+			_social_partner_node._social_partner_node = null
+		_is_social_partner = false
+		_social_partner_node = null
+		current_state = State.IDLE
+		state_timer = 0.0
+
+func play_social_response(partner_name: String) -> void:
+	if thought_bubble and visible:
+		thought_bubble.show_social_reply(partner_name)
+	if renderer:
+		renderer._spawn_particle("heart")
+	_play_happy_hop_tween()
+
+func _try_multi_pet_social() -> bool:
+	if not get_parent():
+		return false
+	var candidates: Array[PetBrain] = []
+	for child in get_parent().get_children():
+		if child is PetBrain and child != self and is_instance_valid(child) and child.visible:
+			if child.current_state in [State.IDLE, State.WINDOW_GAZE, State.WARM_PAWS] and not child._is_social_partner:
+				candidates.append(child)
+	if candidates.is_empty():
+		return false
+		
+	var partner: PetBrain = candidates.pick_random()
+	_is_social_partner = true
+	partner._is_social_partner = true
+	_social_partner_node = partner
+	partner._social_partner_node = self
+	
+	# Determine meeting position (22px apart)
+	var meet_x: float = partner.position.x + (-22.0 if position.x < partner.position.x else 22.0)
+	meet_x = clampf(meet_x, min_x + 5.0, max_x - 5.0)
+	
+	_cancel_active_sequence()
+	target_x = meet_x
+	post_target_state = State.SOCIALIZING
+	post_target_y = floor_y
+	current_target_y = floor_y
+	current_state = State.WALK_TO_TARGET
+	state_timer = 0.0
+	_set_renderer_state(PetRenderer.AnimState.WALK)
+	if renderer:
+		renderer.facing_right = (meet_x > position.x)
+	return true
+
+func accept_buddy_invite(leader: PetBrain, target_room: String, door_x: float) -> void:
+	if thought_bubble and visible:
+		thought_bubble.show_buddy_accept()
+	_buddy_leader_node = leader
+	var timer = get_tree().create_timer(0.5)
+	timer.timeout.connect(func():
+		walk_to_door_and_exit(target_room, door_x)
+	)
+
+func _process_following_state(_delta: float) -> void:
+	if is_instance_valid(_buddy_leader_node):
+		var lead_x: float = _buddy_leader_node.position.x
+		var follow_offset: float = -22.0 if _buddy_leader_node.velocity.x >= 0 else 22.0
+		var target_follow_x = lead_x + follow_offset
+		if abs(position.x - target_follow_x) > 6.0:
+			velocity.x = signf(target_follow_x - position.x) * walk_speed
+			_set_renderer_state(PetRenderer.AnimState.WALK)
+			if renderer:
+				renderer.facing_right = (velocity.x > 0)
+			move_and_slide()
+		else:
+			velocity.x = 0.0
+			_set_renderer_state(PetRenderer.AnimState.IDLE)
+	else:
+		current_state = State.IDLE
+
+func _try_start_autonomous_expedition() -> bool:
+	if not GameState or not visible or is_queued_for_deletion():
+		return false
+	if GameState.is_pet_newcomer(pet_index) or GameState.is_pet_outside(pet_index):
+		return false
+	if GameState.study_buddy_idx == pet_index:
+		return false
+	if randf() > 0.25:
+		return false
+		
+	var destinations: Array[String] = ["the garden", "the backyard", "the patio", "the woods"]
+	var dest: String = destinations.pick_random()
+	
+	if thought_bubble and visible:
+		thought_bubble.show_expedition_depart(dest)
+		
+	var exit_door_x: float = min_x - 14.0 if randf() < 0.5 else max_x + 14.0
+	_cancel_active_sequence()
+	target_x = exit_door_x
+	post_target_state = State.DEPARTING_OUTSIDE
+	post_target_y = floor_y
+	current_target_y = floor_y
+	current_state = State.WALK_TO_TARGET
+	state_timer = 0.0
+	_set_renderer_state(PetRenderer.AnimState.WALK)
+	if renderer:
+		renderer.facing_right = (exit_door_x > position.x)
+	return true
+
+func _process_departing_outside_state(_delta: float) -> void:
+	if GameState:
+		GameState.start_pet_expedition(pet_index, 0.0, "garden")
+		
+	var tween: Tween = create_tween()
+	tween.tween_property(self, "modulate:a", 0.0, 0.25).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tween.tween_callback(func():
+		queue_free()
+	)
+	current_state = State.IDLE
+
+func _try_autonomous_companion_fetch() -> bool:
+	if not GameState or GameState.active_pets.size() <= 1:
+		return false
+	if assigned_room != GameState.active_view_room:
+		return false
+		
+	var separated: Array[int] = []
+	for i in range(GameState.active_pets.size()):
+		var p = GameState.active_pets[i]
+		if i != pet_index and not p.get("is_outside", false) and p.get("room", "") != assigned_room:
+			separated.append(i)
+			
+	if separated.is_empty():
+		return false
+		
+	if randf() > 0.30:
+		return false
+		
+	start_fetch_mission(separated.pick_random())
+	return true
+
+func start_fetch_mission(target_idx: int) -> void:
+	if target_idx < 0 or target_idx >= GameState.active_pets.size():
+		return
+	var target_p = GameState.active_pets[target_idx]
+	var target_name = target_p.get("name", "friend")
+	
+	if thought_bubble and visible:
+		thought_bubble.show_fetch_depart(target_name)
+		
+	var dir = GameState.get_room_direction(assigned_room, target_p.get("room", "room_bedroom"))
+	var door_x = min_x - 14.0 if dir <= 0 else max_x + 14.0
+	
+	_cancel_active_sequence()
+	target_x = door_x
+	post_target_state = State.FETCHING
+	post_target_y = floor_y
+	current_target_y = floor_y
+	current_state = State.WALK_TO_TARGET
+	state_timer = 0.0
+	_fetching_target_pet_id = target_p.get("id", "")
+	_set_renderer_state(PetRenderer.AnimState.WALK)
+	if renderer:
+		renderer.facing_right = (door_x > position.x)
+
+func _process_fetching_state(_delta: float) -> void:
+	if GameState:
+		for i in range(GameState.active_pets.size()):
+			if GameState.active_pets[i].get("id", "") == _fetching_target_pet_id:
+				GameState.send_pet_to_fetch(pet_index, i)
+				break
+				
+	var tween: Tween = create_tween()
+	tween.tween_property(self, "modulate:a", 0.0, 0.25).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tween.tween_callback(func():
+		queue_free()
+	)
+	current_state = State.IDLE
+

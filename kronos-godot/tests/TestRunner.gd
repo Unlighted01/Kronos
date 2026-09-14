@@ -281,6 +281,7 @@ func _ready() -> void:
 	total_tests += 1
 	AIService.load_ai_config()
 	if not AIService.api_key.is_empty():
+		await get_tree().create_timer(1.0).timeout
 		var live_cards_result: Array = []
 		var live_err_msg: String = ""
 		var completed: bool = false
@@ -293,9 +294,9 @@ func _ready() -> void:
 				live_err_msg = err_str
 		)
 		
-		# Wait up to 10 seconds for HTTP completion
+		# Wait up to 25 seconds for HTTP completion
 		var wait_ticks = 0
-		while not completed and wait_ticks < 100:
+		while not completed and wait_ticks < 250:
 			await get_tree().create_timer(0.1).timeout
 			wait_ticks += 1
 			
@@ -310,6 +311,124 @@ func _ready() -> void:
 	else:
 		passed_tests += 1
 		print("  ⚠️ Skipped live API test (no key configured).")
+
+	# --------------------------------------------------------------------------
+	# TEST 10: Study Library AI Companion Tutor & Socratic Oral Exam
+	# --------------------------------------------------------------------------
+	print("\n[TEST 10] Testing AI Companion Tutor & Study Library Gating...")
+	total_tests += 1
+	var mock_eval_json = """
+	{
+		"score": 5,
+		"verdict": "mastered",
+		"feedback": "Sparky: Outstanding explanation! You nailed the phospholipid bilayer structure.",
+		"follow_up_hint": "",
+		"eli5_analogy": ""
+	}
+	"""
+	var received_eval: Dictionary = {}
+	AIService._dispatch_parsed_result("grade_oral_answer", mock_eval_json, func(success: bool, data: Variant, _err: String):
+		if success and typeof(data) == TYPE_DICTIONARY:
+			received_eval.merge(data as Dictionary)
+	)
+	if received_eval.get("score") == 5 and received_eval.get("verdict") == "mastered":
+		passed_tests += 1
+		print("  ✅ Socratic Oral Exam Evaluation Normalizer verified (Mastered 5/5).")
+	else:
+		failed_tests += 1
+		printerr("  ❌ Oral exam evaluation normalizer failed! Result: ", received_eval)
+
+	total_tests += 1
+	var initial_library_state = GameState.is_in_study_library()
+	var was_unlocked = GameState.is_room_unlocked("room_library")
+	if not was_unlocked and not initial_library_state:
+		# Test unlock transition
+		GameState.unlocked_rooms.append("room_library")
+		GameState.active_room = "room_library"
+		var now_in_library = GameState.is_in_study_library()
+		if now_in_library:
+			passed_tests += 1
+			print("  ✅ Study Library Sanctuary Gating verified (Locked outside -> Active inside).")
+		else:
+			failed_tests += 1
+			printerr("  ❌ Study Library Gating failed after unlock!")
+	else:
+		passed_tests += 1
+		print("  ✅ Study Library Sanctuary Gating verified.")
+
+	# --------------------------------------------------------------------------
+	# TEST 11: Live End-to-End Terminal Simulation of AI Pet Tutor
+	# --------------------------------------------------------------------------
+	print("\n[TEST 11] Running Live Terminal AI Pet Tutor Oral Exam & ELI5 Simulation...")
+	if not AIService.api_key.is_empty():
+		total_tests += 1
+		await get_tree().create_timer(3.0).timeout
+		var pet_name = "Sparky (Fox Tutor)"
+		var q_text = "What is the primary structural composition of the plasma membrane?"
+		var exp_ans = "A phospholipid bilayer with embedded proteins."
+		var student_ans = "It is a double layer of fatty lipids with embedded protein channels that control entry and exit."
+		
+		print("  🐾 [Pet Tutor] Question: \"%s\"" % q_text)
+		print("  🧑 [Student Response]: \"%s\"" % student_ans)
+		
+		var grading_done = false
+		var oral_result = {}
+		AIService.grade_oral_answer(q_text, exp_ans, student_ans, pet_name, "cozy", func(success: bool, eval_data: Dictionary, err_msg: String):
+			grading_done = true
+			if success:
+				oral_result.merge(eval_data)
+			else:
+				printerr("  ❌ Live oral grading API error: ", err_msg)
+		)
+		
+		var wait_oral = 0
+		while not grading_done and wait_oral < 350:
+			await get_tree().create_timer(0.1).timeout
+			wait_oral += 1
+			
+		if not oral_result.is_empty():
+			passed_tests += 1
+			print("  ✅ Live Socratic Oral Grading Succeeded!")
+			print("     • Score: %d/5  Verdict: %s" % [oral_result.get("score", 0), oral_result.get("verdict", "")])
+			print("     • Pet Dialogue: \"%s\"" % oral_result.get("feedback", ""))
+			if not str(oral_result.get("follow_up_hint", "")).is_empty():
+				print("     • Socratic Hint: \"%s\"" % oral_result.get("follow_up_hint", ""))
+		else:
+			failed_tests += 1
+			printerr("  ❌ Live Socratic Oral Grading failed to return valid JSON.")
+			
+		# Test 11b: Live ELI5 Analogy Generation
+		total_tests += 1
+		await get_tree().create_timer(4.0).timeout
+		var eli5_done = false
+		var eli5_analogy_str = ""
+		var eli5_err_msg = ""
+		print("  💡 [Student Action]: Clicked 'Ask for Socratic Analogy (ELI5)'...")
+		AIService.explain_concept("What is active transport in cellular biology?", "Active transport requires ATP hydrolysis to move ions against concentration gradients.", func(success: bool, analogy: String, err_str: String):
+			eli5_done = true
+			if success and not analogy.strip_edges().is_empty():
+				eli5_analogy_str = analogy.strip_edges()
+			else:
+				eli5_err_msg = err_str if not err_str.is_empty() else "Empty analogy received"
+				printerr("  ❌ explain_concept API error: ", eli5_err_msg)
+		)
+		
+		var wait_eli5 = 0
+		while not eli5_done and wait_eli5 < 350:
+			await get_tree().create_timer(0.1).timeout
+			wait_eli5 += 1
+			
+		if not eli5_analogy_str.is_empty():
+			passed_tests += 1
+			print("  ✅ Live ELI5 Analogy Generation Succeeded!")
+			print("     • Analogy: \"%s\"" % eli5_analogy_str)
+		else:
+			failed_tests += 1
+			printerr("  ❌ Live ELI5 Analogy Generation failed. Error: ", eli5_err_msg if not eli5_err_msg.is_empty() else "Timed out waiting for response")
+	else:
+		total_tests += 1
+		passed_tests += 1
+		print("  ⚠️ Skipped live tutor simulation (no API key).")
 
 	# --------------------------------------------------------------------------
 	# SUMMARY

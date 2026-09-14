@@ -42,6 +42,7 @@ var current_room_width: float = 240.0
 var _is_dragging_cam: bool = false
 var _drag_start_x: float = 0.0
 var _cam_start_x: float = 0.0
+var _expedition_poll_timer: float = 0.0
 
 # ==============================================================================
 # ⚙️ LIFECYCLE
@@ -68,12 +69,19 @@ func _ready() -> void:
 	EventBus.pet_list_changed.connect(_on_pet_list_changed)
 	EventBus.pet_delivery_box_spawned.connect(_on_pet_delivery_box_spawned)
 	EventBus.timer_state_changed.connect(_on_timer_state_changed)
+	EventBus.pet_fetch_started.connect(_on_pet_fetch_started)
 	
 	$SubViewportContainer.gui_input.connect(_on_viewport_gui_input)
 	
 	# Load initial room from GameState
 	var init_room = GameState.active_view_room if (GameState and GameState.active_view_room != "") else "room_bedroom"
 	_load_room_instant(init_room)
+
+func _process(delta: float) -> void:
+	_expedition_poll_timer += delta
+	if _expedition_poll_timer >= 1.0:
+		_expedition_poll_timer = 0.0
+		_check_matured_expeditions()
 
 func _on_viewport_gui_input(event: InputEvent) -> void:
 	if current_room_width <= 240.0:
@@ -248,6 +256,8 @@ func _sync_pets_for_current_room(entry_direction: int = 0) -> void:
 	var room_pets: Array[Dictionary] = []
 	
 	for pet_info in GameState.active_pets:
+		if pet_info.get("is_outside", false) == true:
+			continue # Do not spawn companions who are currently outdoors on an expedition!
 		var p_room: String = pet_info.get("room", "room_bedroom")
 		if p_room.is_empty():
 			p_room = "room_bedroom"
@@ -260,7 +270,10 @@ func _sync_pets_for_current_room(entry_direction: int = 0) -> void:
 	for i in range(room_pets.size()):
 		var p_info: Dictionary = room_pets[i]
 		var pet_inst: PetBrain = PET_SCENE.instantiate() as PetBrain
-		pet_inst.pet_index = i
+		var global_idx: int = GameState.active_pets.find(p_info)
+		if global_idx == -1:
+			global_idx = i
+		pet_inst.pet_index = global_idx
 		
 		var a_min: float = float(anchors.get("min_x", 40.0))
 		var a_max: float = float(anchors.get("max_x", 200.0))
@@ -336,3 +349,73 @@ func _on_pet_called(_target_room: String) -> void:
 
 func _on_pet_list_changed(_active_pets: Array) -> void:
 	_sync_pets_for_current_room()
+
+# ==============================================================================
+# 🐾 EXPEDITION & FETCH EVENT HANDLERS
+# ==============================================================================
+func _check_matured_expeditions() -> void:
+	if not GameState or not pet_layer or is_transitioning:
+		return
+	var cur_unix: int = int(Time.get_unix_time_from_system())
+	for i in range(GameState.active_pets.size()):
+		var p: Dictionary = GameState.active_pets[i]
+		if p.get("is_outside", false) == true:
+			var end_t: int = int(p.get("expedition_end_unix", 0))
+			if cur_unix >= end_t:
+				_handle_expedition_return(i)
+				break # Handle one at a time for clear presentation
+
+func _handle_expedition_return(pet_idx: int) -> void:
+	var souvenir: Dictionary = GameState.complete_pet_expedition(pet_idx)
+	var p_info: Dictionary = GameState.active_pets[pet_idx]
+	var p_room: String = p_info.get("room", "room_bedroom")
+	
+	if p_room == current_room_id:
+		var pet_inst: PetBrain = PET_SCENE.instantiate() as PetBrain
+		pet_inst.pet_index = pet_idx
+		var anchors = current_room_node.get_navigation_anchors() if current_room_node else {}
+		var a_min: float = float(anchors.get("min_x", 40.0))
+		var a_max: float = float(anchors.get("max_x", 200.0))
+		var a_desk: float = float(anchors.get("desk_x", (a_min + a_max) * 0.5))
+		var a_nap: float = float(anchors.get("nap_x", a_min + 30.0))
+		var a_drink: float = float(anchors.get("drink_x", a_max - 30.0))
+		var a_floor: float = float(anchors.get("floor_y", 115.0))
+		
+		pet_inst.position = Vector2(a_min - 12.0, a_floor)
+		pet_layer.add_child(pet_inst)
+		pet_inst.setup_pet(p_info)
+		pet_inst.set_room_anchors(a_min, a_max, a_desk, a_nap, a_drink, a_floor)
+		spawned_pets.append(pet_inst)
+		
+		pet_inst.walk_in_from_door(1)
+		
+		var timer = get_tree().create_timer(0.6)
+		timer.timeout.connect(func():
+			if is_instance_valid(pet_inst):
+				if pet_inst.thought_bubble:
+					var s_name = souvenir.get("name", "a surprise gift")
+					pet_inst.thought_bubble.show_expedition_return(s_name)
+				if pet_inst.renderer:
+					for s in range(3):
+						pet_inst.renderer._spawn_particle("star")
+				pet_inst._play_happy_hop_tween()
+		)
+	else:
+		_sync_pets_for_current_room()
+
+func _on_pet_fetch_started(fetcher_idx: int, target_idx: int) -> void:
+	# Fetcher departed to find companion; both arrive in the active room after 2.5s
+	var timer = get_tree().create_timer(2.5)
+	timer.timeout.connect(func():
+		if not is_inside_tree() or is_transitioning:
+			return
+		_sync_pets_for_current_room()
+		for p in spawned_pets:
+			if is_instance_valid(p) and (p.pet_index == fetcher_idx or p.pet_index == target_idx):
+				p.walk_in_from_door(1)
+				if p.pet_index == fetcher_idx and p.thought_bubble:
+					var t_name = GameState.active_pets[target_idx].get("name", "friend") if GameState and target_idx < GameState.active_pets.size() else "friend"
+					p.thought_bubble.show_fetch_return(t_name)
+				p._play_happy_hop_tween()
+	)
+

@@ -777,8 +777,21 @@ var _weather_timer: float = 60.0
 var unlocked_rooms: Array[String] = ["room_bedroom"]
 var unlocked_pets: Array[String] = ["pet_shiba"]
 var selected_pet_index: int = 0
+var study_buddy_idx: int = -1
 var active_pets: Array[Dictionary] = [
-	{"id": "pet_shiba", "name": "Kronos", "species": "shiba", "room": "room_bedroom"}
+	{
+		"id": "pet_shiba",
+		"name": "Kronos",
+		"species": "shiba",
+		"room": "room_bedroom",
+		"energy": 80.0,
+		"joy": 80.0,
+		"equipped_cosmetics": {},
+		"is_outside": false,
+		"expedition_end_unix": 0,
+		"expedition_destination": "",
+		"adopted_at_unix": 0
+	}
 ]
 
 # House Lighting & Interactive Object States
@@ -952,6 +965,9 @@ func is_room_unlocked(r_id: String) -> bool:
 		return true
 	return unlocked_rooms.has(r_id)
 
+func is_in_study_library() -> bool:
+	return is_room_unlocked("room_library") and (active_view_room == "room_library" or active_room == "room_library")
+
 func buy_room(r_id: String) -> bool:
 	if is_room_unlocked(r_id):
 		return false
@@ -977,6 +993,24 @@ func is_pet_unlocked(p_id: String) -> bool:
 	if p_id == "pet_shiba":
 		return true
 	return unlocked_pets.has(p_id)
+
+## Selects active companion by index and syncs active stats
+func select_pet(index: int) -> void:
+	if index < 0 or index >= active_pets.size():
+		return
+	selected_pet_index = index
+	var p: Dictionary = active_pets[index]
+	energy = float(p.get("energy", 80.0))
+	joy = float(p.get("joy", 80.0))
+	equipped_cosmetics = p.get("equipped_cosmetics", {}).duplicate()
+	pet_species = p.get("species", "shiba")
+	pet_name = p.get("name", "Companion")
+	pet_room = p.get("room", active_view_room)
+	EventBus.active_pet_selected.emit(index, p)
+	EventBus.energy_changed.emit(energy, MAX_ENERGY, is_energy_buffed())
+	EventBus.joy_changed.emit(joy, MAX_JOY)
+	if DatabaseManager:
+		DatabaseManager.save_game()
 
 func stow_pet(p_id: String) -> bool:
 	if active_pets.size() <= 1:
@@ -1015,7 +1049,14 @@ func adopt_pet(p_id: String, as_household: bool, custom_name: String = "") -> bo
 		"id": p_id,
 		"name": final_name,
 		"species": spec,
-		"room": active_view_room
+		"room": active_view_room,
+		"energy": 80.0,
+		"joy": 80.0,
+		"equipped_cosmetics": {},
+		"is_outside": false,
+		"expedition_end_unix": 0,
+		"expedition_destination": "",
+		"adopted_at_unix": int(Time.get_unix_time_from_system())
 	}
 	
 	if as_household and active_pets.size() < get_max_pet_slots():
@@ -1185,6 +1226,8 @@ func is_energy_buffed() -> bool:
 func set_energy(value: float) -> void:
 	var old_buffed: bool = is_energy_buffed()
 	energy = clampf(value, MIN_ENERGY, MAX_ENERGY)
+	if selected_pet_index >= 0 and selected_pet_index < active_pets.size():
+		active_pets[selected_pet_index]["energy"] = energy
 	var new_buffed: bool = is_energy_buffed()
 	EventBus.energy_changed.emit(energy, MAX_ENERGY, new_buffed)
 
@@ -1194,20 +1237,48 @@ func add_energy(amount: float) -> void:
 
 ## Returns current active pet energy
 func get_active_energy() -> float:
+	if selected_pet_index >= 0 and selected_pet_index < active_pets.size():
+		return float(active_pets[selected_pet_index].get("energy", energy))
 	return energy
 
-## Returns current active pet joy
-func get_active_joy() -> float:
-	return joy
+## Returns energy of specific pet
+func get_pet_energy(pet_idx: int) -> float:
+	if pet_idx >= 0 and pet_idx < active_pets.size():
+		return float(active_pets[pet_idx].get("energy", 80.0))
+	return 80.0
 
 ## Sets pet joy clamped between 0 and 100
 func set_joy(value: float) -> void:
 	joy = clampf(value, MIN_JOY, MAX_JOY)
+	if selected_pet_index >= 0 and selected_pet_index < active_pets.size():
+		active_pets[selected_pet_index]["joy"] = joy
 	EventBus.joy_changed.emit(joy, MAX_JOY)
 
 ## Adds joy (or removes if negative)
 func add_joy(amount: float) -> void:
 	set_joy(joy + amount)
+
+## Returns current active pet joy
+func get_active_joy() -> float:
+	if selected_pet_index >= 0 and selected_pet_index < active_pets.size():
+		return float(active_pets[selected_pet_index].get("joy", joy))
+	return joy
+
+## Returns joy of specific pet
+func get_pet_joy(pet_idx: int) -> float:
+	if pet_idx >= 0 and pet_idx < active_pets.size():
+		return float(active_pets[pet_idx].get("joy", 80.0))
+	return 80.0
+
+## Adjusts joy for a specific pet
+func adjust_pet_joy(pet_idx: int, amount: float) -> void:
+	if pet_idx >= 0 and pet_idx < active_pets.size():
+		var cur = float(active_pets[pet_idx].get("joy", 80.0))
+		var new_joy = clampf(cur + amount, MIN_JOY, MAX_JOY)
+		active_pets[pet_idx]["joy"] = new_joy
+		if pet_idx == selected_pet_index:
+			joy = new_joy
+			EventBus.joy_changed.emit(joy, MAX_JOY)
 
 ## Sets focus streak
 func set_streak(new_streak: int) -> void:
@@ -1285,8 +1356,8 @@ func get_item_count(item_id: String) -> int:
 			return item.get("quantity", 0)
 	return 0
 
-## Uses an item from inventory and applies stat bonuses
-func use_item(item_id: String) -> bool:
+## Uses an item from inventory and applies stat bonuses to specified pet (or selected pet)
+func use_item(item_id: String, target_pet_idx: int = -1) -> bool:
 	if not has_item(item_id, 1):
 		return false
 		
@@ -1295,15 +1366,35 @@ func use_item(item_id: String) -> bool:
 	var joy_boost: float = item_def.get("joy_boost", 0.0)
 	var exp_boost: int = item_def.get("exp_boost", 0)
 	
+	var target_idx: int = target_pet_idx if (target_pet_idx >= 0 and target_pet_idx < active_pets.size()) else selected_pet_index
+	
 	if remove_item(item_id, 1):
-		if energy_boost > 0.0:
-			add_energy(energy_boost)
-		if joy_boost > 0.0:
-			add_joy(joy_boost)
+		if target_idx >= 0 and target_idx < active_pets.size():
+			var p: Dictionary = active_pets[target_idx]
+			var cur_e: float = float(p.get("energy", 80.0))
+			var cur_j: float = float(p.get("joy", 80.0))
+			p["energy"] = clampf(cur_e + energy_boost, MIN_ENERGY, MAX_ENERGY)
+			p["joy"] = clampf(cur_j + joy_boost, MIN_JOY, MAX_JOY)
+			
+			if target_idx == selected_pet_index:
+				set_energy(p["energy"])
+				set_joy(p["joy"])
+				
+			var p_id: String = p.get("id", "pet_shiba")
+			add_pet_affection(p_id, 10)
+		else:
+			if energy_boost > 0.0:
+				add_energy(energy_boost)
+			if joy_boost > 0.0:
+				add_joy(joy_boost)
+				
 		if exp_boost > 0:
 			add_exp(exp_boost)
 			
 		EventBus.item_used.emit(item_id, item_def)
+		EventBus.pet_fed.emit(target_idx, item_id, item_def)
+		if DatabaseManager:
+			DatabaseManager.save_game()
 		return true
 		
 	return false
@@ -1311,46 +1402,83 @@ func use_item(item_id: String) -> bool:
 # ==============================================================================
 # 👗 COSMETICS & ROOMS
 # ==============================================================================
-## Equips a cosmetic item into a slot ("head", "neck", "face", etc.)
-func equip_cosmetic(slot: String, cosmetic_id: String) -> void:
-	equipped_cosmetics[slot] = cosmetic_id
-	equipped_cosmetic = cosmetic_id
-	if not active_pets.is_empty():
-		var p = active_pets[selected_pet_index]
-		if not p.has("equipped_cosmetics"): p["equipped_cosmetics"] = {}
+## Equips a cosmetic item into a slot ("head", "neck", "face", etc.) for specified pet
+func equip_cosmetic(slot: String, cosmetic_id: String, pet_idx: int = -1) -> void:
+	var target_idx: int = pet_idx if (pet_idx >= 0 and pet_idx < active_pets.size()) else selected_pet_index
+	if target_idx >= 0 and target_idx < active_pets.size():
+		var p: Dictionary = active_pets[target_idx]
+		if not p.has("equipped_cosmetics") or not (p["equipped_cosmetics"] is Dictionary):
+			p["equipped_cosmetics"] = {}
 		p["equipped_cosmetics"][slot] = cosmetic_id
-	EventBus.cosmetic_equipped.emit(selected_pet_index, slot, cosmetic_id)
-	if DatabaseManager:
-		DatabaseManager.save_game()
+		
+		if target_idx == selected_pet_index:
+			equipped_cosmetics[slot] = cosmetic_id
+			equipped_cosmetic = cosmetic_id
+			
+		EventBus.cosmetic_equipped.emit(target_idx, slot, cosmetic_id)
+		check_achievement_progress("equipped_cosmetics_count", 0, get_total_equipped_cosmetics_count())
+		if DatabaseManager:
+			DatabaseManager.save_game()
 
-## Unequips cosmetic from slot
-func unequip_cosmetic(slot: String) -> void:
-	if equipped_cosmetics.has(slot):
-		equipped_cosmetics.erase(slot)
-	if equipped_cosmetic == slot:
-		equipped_cosmetic = ""
-	if not active_pets.is_empty():
-		var p = active_pets[selected_pet_index]
-		if p.has("equipped_cosmetics") and p["equipped_cosmetics"].has(slot):
+## Unequips cosmetic from slot for specified pet
+func unequip_cosmetic(slot: String, pet_idx: int = -1) -> void:
+	var target_idx: int = pet_idx if (pet_idx >= 0 and pet_idx < active_pets.size()) else selected_pet_index
+	if target_idx >= 0 and target_idx < active_pets.size():
+		var p: Dictionary = active_pets[target_idx]
+		if p.has("equipped_cosmetics") and p["equipped_cosmetics"] is Dictionary:
 			p["equipped_cosmetics"].erase(slot)
-	EventBus.cosmetic_unequipped.emit(selected_pet_index, slot)
-	if DatabaseManager:
-		DatabaseManager.save_game()
+			
+		if target_idx == selected_pet_index:
+			if equipped_cosmetics.has(slot):
+				equipped_cosmetics.erase(slot)
+			if equipped_cosmetic == slot:
+				equipped_cosmetic = ""
+				
+		EventBus.cosmetic_unequipped.emit(target_idx, slot)
+		check_achievement_progress("equipped_cosmetics_count", 0, get_total_equipped_cosmetics_count())
+		if DatabaseManager:
+			DatabaseManager.save_game()
 
-## Checks if a specific cosmetic item is equipped
-func is_cosmetic_equipped(cosmetic_id: String) -> bool:
+## Checks if a specific cosmetic item is equipped on a specific pet
+func is_pet_cosmetic_equipped(pet_idx: int, cosmetic_id: String) -> bool:
+	if pet_idx >= 0 and pet_idx < active_pets.size():
+		var p: Dictionary = active_pets[pet_idx]
+		var ec = p.get("equipped_cosmetics", {})
+		if ec is Dictionary:
+			for s in ec.keys():
+				if ec[s] == cosmetic_id:
+					return true
+	return false
+
+## Checks if any active pet or current pet has cosmetic equipped
+func is_cosmetic_equipped(cosmetic_id: String, pet_idx: int = -1) -> bool:
+	if pet_idx >= 0:
+		return is_pet_cosmetic_equipped(pet_idx, cosmetic_id)
+	for i in range(active_pets.size()):
+		if is_pet_cosmetic_equipped(i, cosmetic_id):
+			return true
 	if equipped_cosmetic == cosmetic_id:
 		return true
 	for s in equipped_cosmetics.keys():
 		if equipped_cosmetics[s] == cosmetic_id:
 			return true
-	if not active_pets.is_empty():
-		var p = active_pets[selected_pet_index]
-		var ec = p.get("equipped_cosmetics", {})
-		for s in ec.keys():
-			if ec[s] == cosmetic_id:
-				return true
 	return false
+
+## Returns which pet index is wearing the cosmetic (-1 if none)
+func get_pet_wearing_cosmetic(cosmetic_id: String) -> int:
+	for i in range(active_pets.size()):
+		if is_pet_cosmetic_equipped(i, cosmetic_id):
+			return i
+	return -1
+
+## Returns total number of cosmetics equipped across all pets
+func get_total_equipped_cosmetics_count() -> int:
+	var total: int = 0
+	for p in active_pets:
+		var ec = p.get("equipped_cosmetics", {})
+		if ec is Dictionary:
+			total += ec.size()
+	return maxi(total, equipped_cosmetics.size())
 
 ## Returns item definition dict
 func get_item_def(item_id: String) -> Dictionary:
@@ -1364,6 +1492,179 @@ func get_items_by_category(category: String) -> Array[Dictionary]:
 		if def.get("category", "") == category:
 			result.append(def)
 	return result
+
+# ==============================================================================
+# 🐾 LIVING HOUSEHOLD, STUDY BUDDY & EXPEDITIONS
+# ==============================================================================
+## Returns current designated study buddy index (-1 if none, falls back to 0 if valid)
+func get_study_buddy_idx() -> int:
+	if study_buddy_idx >= 0 and study_buddy_idx < active_pets.size():
+		return study_buddy_idx
+	return 0 if not active_pets.is_empty() else -1
+
+## Assigns a companion to be the primary study buddy during focus sprints
+func assign_study_buddy(room_filter: String = "") -> int:
+	if active_pets.is_empty():
+		study_buddy_idx = -1
+		return -1
+	
+	var candidates: Array[int] = []
+	for i in range(active_pets.size()):
+		var p = active_pets[i]
+		if p.get("is_outside", false):
+			continue
+		if room_filter != "" and p.get("room", "") != room_filter:
+			continue
+		candidates.append(i)
+	
+	if not candidates.is_empty():
+		study_buddy_idx = candidates.pick_random()
+	else:
+		# Fallback to any non-outside pet or selected_pet_index
+		study_buddy_idx = selected_pet_index if selected_pet_index < active_pets.size() else 0
+	
+	return study_buddy_idx
+
+## Clears the current study buddy assignment
+func clear_study_buddy() -> void:
+	study_buddy_idx = -1
+
+## Returns true if a pet is a recent newcomer (under 10 minutes since adoption)
+func is_pet_newcomer(pet_idx: int) -> bool:
+	if pet_idx < 0 or pet_idx >= active_pets.size():
+		return false
+	var adopted_at: int = int(active_pets[pet_idx].get("adopted_at_unix", 0))
+	if adopted_at <= 0:
+		return false # Initial or legacy pet, no grace period
+	var elapsed = Time.get_unix_time_from_system() - adopted_at
+	return elapsed < 600 # 10 minute grace period
+
+## Returns true if a pet is currently outdoors on an expedition
+func is_pet_outside(pet_idx: int) -> bool:
+	if pet_idx >= 0 and pet_idx < active_pets.size():
+		return active_pets[pet_idx].get("is_outside", false) == true
+	return false
+
+## Returns remaining seconds for a pet's outdoor expedition
+func get_pet_expedition_remaining(pet_idx: int) -> float:
+	if not is_pet_outside(pet_idx):
+		return 0.0
+	var end_unix = int(active_pets[pet_idx].get("expedition_end_unix", 0))
+	var cur_unix = int(Time.get_unix_time_from_system())
+	return maxf(0.0, float(end_unix - cur_unix))
+
+## Starts an autonomous or requested outdoor stroll / expedition for a pet
+func start_pet_expedition(pet_idx: int, duration_sec: float = 0.0, destination: String = "garden") -> bool:
+	if pet_idx < 0 or pet_idx >= active_pets.size():
+		return false
+	if is_pet_outside(pet_idx) or is_pet_newcomer(pet_idx):
+		return false
+		
+	if duration_sec <= 0.0:
+		duration_sec = randf_range(180.0, 300.0) # 3 to 5 minutes as requested
+		
+	var cur_unix = int(Time.get_unix_time_from_system())
+	active_pets[pet_idx]["is_outside"] = true
+	active_pets[pet_idx]["expedition_end_unix"] = cur_unix + int(duration_sec)
+	active_pets[pet_idx]["expedition_destination"] = destination
+	
+	EventBus.pet_expedition_started.emit(pet_idx, duration_sec, destination)
+	EventBus.pet_list_changed.emit(active_pets)
+	if DatabaseManager:
+		DatabaseManager.save_game()
+	return true
+
+## Completes an expedition, returns a souvenir reward dictionary, and awards stats/items
+func complete_pet_expedition(pet_idx: int) -> Dictionary:
+	if pet_idx < 0 or pet_idx >= active_pets.size():
+		return {}
+	var p: Dictionary = active_pets[pet_idx]
+	p["is_outside"] = false
+	p["expedition_end_unix"] = 0
+	var destination = p.get("expedition_destination", "garden")
+	p["expedition_destination"] = ""
+	
+	# Vitals & affection boost
+	adjust_pet_joy(pet_idx, 15.0)
+	add_pet_affection(p.get("id", ""), 10)
+	
+	# Roll souvenir table
+	var roll = randf()
+	var souvenir: Dictionary = {}
+	if roll < 0.45:
+		# Gold Coins
+		var reward_coins = randi_range(15, 35)
+		add_coins(reward_coins, "expedition_souvenir")
+		souvenir = {
+			"type": "coins",
+			"name": "%d Gold Coins" % reward_coins,
+			"amount": reward_coins,
+			"icon": "🪙",
+			"desc": "Found sparkling coins along the path in the %s!" % destination
+		}
+	elif roll < 0.80:
+		# Snack item
+		var snack_options = ["snack_croissant", "snack_boba", "snack_coffee", "snack_cookie"]
+		var chosen_id = snack_options.pick_random()
+		add_item(chosen_id, 1)
+		var def = ITEM_DEFINITIONS.get(chosen_id, {})
+		souvenir = {
+			"type": "item",
+			"item_id": chosen_id,
+			"name": def.get("name", "Snack"),
+			"amount": 1,
+			"icon": "🥐",
+			"desc": "Brought back a fresh snack found on the stroll!"
+		}
+	else:
+		# Rare lucky find
+		var reward_coins = randi_range(40, 60)
+		add_coins(reward_coins, "expedition_lucky_find")
+		souvenir = {
+			"type": "trinket",
+			"name": "Lucky Clover & %d G" % reward_coins,
+			"amount": reward_coins,
+			"icon": "🍀",
+			"desc": "Discovered a shimmering four-leaf clover full of good luck!"
+		}
+		
+	EventBus.pet_expedition_returned.emit(pet_idx, souvenir)
+	EventBus.pet_list_changed.emit(active_pets)
+	if DatabaseManager:
+		DatabaseManager.save_game()
+	return souvenir
+
+## Recalls a pet immediately from outside (e.g. user whistle button)
+func recall_pet_from_outside(pet_idx: int) -> bool:
+	if not is_pet_outside(pet_idx):
+		return false
+	active_pets[pet_idx]["is_outside"] = false
+	active_pets[pet_idx]["expedition_end_unix"] = 0
+	active_pets[pet_idx]["expedition_destination"] = ""
+	EventBus.pet_list_changed.emit(active_pets)
+	if DatabaseManager:
+		DatabaseManager.save_game()
+	return true
+
+## Dispatches a fetcher companion to guide a separated pet back to the active room
+func send_pet_to_fetch(fetcher_idx: int, target_idx: int) -> bool:
+	if fetcher_idx < 0 or fetcher_idx >= active_pets.size():
+		return false
+	if target_idx < 0 or target_idx >= active_pets.size():
+		return false
+	if fetcher_idx == target_idx:
+		return false
+	
+	var target = active_pets[target_idx]
+	if target.get("is_outside", false):
+		recall_pet_from_outside(target_idx)
+	target["room"] = active_view_room
+	
+	EventBus.pet_fetch_started.emit(fetcher_idx, target_idx)
+	EventBus.pet_list_changed.emit(active_pets)
+	if DatabaseManager:
+		DatabaseManager.save_game()
+	return true
 
 const ROOM_ORDER: Array[String] = [
 	"room_greenhouse",
@@ -2251,9 +2552,9 @@ func serialize() -> Dictionary:
 		
 		
 		"streak": streak,
-		"unlocked_rooms": unlocked_rooms,
-		"unlocked_pets": unlocked_pets,
-		"active_pets": active_pets,
+		"unlocked_rooms": unlocked_rooms.duplicate(),
+		"unlocked_pets": unlocked_pets.duplicate(),
+		"active_pets": active_pets.duplicate(true),
 		"selected_pet_index": selected_pet_index,
 		"equipped_cosmetic": equipped_cosmetic,
 		
@@ -2336,8 +2637,9 @@ func deserialize(data: Dictionary) -> void:
 	active_pets.clear()
 	if raw_active_pets is Array and raw_active_pets.size() > 0:
 		var idx = 0
-		for ap in raw_active_pets:
-			if ap is Dictionary:
+		for raw_ap in raw_active_pets:
+			if raw_ap is Dictionary:
+				var ap: Dictionary = raw_ap.duplicate(true)
 				if not ap.has("energy") and idx == 0:
 					ap["energy"] = legacy_energy
 					ap["joy"] = legacy_joy
@@ -2346,10 +2648,27 @@ func deserialize(data: Dictionary) -> void:
 					ap["energy"] = 80.0
 					ap["joy"] = 50.0
 					ap["equipped_cosmetics"] = {}
+				if not ap.has("is_outside"):
+					ap["is_outside"] = false
+					ap["expedition_end_unix"] = 0
+					ap["expedition_destination"] = ""
+					ap["adopted_at_unix"] = 0
 				active_pets.append(ap)
 				idx += 1
 	else:
-		active_pets.append({"id": "pet_shiba", "name": pet_name, "species": pet_species, "room": "room_bedroom"})
+		active_pets.append({
+			"id": "pet_shiba",
+			"name": pet_name,
+			"species": pet_species,
+			"room": "room_bedroom",
+			"energy": 80.0,
+			"joy": 80.0,
+			"equipped_cosmetics": {},
+			"is_outside": false,
+			"expedition_end_unix": 0,
+			"expedition_destination": "",
+			"adopted_at_unix": 0
+		})
 		
 	equipped_cosmetic = data.get("equipped_cosmetic", "")
 	equipped_cosmetics = data.get("equipped_cosmetics", {})
@@ -2637,8 +2956,8 @@ func _connect_achievement_listeners() -> void:
 	EventBus.flashcard_created.connect(func(_cid):
 		check_achievement_progress("cards_created", 1)
 	)
-	EventBus.cosmetic_equipped.connect(func(_slot, _cid):
-		check_achievement_progress("equipped_cosmetics_count", 0, equipped_cosmetics.size())
+	EventBus.cosmetic_equipped.connect(func(_pidx, _slot, _cid):
+		check_achievement_progress("equipped_cosmetics_count", 0, get_total_equipped_cosmetics_count())
 	)
 	EventBus.pet_adopted.connect(func(_pdata, _as_h):
 		check_achievement_progress("unlocked_pets_count", 0, unlocked_pets.size())

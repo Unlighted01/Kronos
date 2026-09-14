@@ -41,7 +41,7 @@ const MAX_RETRIES: int = 2
 func _ready() -> void:
 	_http_client = HTTPRequest.new()
 	_http_client.name = "AIHTTPRequest"
-	_http_client.timeout = 25.0
+	_http_client.timeout = 30.0
 	add_child(_http_client)
 	_http_client.request_completed.connect(_on_http_request_completed)
 	load_ai_config()
@@ -65,12 +65,9 @@ func load_ai_config() -> void:
 		custom_model = dict.get("custom_model", "")
 
 func save_ai_config(p_provider: Provider, p_key: String, p_model: String = "") -> void:
-	var key_changed = (api_key != p_key.strip_edges())
 	provider = p_provider
 	api_key = p_key.strip_edges()
 	custom_model = p_model.strip_edges()
-	if key_changed:
-		_cached_gemini_models.clear()
 	
 	var dict: Dictionary = {
 		"provider": int(provider),
@@ -88,7 +85,7 @@ func open_get_key_url(p_idx: int = -1) -> void:
 		OS.shell_open(KEY_HELP_URLS[idx])
 
 # ==============================================================================
-# 🌐 API DISPATCH
+# 🚀 CORE AI METHODS
 # ==============================================================================
 var _current_action: String = ""
 var _current_prompt: String = ""
@@ -100,43 +97,44 @@ func test_connection(callback: Callable = Callable()) -> void:
 			callback.call(false, "Another request is already in progress.")
 		return
 		
-	var prompt = "Hello! Please reply with a short JSON containing {\"status\": \"ok\", \"message\": \"connected\"}."
+	var prompt = """
+Return ONLY the following JSON object to verify API connection:
+{
+  "status": "connected",
+  "message": "Kronos AI Service is operational."
+}
+"""
 	_retry_count = 0
 	_send_ai_prompt("test_ping", prompt, callback)
 
-func generate_flashcards(source_text: String, card_count: int, topic_hint: String = "", callback: Callable = Callable()) -> void:
+func generate_flashcards(source_text: String, target_count: int = 5, topic_hint: String = "", callback: Callable = Callable()) -> void:
 	if is_request_in_flight:
 		if callback.is_valid():
 			callback.call(false, [], "Another request is already in progress.")
 		return
 		
-	var target_count = clamp(card_count, 3, 30)
 	var prompt = """
-You are an expert Spaced Repetition (SuperMemo/Anki) pedagogical assistant in Kronos.
-Your task is to analyze the source material and extract exactly %d high-yield, atomic flashcards adhering to the Minimum Information Principle.
+You are an expert study tutor in Kronos. Synthesize exactly %d atomic flashcards based on the provided text.
+Focus topic: %s.
 
-RULES:
-1. Each card MUST test a single, unambiguous fact, mechanism, definition, or relation.
-2. Front: Clear question, prompt, or term to define.
-3. Back: Punchy, authoritative answer (1-2 sentences maximum or bullet points).
-4. Hint: A memorable mnemonic, analogy, or clue.
-5. Subject: Specific subject category (e.g. 'Computer Science', 'Biology', 'History').
-6. Only use facts present in or directly inferred from the Source Text. Do NOT hallucinate.
+Rules for high-yield flashcards:
+1. "front" must be a crisp, single-concept active-recall question.
+2. "back" must be a concise, precise, factual answer.
+3. "hint" should provide a helpful memory anchor.
+4. "subject" should name the overarching field or discipline.
 
-Focus Topic / Emphasis: %s
-
-Source Text:
+Source Document Material:
 \"\"\"
 %s
 \"\"\"
 
-Return ONLY a valid JSON array of objects with NO surrounding conversational text, markdown formatting, or backticks:
+Return ONLY a valid JSON array of objects with NO surrounding markdown or backticks:
 [
   {
-    "front": "What is...",
-    "back": "The answer is...",
-    "hint": "Starts with...",
-    "subject": "Topic Name"
+    "front": "Question",
+    "back": "Answer",
+    "hint": "Helpful hint",
+    "subject": "Topic"
   }
 ]
 """ % [target_count, topic_hint if topic_hint != "" else "Core Principles & High-Yield Facts", source_text.substr(0, 12000)]
@@ -187,21 +185,49 @@ Return ONLY a valid JSON object with NO markdown formatting or backticks:
 	_retry_count = 0
 	_send_ai_prompt("polish_card", prompt, callback)
 
+func grade_oral_answer(question: String, expected_answer: String, user_explanation: String, pet_name: String = "Companion", personality: String = "cozy", callback: Callable = Callable()) -> void:
+	if is_request_in_flight:
+		if callback.is_valid():
+			callback.call(false, {}, "Another request is already in progress.")
+		return
+		
+	var tone_instruction = "You are a warm, encouraging Ghibli-style study pet companion."
+	if personality == "professor":
+		tone_instruction = "You are a sharp, intellectually rigorous Socratic professor companion."
+	elif personality == "hype":
+		tone_instruction = "You are an enthusiastic, energetic anime hype pet companion!"
+		
+	var prompt = """
+%s Your student is taking an oral study exam with you in the Study Library.
+Evaluate the student's natural-language answer to the flashcard question based on semantic and conceptual understanding, NOT rigid verbatim wording.
+
+Question: %s
+Reference Answer: %s
+Student's Natural Explanation: %s
+
+Grading Criteria:
+- Score 5: Full conceptual mastery. The student captured the core mechanism/definition in their own words.
+- Score 3-4: Partial understanding. Mentioned some key ideas but missed an essential detail.
+- Score 1-2: Incorrect or major misunderstanding.
+
+Return ONLY a valid JSON object:
+{
+  "score": 5,
+  "verdict": "mastered",
+  "feedback": "1-2 encouraging sentences from %s reacting to the answer in character.",
+  "follow_up_hint": "If partial or missed, a 1-sentence Socratic hint guiding them to the missing piece, otherwise empty string.",
+  "eli5_analogy": "If score < 4, a punchy 1-sentence real-world analogy to make the concept stick, otherwise empty string."
+}
+""" % [tone_instruction, question, expected_answer, user_explanation, pet_name]
+
+	_retry_count = 0
+	_send_ai_prompt("grade_oral_answer", prompt, callback)
+
 # ==============================================================================
 # 🛰️ REQUEST FORMATTING & RETRY
 # ==============================================================================
-const GEMINI_FALLBACK_MODELS: Array[String] = [
-	"gemini-2.5-flash",
-	"gemini-3.5-flash",
-	"gemini-2.5-pro",
-	"gemini-flash-latest",
-	"gemini-2.0-flash",
-	"gemini-1.5-flash"
-]
-var _gemini_model_index: int = 0
+const DEFAULT_GEMINI_MODEL: String = "gemini-2.5-flash"
 var _active_gemini_model: String = "gemini-2.5-flash"
-var _cached_gemini_models: Array[String] = []
-var _is_discovering_models: bool = false
 
 func _send_ai_prompt(action_type: String, prompt: String, callback: Callable) -> void:
 	if provider != Provider.OLLAMA and api_key.is_empty():
@@ -216,36 +242,24 @@ func _send_ai_prompt(action_type: String, prompt: String, callback: Callable) ->
 	
 	match provider:
 		Provider.GEMINI:
-			if custom_model.is_empty() and _cached_gemini_models.is_empty():
-				_discover_gemini_models()
-			else:
-				_request_gemini(prompt)
+			_request_gemini(prompt)
 		Provider.OPENAI:
 			_request_openai(prompt)
 		Provider.OLLAMA:
 			_request_ollama(prompt)
 
-func _discover_gemini_models() -> void:
-	_is_discovering_models = true
-	var url = "https://generativelanguage.googleapis.com/v1beta/models?key=%s" % api_key
-	var headers = ["Content-Type: application/json"]
-	var err = _http_client.request(url, headers, HTTPClient.METHOD_GET)
-	if err != OK:
-		_is_discovering_models = false
-		_request_gemini(_current_prompt)
-
 func _request_gemini(prompt: String) -> void:
-	var model_name = custom_model if not custom_model.is_empty() else _active_gemini_model
+	var model_name = custom_model if not custom_model.is_empty() else DEFAULT_GEMINI_MODEL
 	if model_name.begins_with("models/"):
 		model_name = model_name.trim_prefix("models/")
 	var url = "https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s" % [model_name, api_key]
-	var headers = ["Content-Type: application/json"]
+	var headers: PackedStringArray = ["Content-Type: application/json"]
 	
 	var gen_config: Dictionary = {
 		"temperature": 0.2,
 		"maxOutputTokens": 4096
 	}
-	if _current_action == "generate_cards" or _current_action == "polish_card" or _current_action == "test_ping":
+	if _current_action == "generate_cards" or _current_action == "polish_card" or _current_action == "test_ping" or _current_action == "grade_oral_answer":
 		gen_config["responseMimeType"] = "application/json"
 		
 	var payload = {
@@ -267,7 +281,7 @@ func _request_gemini(prompt: String) -> void:
 func _request_openai(prompt: String) -> void:
 	var model_name = custom_model if custom_model != "" else "gpt-4o-mini"
 	var url = "https://api.openai.com/v1/chat/completions"
-	var headers = [
+	var headers: PackedStringArray = [
 		"Content-Type: application/json",
 		"Authorization: Bearer %s" % api_key
 	]
@@ -287,7 +301,7 @@ func _request_openai(prompt: String) -> void:
 func _request_ollama(prompt: String) -> void:
 	var model_name = custom_model if custom_model != "" else "llama3.2"
 	var url = "http://localhost:11434/api/generate"
-	var headers = ["Content-Type: application/json"]
+	var headers: PackedStringArray = ["Content-Type: application/json"]
 	var payload = {
 		"model": model_name,
 		"prompt": prompt,
@@ -302,74 +316,15 @@ func _request_ollama(prompt: String) -> void:
 # 📥 RESPONSE PARSER & RETRY BACKOFF
 # ==============================================================================
 func _on_http_request_completed(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
-	# 1. Handle Gemini Model Discovery Response
-	if _is_discovering_models:
-		_is_discovering_models = false
-		var disc_body_text = body.get_string_from_utf8()
-		if response_code >= 200 and response_code < 300:
-			var disc_json = JSON.new()
-			if disc_json.parse(disc_body_text) == OK and typeof(disc_json.data) == TYPE_DICTIONARY:
-				var raw_models: Array = disc_json.data.get("models", [])
-				_cached_gemini_models.clear()
-				for m in raw_models:
-					var methods = m.get("supportedGenerationMethods", [])
-					if "generateContent" in methods:
-						var m_name = str(m.get("name", "")).replace("models/", "")
-						if not m_name.is_empty():
-							_cached_gemini_models.append(m_name)
-							
-				# Choose best model from discovered models
-				var best = ""
-				for preferred in ["gemini-2.5-flash", "gemini-3.5-flash", "gemini-2.5-pro", "gemini-flash-latest", "gemini-2.0-flash", "gemini-1.5-flash"]:
-					for avail in _cached_gemini_models:
-						if avail == preferred or avail.begins_with(preferred):
-							best = avail
-							break
-					if not best.is_empty():
-						break
-						
-				if best.is_empty() and not _cached_gemini_models.is_empty():
-					best = _cached_gemini_models[0]
-					
-				if not best.is_empty():
-					_active_gemini_model = best
-					
-			# Now dispatch the prompt with the discovered model
-			var t = get_tree().create_timer(0.05)
-			t.timeout.connect(func():
-				_request_gemini(_current_prompt)
-			)
-			return
-		else:
-			# Discovery failed (e.g. Invalid API Key) — report clear error
-			is_request_in_flight = false
-			var action = _current_action
-			var callback = _active_callback
-			_current_action = ""
-			_current_prompt = ""
-			_active_callback = Callable()
-			var err_msg = "API Error (%d): %s" % [response_code, _extract_error_message(disc_body_text)]
-			_invoke_callback_failure(action, callback, err_msg)
-			return
-
-	# 2. Check for Rate Limit (429) or Service Unavailable (503) and attempt exponential retry
+	# Check for transient Rate Limit (429) or Service Unavailable (503) and attempt retry with backoff
 	if (response_code == 429 or response_code == 503) and _retry_count < MAX_RETRIES:
 		_retry_count += 1
-		var backoff_sec = 1.5 * float(_retry_count)
-		var t = get_tree().create_timer(backoff_sec)
-		t.timeout.connect(func():
-			_send_ai_prompt(_current_action, _current_prompt, _active_callback)
-		)
-		return
-		
-	# 3. Check for 404 on Gemini and automatically fallback to next model
-	if response_code == 404 and provider == Provider.GEMINI and custom_model.is_empty() and _gemini_model_index < GEMINI_FALLBACK_MODELS.size() - 1:
-		_gemini_model_index += 1
-		_active_gemini_model = GEMINI_FALLBACK_MODELS[_gemini_model_index]
+		var backoff_sec = 6.0 * float(_retry_count)
 		var act = _current_action
 		var prm = _current_prompt
 		var cb = _active_callback
-		var t = get_tree().create_timer(0.05)
+		is_request_in_flight = false
+		var t = get_tree().create_timer(backoff_sec)
 		t.timeout.connect(func():
 			_send_ai_prompt(act, prm, cb)
 		)
@@ -407,8 +362,16 @@ func _on_http_request_completed(result: int, response_code: int, _headers: Packe
 			var candidates = dict.get("candidates", [])
 			if not candidates.is_empty():
 				var parts = candidates[0].get("content", {}).get("parts", [])
-				if not parts.is_empty():
-					raw_text = parts[0].get("text", "")
+				var regular_text = ""
+				var thought_text = ""
+				for p in parts:
+					if typeof(p) == TYPE_DICTIONARY:
+						var t_str: String = str(p.get("text", ""))
+						if p.get("thought", false) == true:
+							thought_text += t_str
+						else:
+							regular_text += t_str
+				raw_text = regular_text if not regular_text.is_empty() else thought_text
 		Provider.OPENAI:
 			var choices = dict.get("choices", [])
 			if not choices.is_empty():
@@ -427,21 +390,6 @@ func _clean_markdown_fences(raw: String) -> String:
 		cleaned = cleaned.trim_prefix("```").strip_edges()
 	if cleaned.ends_with("```"):
 		cleaned = cleaned.trim_suffix("```").strip_edges()
-		
-	# If model returned text before/after JSON array, extract the array via regex
-	if not cleaned.begins_with("[") and cleaned.contains("[") and cleaned.contains("]"):
-		var start_idx = cleaned.find("[")
-		var end_idx = cleaned.rfind("]")
-		if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
-			cleaned = cleaned.substr(start_idx, end_idx - start_idx + 1)
-			
-	# If model returned text before/after JSON object, extract the object
-	elif not cleaned.begins_with("{") and cleaned.contains("{") and cleaned.contains("}"):
-		var start_idx = cleaned.find("{")
-		var end_idx = cleaned.rfind("}")
-		if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
-			cleaned = cleaned.substr(start_idx, end_idx - start_idx + 1)
-			
 	return cleaned
 
 func _extract_error_message(body_text: String) -> String:
@@ -461,7 +409,11 @@ func _dispatch_parsed_result(action: String, content_text: String, callback: Cal
 		"test_ping":
 			_invoke_callback_success(action, callback, "Connected successfully!")
 		"explain_concept":
-			_invoke_callback_success(action, callback, content_text)
+			if not content_text.strip_edges().is_empty():
+				_invoke_callback_success(action, callback, content_text.strip_edges())
+			else:
+				var err_msg = "Received empty response from AI"
+				_invoke_callback_failure(action, callback, err_msg)
 		"generate_cards":
 			var raw_array: Array = []
 			var json = JSON.new()
@@ -534,6 +486,37 @@ func _dispatch_parsed_result(action: String, content_text: String, callback: Cal
 				else:
 					var err_msg = "Failed to parse structured card JSON from AI output"
 					_invoke_callback_failure(action, callback, err_msg)
+		"grade_oral_answer":
+			var result_dict: Dictionary = {}
+			var cleaned_text = _clean_markdown_fences(content_text)
+			var json = JSON.new()
+			if json.parse(cleaned_text) == OK and typeof(json.data) == TYPE_DICTIONARY:
+				result_dict = json.data
+			else:
+				var objs = _extract_json_objects_from_text(cleaned_text)
+				if not objs.is_empty() and typeof(objs[0]) == TYPE_DICTIONARY:
+					result_dict = objs[0]
+					
+			if not result_dict.is_empty():
+				var score = int(result_dict.get("score", 3))
+				var verdict = str(result_dict.get("verdict", "partial" if score >= 3 else "missed")).to_lower()
+				if score >= 4:
+					verdict = "mastered"
+				elif score <= 2:
+					verdict = "missed"
+					
+				var normalized_eval: Dictionary = {
+					"score": score,
+					"verdict": verdict,
+					"feedback": str(result_dict.get("feedback", "Good explanation!")),
+					"follow_up_hint": str(result_dict.get("follow_up_hint", "")),
+					"eli5_analogy": str(result_dict.get("eli5_analogy", ""))
+				}
+				_invoke_callback_success(action, callback, normalized_eval)
+				return
+				
+			var err_msg = "Failed to parse oral grading evaluation from AI output"
+			_invoke_callback_failure(action, callback, err_msg)
 
 func _extract_json_objects_from_text(text: String) -> Array:
 	var objects: Array = []
@@ -583,11 +566,13 @@ func _handle_failure(err_msg: String) -> void:
 func _invoke_callback_failure(action: String, callback: Callable, err_msg: String) -> void:
 	if callback.is_valid():
 		match action:
-			"test_ping", "explain_concept":
+			"test_ping":
 				callback.call(false, err_msg)
+			"explain_concept":
+				callback.call(false, "", err_msg)
 			"generate_cards":
 				callback.call(false, [], err_msg)
-			"polish_card":
+			"polish_card", "grade_oral_answer":
 				callback.call(false, {}, err_msg)
 			_:
 				callback.call(false, err_msg)
@@ -599,11 +584,11 @@ func _invoke_callback_success(action: String, callback: Callable, data: Variant)
 			"test_ping":
 				callback.call(true, "Connected successfully!")
 			"explain_concept":
-				callback.call(true, str(data))
+				callback.call(true, str(data), "")
 			"generate_cards":
 				var arr: Array = data as Array if typeof(data) == TYPE_ARRAY else []
 				callback.call(true, arr, "")
-			"polish_card":
+			"polish_card", "grade_oral_answer":
 				var dict: Dictionary = data as Dictionary if typeof(data) == TYPE_DICTIONARY else {}
 				callback.call(true, dict, "")
 			_:

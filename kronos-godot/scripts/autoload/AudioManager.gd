@@ -75,7 +75,7 @@ func _connect_event_bus() -> void:
 	EventBus.timer_started.connect(func(): stop_alarm())
 	EventBus.room_light_toggled.connect(func(_r, _s): play_sfx("switch"))
 	EventBus.item_used.connect(func(_i, _d): play_sfx("munch"))
-	EventBus.cosmetic_equipped.connect(func(_s, _i): play_sfx("chime"))
+	EventBus.cosmetic_equipped.connect(func(_p, _s, _i): play_sfx("chime"))
 	EventBus.decor_placed.connect(func(_i, _r, _p): play_sfx("thud"))
 	EventBus.room_changed.connect(_on_room_changed)
 	EventBus.level_up.connect(func(_l): play_sfx("levelup"))

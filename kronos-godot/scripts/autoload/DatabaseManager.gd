@@ -42,7 +42,7 @@ func _notification(what: int) -> void:
 # ==============================================================================
 # 💾 GAME STATE SAVE & LOAD
 # ==============================================================================
-## Saves pet stats, inventory, and settings to disk with safe backup rotation
+## Saves pet stats, inventory, and settings to disk with atomic write and safe backup rotation
 func save_game() -> bool:
 	if not GameState:
 		return false
@@ -50,23 +50,36 @@ func save_game() -> bool:
 	var data: Dictionary = GameState.serialize()
 	var json_string: String = JSON.stringify(data, "\t")
 	
-	# Rotate backup if save exists
+	# Rotate backup if valid save already exists
 	if FileAccess.file_exists(SAVE_PATH):
 		DirAccess.copy_absolute(
 			ProjectSettings.globalize_path(SAVE_PATH),
 			ProjectSettings.globalize_path(BACKUP_SAVE_PATH)
 		)
 		
-	var file: FileAccess = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
+	var temp_path: String = SAVE_PATH + ".tmp"
+	var file: FileAccess = FileAccess.open(temp_path, FileAccess.WRITE)
 	if not file:
 		var err: Error = FileAccess.get_open_error()
-		push_error("[DatabaseManager] Failed to open save file for writing: %s" % error_string(err))
+		push_error("[DatabaseManager] Failed to open temp save file for writing: %s" % error_string(err))
 		EventBus.save_completed.emit(false, "")
 		return false
 		
 	file.store_string(json_string)
+	file.flush()
 	file.close()
 	
+	# Atomically replace save file
+	var global_temp: String = ProjectSettings.globalize_path(temp_path)
+	var global_save: String = ProjectSettings.globalize_path(SAVE_PATH)
+	if FileAccess.file_exists(SAVE_PATH):
+		DirAccess.remove_absolute(global_save)
+	var rename_err: Error = DirAccess.rename_absolute(global_temp, global_save)
+	if rename_err != OK:
+		# Fallback if atomic rename is restricted on current OS
+		DirAccess.copy_absolute(global_temp, global_save)
+		DirAccess.remove_absolute(global_temp)
+		
 	var timestamp: String = Time.get_datetime_string_from_system()
 	EventBus.save_completed.emit(true, timestamp)
 	return true
