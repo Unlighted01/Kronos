@@ -9,9 +9,9 @@ room_name = "Temple of Morpheus"
 room_width = 720.0
 min_x = 50.0
 max_x = 670.0
-desk_x = 550.0
-nap_x = 360.0
-drink_x = 180.0
+desk_x = 100.0
+nap_x = 230.0
+drink_x = 490.0
 
 [node name="AmbientModulate" type="CanvasModulate" parent="."]
 color = Color(1, 1, 1, 1)

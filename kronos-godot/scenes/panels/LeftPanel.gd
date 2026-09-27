@@ -252,7 +252,7 @@ func _create_shop_card(item: Dictionary) -> Control:
 	var meets_level: bool = player_lvl >= req_lvl
 	
 	var card_panel: PanelContainer = PanelContainer.new()
-	card_panel.custom_minimum_size = Vector2(105, 95) # Fits perfectly in 2-column grid
+	card_panel.custom_minimum_size = Vector2(105, 105) # Fits perfectly in 2-column grid
 	card_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	
 	# Apply rarity colors
@@ -279,12 +279,9 @@ func _create_shop_card(item: Dictionary) -> Control:
 	vbox.add_theme_constant_override("separation", 2)
 	card_panel.add_child(vbox)
 	
-	# Icon Centered
-	var icon_lbl: Label = Label.new()
-	icon_lbl.text = item_icon
-	icon_lbl.add_theme_font_size_override("font_size", 20)
-	icon_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vbox.add_child(icon_lbl)
+	# Handcrafted Pixel Art Sprite or Fallback Emoji Icon Centered
+	var icon_ctrl: Control = _create_item_icon_control(item, Vector2(32, 32))
+	vbox.add_child(icon_ctrl)
 	
 	# Name Label
 	var name_lbl: Label = Label.new()
@@ -404,6 +401,67 @@ func _create_shop_card(item: Dictionary) -> Control:
 				
 	vbox.add_child(buy_btn)
 	return card_panel
+
+func _create_item_icon_control(item: Dictionary, target_size: Vector2 = Vector2(32, 32)) -> Control:
+	var item_id: String = item.get("id", "")
+	var category: String = item.get("category", "")
+	var sprite_path: String = item.get("sprite_path", "")
+	
+	if sprite_path.is_empty() and GameState:
+		var def = GameState.get_item_def(item_id)
+		if not def.is_empty():
+			sprite_path = def.get("sprite_path", "")
+			
+	var texture: Texture2D = null
+	
+	# 1. If explicit sprite_path exists
+	if not sprite_path.is_empty():
+		var path_32 = sprite_path.replace(".png", "_32.png")
+		if target_size.x >= 24 and ResourceLoader.exists(path_32):
+			texture = load(path_32)
+		elif ResourceLoader.exists(sprite_path):
+			texture = load(sprite_path)
+			
+	# 2. Try clean_id fallback in assets/sprites/items/
+	if texture == null and not item_id.is_empty():
+		var clean_id = item_id.replace("snack_", "").replace("item_", "").replace("decor_", "").replace("cosmetic_", "")
+		var item_path_32 = "res://assets/sprites/items/%s_32.png" % clean_id
+		var item_path_16 = "res://assets/sprites/items/%s.png" % clean_id
+		if target_size.x >= 24 and ResourceLoader.exists(item_path_32):
+			texture = load(item_path_32)
+		elif ResourceLoader.exists(item_path_16):
+			texture = load(item_path_16)
+			
+	# 3. If category is pet, load first frame of idle sprite
+	if texture == null and category == "pet":
+		var species: String = item.get("species", "")
+		if species.is_empty():
+			species = item_id.replace("pet_", "")
+		var pet_idle_path = "res://assets/sprites/pets/%s/idle_0.png" % species
+		if ResourceLoader.exists(pet_idle_path):
+			texture = load(pet_idle_path)
+
+	# 4. If texture found, return crisp TextureRect
+	if texture != null:
+		var tex_rect: TextureRect = TextureRect.new()
+		tex_rect.custom_minimum_size = target_size
+		tex_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		tex_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		tex_rect.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		tex_rect.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		tex_rect.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		tex_rect.texture = texture
+		return tex_rect
+
+	# 5. Fallback to emoji Label
+	var icon_lbl: Label = Label.new()
+	icon_lbl.text = item.get("icon", "📦")
+	icon_lbl.add_theme_font_size_override("font_size", int(target_size.y * 0.65))
+	icon_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	icon_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	icon_lbl.custom_minimum_size = target_size
+	icon_lbl.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	return icon_lbl
 
 func _on_buy_item_clicked(item: Dictionary) -> void:
 	var item_id: String = item.get("id", "")

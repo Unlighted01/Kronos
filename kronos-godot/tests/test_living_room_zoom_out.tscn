@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://c83k1j99d3e8m"]
+
+[ext_resource type="Script" path="res://tests/test_living_room_zoom_out.gd" id="1_zoom"]
+
+[node name="TestLivingRoomZoomOut" type="Node2D"]
+script = ExtResource("1_zoom")

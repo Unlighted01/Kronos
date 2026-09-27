@@ -362,6 +362,138 @@ const THOUGHTS_STARTLED: Array[String] = [
 	"Did something drop?! 💥"
 ]
 
+# ------------------------------------------------------------------------------
+# 🥺 ASKING FOR FOOD (< 40% Hunger)
+# ------------------------------------------------------------------------------
+const THOUGHTS_ASK_FOOD_SHIBA: Array[String] = [
+	"My tummy is doing a little growl... treat time? 🥐",
+	"Snack please? I've been such a good boy! 🐾",
+	"Could really go for some yummy treats! ✨"
+]
+const THOUGHTS_ASK_FOOD_CAT: Array[String] = [
+	"My bowl is unacceptably vacant, human. 🐟",
+	"A discerning palate requires sustenance. Now. 🍣",
+	"Food service is running terribly late today. 🐱"
+]
+const THOUGHTS_ASK_FOOD_FOX: Array[String] = [
+	"Psst! You're hiding snacks in that bag, aren't you? 🦊",
+	"A clever fox smells something delicious nearby... 🥐",
+	"Trick or treat? Mostly treat, please! ✨"
+]
+const THOUGHTS_ASK_FOOD_BUNNY: Array[String] = [
+	"Nose twitching... munchies urgently required! 🐰",
+	"Ears perked for the sound of snack wrappers! 🍓",
+	"Hop hop! Tummy needs fuel right now! 🥕"
+]
+const THOUGHTS_ASK_FOOD_CAPYBARA: Array[String] = [
+	"A tranquil snack would enhance this peaceful moment. 🍊",
+	"Inner peace is great, but a snack is sublime. ✨",
+	"Contemplating the universe... and maybe a pancake. 🥞"
+]
+const THOUGHTS_ASK_FOOD_PENGUIN: Array[String] = [
+	"Waddle waddle... belly feels dangerously hollow! 🐧",
+	"Fish or buns, I'm not picky! Feed the flippers! 🐟",
+	"Marching towards wherever the snacks are! ❄️"
+]
+const THOUGHTS_ASK_FOOD_REDPANDA: Array[String] = [
+	"Paws held high! Please deposit delicious fuel here! 🐾",
+	"Standing on my tail for maximum begging power! ✨",
+	"A sweet pastry would make my day complete! 🥐"
+]
+const THOUGHTS_ASK_FOOD_OWL: Array[String] = [
+	"My nocturnal wisdom is clouded by lack of sustenance. 🦉",
+	"A scholarly beak requires nourishment to think. 📜",
+	"Hoo... is it feeding hour yet? 🌙"
+]
+
+# ------------------------------------------------------------------------------
+# 💢 HANGRY / MAD (< 15% Hunger)
+# ------------------------------------------------------------------------------
+const THOUGHTS_HANGRY_SHIBA: Array[String] = [
+	"Grrr! The ultimate betrayal! I am famished! 💢",
+	"Pouting in the corner until snacks arrive! 😤",
+	"Zero treats?! Unacceptable companion care! 🐕"
+]
+const THOUGHTS_HANGRY_CAT: Array[String] = [
+	"Hiss! 0 stars for service. I may faint from hunger. 😾",
+	"The audacity to ignore my empty dish! 💢",
+	"I will knock something off the table if not fed! 🐾"
+]
+const THOUGHTS_HANGRY_FOX: Array[String] = [
+	"A hungry fox is a mischievous fox... watch out! 🦊💢",
+	"My patience has run completely out! Treats now! 😤",
+	"Plotting revenge on your snack drawer! 📜"
+]
+const THOUGHTS_HANGRY_BUNNY: Array[String] = [
+	"Ears down! Stomping feet! Where are the snacks?! 🐰💢",
+	"Furious nose twitching in full effect! 😤",
+	"Severe lack of treats detected! 💢"
+]
+const THOUGHTS_HANGRY_CAPYBARA: Array[String] = [
+	"Even my infinite serenity is being tested... 🥥💢",
+	"Unbothered... except by my empty stomach. 😤",
+	"Sigh... a capybara cannot live on vibes alone."
+]
+const THOUGHTS_HANGRY_PENGUIN: Array[String] = [
+	"Angry flipper flapping! This is penguin cruelty! 🐧💢",
+	"Squawk! Starvation in progress! Where is fish?! 💢",
+	"Tummy is protesting loudly! Feed me! ❄️"
+]
+const THOUGHTS_HANGRY_REDPANDA: Array[String] = [
+	"Standing tall in fierce protest! Give pastry now! 🐾💢",
+	"Ruff! Look how angry and fluffy I am! 😤",
+	"Fierce red panda demands instant snack delivery! 💢"
+]
+const THOUGHTS_HANGRY_OWL: Array[String] = [
+	"An unamused stare... wisdom cannot thrive on an empty crop. 🦉",
+	"Hoo... the archives grow dark without food. 💢",
+	"Disapproving glare of extreme hunger! 📜"
+]
+
+# ------------------------------------------------------------------------------
+# 🎉 FED & HAPPY CELEBRATION
+# ------------------------------------------------------------------------------
+const THOUGHTS_FED_HAPPY_SHIBA: Array[String] = [
+	"Wuff! Best human ever! My energy is at 100%! ❤️🐾",
+	"So crunchy and delicious! Bark of joy! ✨",
+	"Tail wagging at maximum speed! Thank you! 💖"
+]
+const THOUGHTS_FED_HAPPY_CAT: Array[String] = [
+	"Purrr... acceptable offering. You may pet me now. ✨",
+	"Mmm, delectable. Whiskers approved. 🐱❤️",
+	"Now that's fine dining. Good human. 🍣"
+]
+const THOUGHTS_FED_HAPPY_FOX: Array[String] = [
+	"Yum! Quick, clever, and absolutely delicious! 🌟",
+	"Kitsune blessing upon you for these treats! 🦊✨",
+	"Delightful! You have earned my highest favor! 💖"
+]
+const THOUGHTS_FED_HAPPY_BUNNY: Array[String] = [
+	"Hop hop! Sweet perfection! My tummy is warm! 🍀",
+	"Contented ear flop! Best snack ever! 🐰❤️",
+	"Clover dreams come true! Thank you! ✨"
+]
+const THOUGHTS_FED_HAPPY_CAPYBARA: Array[String] = [
+	"Deep sigh of tranquility... supreme satisfaction. 🍊",
+	"Peace restored to the universe. Blissful munch. 🥥✨",
+	"Warm tummy, quiet mind. Perfect moment. 🍵"
+]
+const THOUGHTS_FED_HAPPY_PENGUIN: Array[String] = [
+	"Chirp! Tummy patted! Ready to slide through the day! 🐟",
+	"Happy flipper flutter! So full and round! 🐧❤️",
+	"Victory waddle! That hit the spot! ❄️✨"
+]
+const THOUGHTS_FED_HAPPY_REDPANDA: Array[String] = [
+	"Bleeeep! Two paws of pure joy! Best snack ever! 🥐",
+	"Hugging my fluffy tail in pure happiness! 🐾❤️",
+	"Delicious fuel received! Red panda energized! ✨"
+]
+const THOUGHTS_FED_HAPPY_OWL: Array[String] = [
+	"Hoo-hoo! A feast worthy of Olympus. Excellent choice. 🌙",
+	"Feathers fluffed in profound contentment. 🦉✨",
+	"Mind sharpened, palate honored. Thank you! 📜❤️"
+]
+
 # ==============================================================================
 # ⚙️ LIFECYCLE & METHODS
 # ==============================================================================
@@ -417,6 +549,9 @@ func _get_species_pool(base_category: String) -> Array[String]:
 		"bunny": suffix = "_BUNNY"
 		"fox": suffix = "_FOX"
 		"cat": suffix = "_CAT"
+		"capybara": suffix = "_CAPYBARA"
+		"redpanda": suffix = "_REDPANDA"
+		"owl": suffix = "_OWL"
 	
 	# Try species-specific pool first, fall back to generic
 	match base_category + suffix:
@@ -456,13 +591,40 @@ func _get_species_pool(base_category: String) -> Array[String]:
 		"idle_BUNNY": return THOUGHTS_IDLE_BUNNY
 		"idle_FOX": return THOUGHTS_IDLE_FOX
 		"idle_CAT": return THOUGHTS_IDLE_CAT
+		# Asking for Food (< 40%)
+		"ask_food_SHIBA": return THOUGHTS_ASK_FOOD_SHIBA
+		"ask_food_CAT": return THOUGHTS_ASK_FOOD_CAT
+		"ask_food_FOX": return THOUGHTS_ASK_FOOD_FOX
+		"ask_food_BUNNY": return THOUGHTS_ASK_FOOD_BUNNY
+		"ask_food_CAPYBARA": return THOUGHTS_ASK_FOOD_CAPYBARA
+		"ask_food_PENGUIN": return THOUGHTS_ASK_FOOD_PENGUIN
+		"ask_food_REDPANDA": return THOUGHTS_ASK_FOOD_REDPANDA
+		"ask_food_OWL": return THOUGHTS_ASK_FOOD_OWL
+		# Hangry / Mad (< 15%)
+		"hangry_SHIBA": return THOUGHTS_HANGRY_SHIBA
+		"hangry_CAT": return THOUGHTS_HANGRY_CAT
+		"hangry_FOX": return THOUGHTS_HANGRY_FOX
+		"hangry_BUNNY": return THOUGHTS_HANGRY_BUNNY
+		"hangry_CAPYBARA": return THOUGHTS_HANGRY_CAPYBARA
+		"hangry_PENGUIN": return THOUGHTS_HANGRY_PENGUIN
+		"hangry_REDPANDA": return THOUGHTS_HANGRY_REDPANDA
+		"hangry_OWL": return THOUGHTS_HANGRY_OWL
+		# Fed & Happy Celebration
+		"fed_happy_SHIBA": return THOUGHTS_FED_HAPPY_SHIBA
+		"fed_happy_CAT": return THOUGHTS_FED_HAPPY_CAT
+		"fed_happy_FOX": return THOUGHTS_FED_HAPPY_FOX
+		"fed_happy_BUNNY": return THOUGHTS_FED_HAPPY_BUNNY
+		"fed_happy_CAPYBARA": return THOUGHTS_FED_HAPPY_CAPYBARA
+		"fed_happy_PENGUIN": return THOUGHTS_FED_HAPPY_PENGUIN
+		"fed_happy_REDPANDA": return THOUGHTS_FED_HAPPY_REDPANDA
+		"fed_happy_OWL": return THOUGHTS_FED_HAPPY_OWL
 	return []
 
 func show_random_thought(category: String, duration: float = 3.5) -> void:
 	var pool: Array[String] = []
 	
 	# Try species-specific pool first for categories that have them
-	var species_categories: Array[String] = ["petted", "stretch_wander", "go_to_sleep", "work_join", "napping", "idle"]
+	var species_categories: Array[String] = ["petted", "stretch_wander", "go_to_sleep", "work_join", "napping", "idle", "ask_food", "hangry", "fed_happy"]
 	if category in species_categories:
 		pool = _get_species_pool(category)
 	

@@ -140,6 +140,12 @@ func _connect_signals() -> void:
 	if call_pet_btn:
 		call_pet_btn.pressed.connect(_on_call_pet_pressed)
 		
+	# Room Title HUD Label (Click to cycle through unlocked rooms)
+	if room_label:
+		room_label.mouse_filter = Control.MOUSE_FILTER_STOP
+		room_label.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+		room_label.gui_input.connect(_on_room_label_gui_input)
+		
 	# Phase Tab Buttons (Disabled manual switching to prevent bypassing focus requirements)
 	if work_tab_btn:
 		pass # work_tab_btn.pressed.connect(func(): TimerEngine.switch_to_phase_by_name("work"))
@@ -402,6 +408,23 @@ func _on_call_pet_pressed() -> void:
 	if GameState:
 		GameState.call_pet_to_view()
 
+func _on_room_label_gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		_cycle_room(1)
+
+func _cycle_room(dir: int) -> void:
+	if not GameState or GameState.unlocked_rooms.is_empty():
+		return
+	var rooms: Array[String] = ["room_bedroom", "room_livingroom", "room_library", "room_greenhouse", "room_kitchen"]
+	var cur_idx: int = rooms.find(GameState.active_view_room)
+	if cur_idx == -1: cur_idx = 0
+	var next_idx: int = (cur_idx + dir + rooms.size()) % rooms.size()
+	var target_room: String = rooms[next_idx]
+	if GameState.is_room_unlocked(target_room):
+		EventBus.room_change_requested.emit(target_room)
+		if AudioManager:
+			AudioManager.play_sfx("click")
+
 func _on_room_changed(_room_id: String) -> void:
 	_update_room_and_pet_hud()
 
@@ -427,6 +450,7 @@ func _update_room_and_pet_hud() -> void:
 			
 	if not any_pet_missing:
 		room_label.text = "%s • HERE" % r_name
+		room_label.tooltip_text = "Click to cycle rooms (%s) ➔" % r_name
 		room_label.add_theme_color_override("font_color", Color(0.35, 0.85, 0.55, 1.0))
 		if call_pet_btn:
 			call_pet_btn.visible = false

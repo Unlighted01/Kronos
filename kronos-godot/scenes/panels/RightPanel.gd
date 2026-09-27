@@ -426,10 +426,8 @@ func _create_bag_item_card(item: Dictionary) -> PanelContainer:
 	top_hbox.add_theme_constant_override("separation", 4)
 	main_vbox.add_child(top_hbox)
 	
-	var icon_lbl: Label = Label.new()
-	icon_lbl.text = icon
-	icon_lbl.add_theme_font_size_override("font_size", 12)
-	top_hbox.add_child(icon_lbl)
+	var icon_ctrl: Control = _create_item_icon_control(item_id, item_def, Vector2(20, 20))
+	top_hbox.add_child(icon_ctrl)
 	
 	var name_lbl: Label = Label.new()
 	name_lbl.text = item_name
@@ -640,9 +638,7 @@ func _open_pet_target_modal(action_type: String, item_id: String, slot: String =
 	preview_hbox.add_theme_constant_override("separation", 6)
 	preview_panel.add_child(preview_hbox)
 	
-	var p_icon: Label = Label.new()
-	p_icon.text = i_icon
-	p_icon.add_theme_font_size_override("font_size", 12)
+	var p_icon: Control = _create_item_icon_control(item_id, def, Vector2(24, 24))
 	preview_hbox.add_child(p_icon)
 	
 	var p_desc: Label = Label.new()
@@ -698,10 +694,7 @@ func _open_pet_target_modal(action_type: String, item_id: String, slot: String =
 		row_box.add_theme_constant_override("separation", 6)
 		pet_btn.add_child(row_box)
 		
-		var row_icon: Label = Label.new()
-		row_icon.text = p_emoji
-		row_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		row_icon.add_theme_font_size_override("font_size", 12)
+		var row_icon: Control = _create_pet_icon_control(p_species, Vector2(24, 24))
 		row_box.add_child(row_icon)
 		
 		var info_vbox: VBoxContainer = VBoxContainer.new()
@@ -1126,3 +1119,67 @@ func _get_species_emoji(species: String) -> String:
 		"capybara": return "🦫"
 		"owl": return "🦉"
 		_: return "🐾"
+
+func _create_item_icon_control(item_id: String, item_def: Dictionary = {}, target_size: Vector2 = Vector2(20, 20)) -> Control:
+	if item_def.is_empty() and GameState:
+		item_def = GameState.get_item_def(item_id)
+		
+	var sprite_path: String = item_def.get("sprite_path", "")
+	var texture: Texture2D = null
+	
+	# 1. If explicit sprite_path exists
+	if not sprite_path.is_empty():
+		var path_32 = sprite_path.replace(".png", "_32.png")
+		if target_size.x >= 24 and ResourceLoader.exists(path_32):
+			texture = load(path_32)
+		elif ResourceLoader.exists(sprite_path):
+			texture = load(sprite_path)
+			
+	# 2. Try clean_id fallback in assets/sprites/items/
+	if texture == null and not item_id.is_empty():
+		var clean_id = item_id.replace("snack_", "").replace("item_", "").replace("decor_", "").replace("cosmetic_", "")
+		var item_path_32 = "res://assets/sprites/items/%s_32.png" % clean_id
+		var item_path_16 = "res://assets/sprites/items/%s.png" % clean_id
+		if target_size.x >= 24 and ResourceLoader.exists(item_path_32):
+			texture = load(item_path_32)
+		elif ResourceLoader.exists(item_path_16):
+			texture = load(item_path_16)
+			
+	# 3. If texture found, return crisp TextureRect
+	if texture != null:
+		var tex_rect: TextureRect = TextureRect.new()
+		tex_rect.custom_minimum_size = target_size
+		tex_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		tex_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		tex_rect.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		tex_rect.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		tex_rect.texture = texture
+		return tex_rect
+
+	# 4. Fallback to emoji Label
+	var icon_lbl: Label = Label.new()
+	icon_lbl.text = item_def.get("icon", "📦")
+	icon_lbl.add_theme_font_size_override("font_size", int(target_size.y * 0.6))
+	icon_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	return icon_lbl
+
+func _create_pet_icon_control(species: String, target_size: Vector2 = Vector2(24, 24)) -> Control:
+	var pet_idle_path = "res://assets/sprites/pets/%s/idle_0.png" % species
+	if ResourceLoader.exists(pet_idle_path):
+		var tex_rect: TextureRect = TextureRect.new()
+		tex_rect.custom_minimum_size = target_size
+		tex_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		tex_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		tex_rect.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		tex_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		tex_rect.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		tex_rect.texture = load(pet_idle_path)
+		return tex_rect
+		
+	var row_icon: Label = Label.new()
+	row_icon.text = _get_species_emoji(species)
+	row_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row_icon.add_theme_font_size_override("font_size", int(target_size.y * 0.6))
+	row_icon.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	return row_icon
+

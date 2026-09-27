@@ -10,8 +10,8 @@ const GAME_DURATION: float = 40.0
 const CARD_TYPES: Array[Dictionary] = [
 	{ "id": 0, "name": "croissant", "color": Color(0.96, 0.62, 0.04) },
 	{ "id": 1, "name": "boba", "color": Color(0.93, 0.28, 0.60) },
-	{ "id": 2, "name": "plant", "color": Color(0.40, 0.85, 0.55) },
-	{ "id": 3, "name": "book", "color": Color(0.31, 0.82, 0.91) }
+	{ "id": 2, "name": "sushi", "color": Color(0.31, 0.82, 0.91) },
+	{ "id": 3, "name": "coffee", "color": Color(0.85, 0.55, 0.35) }
 ]
 
 const GRID_COLS: int = 4
@@ -33,6 +33,8 @@ var second_card_idx: int = -1
 var _lock_input: bool = false
 var _matched_pairs: int = 0
 var _particles: Array[Dictionary] = []
+var _card_textures: Dictionary = {}
+var _card_back_tex: Texture2D = null
 
 @onready var timer_label: Label = $HUD/HBox/TimerLabel
 @onready var matches_label: Label = $HUD/HBox/MatchesLabel
@@ -50,12 +52,25 @@ func _ready() -> void:
 	mouse_filter = MOUSE_FILTER_STOP
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	
+	_load_card_textures()
+	
 	if close_btn: close_btn.pressed.connect(_on_exit_pressed)
 	if replay_btn: replay_btn.pressed.connect(start_game)
 	if exit_btn: exit_btn.pressed.connect(_on_exit_pressed)
 	if result_panel: result_panel.visible = false
 		
 	start_game()
+
+func _load_card_textures() -> void:
+	for ctype in CARD_TYPES:
+		var cname: String = ctype["name"]
+		var path = "res://assets/sprites/items/%s_32.png" % cname
+		if not ResourceLoader.exists(path):
+			path = "res://assets/sprites/items/%s.png" % cname
+		if ResourceLoader.exists(path):
+			_card_textures[cname] = load(path)
+	if ResourceLoader.exists("res://assets/sprites/items/card_back.png"):
+		_card_back_tex = load("res://assets/sprites/items/card_back.png")
 
 func start_game() -> void:
 	time_left = GAME_DURATION
@@ -257,17 +272,35 @@ func _draw() -> void:
 			if c["is_matched"]:
 				draw_rect(card_rect, Color(0.12, 0.22, 0.16, 0.7))
 				draw_rect(card_rect, Color(0.35, 0.85, 0.55), false, 1.0)
-				draw_circle(Vector2(cx + CARD_W * 0.5, cy + CARD_H * 0.5), 8.0 * s_x, c["info"]["color"])
+				var cname: String = c["info"]["name"]
+				var tex: Texture2D = _card_textures.get(cname, null)
+				if tex and s_x > 0.1:
+					draw_set_transform(Vector2(cx + CARD_W * 0.5, cy + CARD_H * 0.5), 0.0, Vector2(s_x * 0.85, 0.85))
+					draw_texture(tex, Vector2(-16, -16))
+					draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+				else:
+					draw_circle(Vector2(cx + CARD_W * 0.5, cy + CARD_H * 0.5), 8.0 * s_x, c["info"]["color"])
 			elif c["is_revealed"]:
 				draw_rect(card_rect, Color(0.12, 0.16, 0.26))
 				draw_rect(card_rect, Color(0.38, 0.77, 0.99), false, 1.0)
-				draw_circle(Vector2(cx + CARD_W * 0.5, cy + CARD_H * 0.5), 10.0 * s_x, c["info"]["color"])
+				var cname: String = c["info"]["name"]
+				var tex: Texture2D = _card_textures.get(cname, null)
+				if tex and s_x > 0.1:
+					draw_set_transform(Vector2(cx + CARD_W * 0.5, cy + CARD_H * 0.5), 0.0, Vector2(s_x * 0.85, 0.85))
+					draw_texture(tex, Vector2(-16, -16))
+					draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+				else:
+					draw_circle(Vector2(cx + CARD_W * 0.5, cy + CARD_H * 0.5), 10.0 * s_x, c["info"]["color"])
 			else:
 				# Face down card
-				draw_rect(card_rect, Color(0.16, 0.19, 0.31))
-				draw_rect(card_rect, Color(0.28, 0.35, 0.54), false, 1.0)
-				# Pixel diamond pattern on card back
-				draw_circle(Vector2(cx + CARD_W * 0.5, cy + CARD_H * 0.5), 4.0 * s_x, Color(0.38, 0.48, 0.72, 0.6))
+				if _card_back_tex and s_x > 0.1:
+					draw_set_transform(Vector2(cx + CARD_W * 0.5, cy + CARD_H * 0.5), 0.0, Vector2(s_x, 1.0))
+					draw_texture(_card_back_tex, Vector2(-CARD_W * 0.5, -CARD_H * 0.5))
+					draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+				else:
+					draw_rect(card_rect, Color(0.16, 0.19, 0.31))
+					draw_rect(card_rect, Color(0.28, 0.35, 0.54), false, 1.0)
+					draw_circle(Vector2(cx + CARD_W * 0.5, cy + CARD_H * 0.5), 4.0 * s_x, Color(0.38, 0.48, 0.72, 0.6))
 				
 	# Particles
 	for pt in _particles:

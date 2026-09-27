@@ -9,6 +9,9 @@ const MAX_ENERGY: float = 100.0
 const MIN_ENERGY: float = 0.0
 const MAX_JOY: float = 100.0
 const MIN_JOY: float = 0.0
+const MAX_HUNGER: float = 100.0
+const MIN_HUNGER: float = 0.0
+const HUNGER_DECAY_PER_SEC: float = 0.012 # 100% to 0% in ~138 mins of active play
 const ENERGY_BUFF_THRESHOLD: float = 70.0
 const BASE_EXP_PER_LEVEL: int = 100
 
@@ -19,99 +22,117 @@ const ITEM_DEFINITIONS: Dictionary = {
 		"id": "snack_coffee",
 		"name": "Pixel Espresso",
 		"icon": "☕",
+		"sprite_path": "res://assets/sprites/items/coffee.png",
 		"category": "snack",
 		"price": 40,
 		"description": "Quick boost! Restores +25 Energy.",
 		"energy_boost": 25.0,
 		"joy_boost": 0.0,
+		"hunger_boost": 25.0,
 		"exp_boost": 0
 	},
 	"snack_croissant": {
 		"id": "snack_croissant",
 		"name": "Butter Croissant",
 		"icon": "🥐",
+		"sprite_path": "res://assets/sprites/items/croissant.png",
 		"category": "snack",
 		"price": 60,
 		"description": "Crispy & warm! +35 Energy & +15 Joy.",
 		"energy_boost": 35.0,
 		"joy_boost": 15.0,
+		"hunger_boost": 35.0,
 		"exp_boost": 0
 	},
 	"snack_matcha": {
 		"id": "snack_matcha",
 		"name": "Ceremonial Matcha",
 		"icon": "🍵",
+		"sprite_path": "res://assets/sprites/items/matcha.png",
 		"category": "snack",
 		"price": 80,
 		"description": "Zen state. +45 Energy & +25 Joy.",
 		"energy_boost": 45.0,
 		"joy_boost": 25.0,
+		"hunger_boost": 35.0,
 		"exp_boost": 0
 	},
 	"snack_donut": {
 		"id": "snack_donut",
 		"name": "Star Donut",
 		"icon": "🍩",
+		"sprite_path": "res://assets/sprites/items/donut.png",
 		"category": "snack",
 		"price": 100,
 		"description": "Sugary delight! +60 Joy & +20 Energy.",
 		"energy_boost": 20.0,
 		"joy_boost": 60.0,
+		"hunger_boost": 45.0,
 		"exp_boost": 0
 	},
 	"snack_pancake": {
 		"id": "snack_pancake",
 		"name": "Souffle Pancakes",
 		"icon": "🥞",
+		"sprite_path": "res://assets/sprites/items/pancake.png",
 		"category": "snack",
 		"price": 110,
 		"description": "Fluffy stacks with maple syrup! +50 Energy & +50 Joy.",
 		"energy_boost": 50.0,
 		"joy_boost": 50.0,
+		"hunger_boost": 65.0,
 		"exp_boost": 5
 	},
 	"snack_boba": {
 		"id": "snack_boba",
 		"name": "Brown Sugar Boba",
 		"icon": "🧋",
+		"sprite_path": "res://assets/sprites/items/boba.png",
 		"category": "snack",
 		"price": 120,
 		"description": "Sweet iced milk tea! +40 Energy & +45 Joy.",
 		"energy_boost": 40.0,
 		"joy_boost": 45.0,
+		"hunger_boost": 45.0,
 		"exp_boost": 5
 	},
 	"snack_onigiri": {
 		"id": "snack_onigiri",
 		"name": "Salmon Onigiri",
 		"icon": "🍙",
+		"sprite_path": "res://assets/sprites/items/sushi.png",
 		"category": "snack",
 		"price": 130,
 		"description": "Nori-wrapped rice ball! +55 Energy & +30 Joy.",
 		"energy_boost": 55.0,
 		"joy_boost": 30.0,
+		"hunger_boost": 50.0,
 		"exp_boost": 8
 	},
 	"snack_ramen": {
 		"id": "snack_ramen",
 		"name": "Midnight Ramen",
 		"icon": "🍜",
+		"sprite_path": "res://assets/sprites/items/ramen.png",
 		"category": "snack",
 		"price": 150,
 		"description": "Hearty rich broth! +75 Energy & +40 Joy.",
 		"energy_boost": 75.0,
 		"joy_boost": 40.0,
+		"hunger_boost": 75.0,
 		"exp_boost": 10
 	},
 	"snack_bento": {
 		"id": "snack_bento",
 		"name": "Deluxe Bento",
 		"icon": "🍱",
+		"sprite_path": "res://assets/sprites/items/bento.png",
 		"category": "snack",
 		"price": 250,
 		"description": "Feast of champions! Full restore + 25 bonus XP.",
 		"energy_boost": 100.0,
 		"joy_boost": 100.0,
+		"hunger_boost": 100.0,
 		"exp_boost": 25
 	},
 		"cosmetic_laurel_wreath": {
@@ -430,22 +451,26 @@ const ITEM_DEFINITIONS: Dictionary = {
 		"id": "snack_energy_drink",
 		"name": "Neon Energy Drink",
 		"icon": "⚡",
+		"sprite_path": "res://assets/sprites/items/energy_drink.png",
 		"category": "snack",
 		"price": 180,
 		"description": "Massive energy spike! +80 Energy.",
 		"energy_boost": 80.0,
 		"joy_boost": 0.0,
+		"hunger_boost": 50.0,
 		"exp_boost": 0
 	},
 	"snack_mystery_box": {
 		"id": "snack_mystery_box",
 		"name": "Mystery Treat Box",
 		"icon": "🎁",
+		"sprite_path": "res://assets/sprites/items/mystery_box.png",
 		"category": "snack",
 		"price": 250,
 		"description": "A gacha bundle! +50 Energy, +50 Joy, +20 EXP.",
 		"energy_boost": 50.0,
 		"joy_boost": 50.0,
+		"hunger_boost": 80.0,
 		"exp_boost": 20
 	},
 	"cosmetic_jacket": {
@@ -760,6 +785,8 @@ var coins: int = 0
 var knowledge_points: int = 0
 var energy: float = 80.0
 var joy: float = 80.0
+var hunger: float = 100.0
+var _hunger_decay_accumulator: float = 0.0
 var streak: int = 0
 var equipped_cosmetic: String = "" # Active head/neck accessory
 var equipped_cosmetics: Dictionary = {} # Multi-slot support: {"head": "cosmetic_crown", "face": "cosmetic_shades", "neck": "cosmetic_bow"}
@@ -774,8 +801,8 @@ var current_weather: int = Weather.CLEAR
 var _weather_timer: float = 60.0
 
 # Unlocked Progression Real Estate & Household Pets
-var unlocked_rooms: Array[String] = ["room_bedroom"]
-var unlocked_pets: Array[String] = ["pet_shiba"]
+var unlocked_rooms: Array[String] = ["room_bedroom", "room_livingroom", "room_library", "room_kitchen", "room_greenhouse"]
+var unlocked_pets: Array[String] = ["pet_shiba", "pet_cat", "pet_fox", "pet_bunny", "pet_penguin", "pet_redpanda", "pet_capybara", "pet_owl"]
 var selected_pet_index: int = 0
 var study_buddy_idx: int = -1
 var active_pets: Array[Dictionary] = [
@@ -786,6 +813,7 @@ var active_pets: Array[Dictionary] = [
 		"room": "room_bedroom",
 		"energy": 80.0,
 		"joy": 80.0,
+		"hunger": 100.0,
 		"equipped_cosmetics": {},
 		"is_outside": false,
 		"expedition_end_unix": 0,
@@ -925,6 +953,21 @@ func _process(delta: float) -> void:
 	_check_morning_light_shutoff()
 	_check_midnight_rollover(delta)
 	
+	# Gentle Hunger Decay (~138 mins full to empty, halved during deep work focus)
+	_hunger_decay_accumulator += delta
+	if _hunger_decay_accumulator >= 5.0:
+		var decay_amount: float = HUNGER_DECAY_PER_SEC * _hunger_decay_accumulator
+		if has_node("/root/TimerEngine"):
+			var te = get_node("/root/TimerEngine")
+			if te and te.get("is_running") == true:
+				decay_amount *= 0.5
+		_hunger_decay_accumulator = 0.0
+		for i in range(active_pets.size()):
+			var cur_h: float = float(active_pets[i].get("hunger", 100.0))
+			active_pets[i]["hunger"] = clampf(cur_h - decay_amount, MIN_HUNGER, MAX_HUNGER)
+		if selected_pet_index >= 0 and selected_pet_index < active_pets.size():
+			hunger = active_pets[selected_pet_index]["hunger"]
+	
 	# Generous Passive Presence EXP (+1 EXP / 15s) and Coins (+1 Coin / 30s)
 	_passive_presence_accumulator += delta
 	if _passive_presence_accumulator >= 15.0:
@@ -958,7 +1001,7 @@ func _check_morning_light_shutoff() -> void:
 # ==============================================================================
 ## Maximum allowed pets roaming in the household based on player Level
 func get_max_pet_slots() -> int:
-	return 5 # Unlock all 5 slots instantly as per user request
+	return 8 # Unlock all 8 slots instantly for all companion species
 
 func is_room_unlocked(r_id: String) -> bool:
 	if r_id == "room_bedroom":
@@ -1114,8 +1157,8 @@ func reset_to_clean_slate() -> void:
 	pet_species = "shiba"
 	active_view_room = "room_bedroom"
 	pet_room = "room_bedroom"
-	unlocked_rooms = ["room_bedroom"]
-	unlocked_pets = ["pet_shiba"]
+	unlocked_rooms = ["room_bedroom", "room_livingroom", "room_library", "room_kitchen", "room_greenhouse"]
+	unlocked_pets = ["pet_shiba", "pet_cat", "pet_fox", "pet_bunny", "pet_penguin", "pet_redpanda", "pet_capybara", "pet_owl"]
 	selected_pet_index = 0
 	active_pets = [
 		{"id": "pet_shiba", "name": "Kronos", "species": "shiba", "room": "room_bedroom", "energy": 80.0, "joy": 50.0, "equipped_cosmetics": {}}
@@ -1280,6 +1323,26 @@ func adjust_pet_joy(pet_idx: int, amount: float) -> void:
 			joy = new_joy
 			EventBus.joy_changed.emit(joy, MAX_JOY)
 
+## Returns hunger of specific pet (0.0 to 100.0)
+func get_pet_hunger(pet_idx: int) -> float:
+	if pet_idx >= 0 and pet_idx < active_pets.size():
+		return float(active_pets[pet_idx].get("hunger", 100.0))
+	return hunger
+
+## Sets hunger of specific pet
+func set_pet_hunger(pet_idx: int, val: float) -> void:
+	if pet_idx >= 0 and pet_idx < active_pets.size():
+		var new_val: float = clampf(val, MIN_HUNGER, MAX_HUNGER)
+		active_pets[pet_idx]["hunger"] = new_val
+		if pet_idx == selected_pet_index:
+			hunger = new_val
+
+## Adjusts hunger of specific pet
+func adjust_pet_hunger(pet_idx: int, delta: float) -> void:
+	if pet_idx >= 0 and pet_idx < active_pets.size():
+		var cur: float = float(active_pets[pet_idx].get("hunger", 100.0))
+		set_pet_hunger(pet_idx, cur + delta)
+
 ## Sets focus streak
 func set_streak(new_streak: int) -> void:
 	streak = maxi(0, new_streak)
@@ -1364,6 +1427,9 @@ func use_item(item_id: String, target_pet_idx: int = -1) -> bool:
 	var item_def: Dictionary = ITEM_DEFINITIONS.get(item_id, {})
 	var energy_boost: float = item_def.get("energy_boost", 0.0)
 	var joy_boost: float = item_def.get("joy_boost", 0.0)
+	var hunger_boost: float = item_def.get("hunger_boost", 0.0)
+	if hunger_boost <= 0.0 and item_def.get("category", "") == "snack":
+		hunger_boost = clampf(energy_boost * 1.0, 30.0, 100.0)
 	var exp_boost: int = item_def.get("exp_boost", 0)
 	
 	var target_idx: int = target_pet_idx if (target_pet_idx >= 0 and target_pet_idx < active_pets.size()) else selected_pet_index
@@ -1373,12 +1439,15 @@ func use_item(item_id: String, target_pet_idx: int = -1) -> bool:
 			var p: Dictionary = active_pets[target_idx]
 			var cur_e: float = float(p.get("energy", 80.0))
 			var cur_j: float = float(p.get("joy", 80.0))
+			var cur_h: float = float(p.get("hunger", 100.0))
 			p["energy"] = clampf(cur_e + energy_boost, MIN_ENERGY, MAX_ENERGY)
 			p["joy"] = clampf(cur_j + joy_boost, MIN_JOY, MAX_JOY)
+			p["hunger"] = clampf(cur_h + hunger_boost, MIN_HUNGER, MAX_HUNGER)
 			
 			if target_idx == selected_pet_index:
 				set_energy(p["energy"])
 				set_joy(p["joy"])
+				hunger = p["hunger"]
 				
 			var p_id: String = p.get("id", "pet_shiba")
 			add_pet_affection(p_id, 10)
@@ -1387,6 +1456,8 @@ func use_item(item_id: String, target_pet_idx: int = -1) -> bool:
 				add_energy(energy_boost)
 			if joy_boost > 0.0:
 				add_joy(joy_boost)
+			if hunger_boost > 0.0:
+				hunger = clampf(hunger + hunger_boost, MIN_HUNGER, MAX_HUNGER)
 				
 		if exp_boost > 0:
 			add_exp(exp_boost)
@@ -2549,9 +2620,9 @@ func serialize() -> Dictionary:
 		"exp": exp,
 		"coins": coins,
 		"knowledge_points": knowledge_points,
-		
-		
-		"streak": streak,
+		"hunger": hunger,
+		"energy": energy,
+		"joy": joy,
 		"unlocked_rooms": unlocked_rooms.duplicate(),
 		"unlocked_pets": unlocked_pets.duplicate(),
 		"active_pets": active_pets.duplicate(true),
@@ -2601,6 +2672,7 @@ func deserialize(data: Dictionary) -> void:
 	knowledge_points = data.get("knowledge_points", 0)
 	energy = data.get("energy", 80.0)
 	joy = data.get("joy", 80.0)
+	hunger = data.get("hunger", 100.0)
 	streak = data.get("streak", 0)
 	
 	if data.has("flashcard_deck") and data["flashcard_deck"] is Array:
@@ -2614,16 +2686,18 @@ func deserialize(data: Dictionary) -> void:
 	if raw_rooms is Array:
 		for r in raw_rooms:
 			unlocked_rooms.append(str(r))
-	if not unlocked_rooms.has("room_bedroom"):
-		unlocked_rooms.append("room_bedroom")
+	for default_r in ["room_bedroom", "room_livingroom", "room_library", "room_kitchen", "room_greenhouse"]:
+		if not unlocked_rooms.has(default_r):
+			unlocked_rooms.append(default_r)
 		
 	var raw_pets = data.get("unlocked_pets", ["pet_shiba"])
 	unlocked_pets.clear()
 	if raw_pets is Array:
 		for p in raw_pets:
 			unlocked_pets.append(str(p))
-	if not unlocked_pets.has("pet_shiba"):
-		unlocked_pets.append("pet_shiba")
+	for default_p in ["pet_shiba", "pet_cat", "pet_fox", "pet_bunny", "pet_penguin", "pet_redpanda", "pet_capybara", "pet_owl"]:
+		if not unlocked_pets.has(default_p):
+			unlocked_pets.append(default_p)
 		
 	
 	selected_pet_index = data.get("selected_pet_index", 0)
@@ -2648,6 +2722,8 @@ func deserialize(data: Dictionary) -> void:
 					ap["energy"] = 80.0
 					ap["joy"] = 50.0
 					ap["equipped_cosmetics"] = {}
+				if not ap.has("hunger"):
+					ap["hunger"] = 100.0
 				if not ap.has("is_outside"):
 					ap["is_outside"] = false
 					ap["expedition_end_unix"] = 0
@@ -2663,6 +2739,7 @@ func deserialize(data: Dictionary) -> void:
 			"room": "room_bedroom",
 			"energy": 80.0,
 			"joy": 80.0,
+			"hunger": 100.0,
 			"equipped_cosmetics": {},
 			"is_outside": false,
 			"expedition_end_unix": 0,
@@ -2982,6 +3059,7 @@ func reset_to_defaults() -> void:
 	knowledge_points = 0
 	energy = 80.0
 	joy = 80.0
+	hunger = 100.0
 	streak = 0
 	equipped_cosmetic = ""
 	equipped_cosmetics.clear()
@@ -2993,11 +3071,11 @@ func reset_to_defaults() -> void:
 		{"item_id": "snack_croissant", "quantity": 1, "metadata": {}}
 	]
 	placed_decor.clear()
-	unlocked_rooms = ["room_bedroom"]
-	unlocked_pets = ["pet_shiba"]
+	unlocked_rooms = ["room_bedroom", "room_livingroom", "room_library", "room_kitchen", "room_greenhouse"]
+	unlocked_pets = ["pet_shiba", "pet_cat", "pet_fox", "pet_bunny", "pet_penguin", "pet_redpanda", "pet_capybara", "pet_owl"]
 	selected_pet_index = 0
 	active_pets = [
-		{"id": "pet_shiba", "name": "Kronos", "species": "shiba", "room": "room_bedroom", "energy": 80.0, "joy": 50.0, "equipped_cosmetics": {}}
+		{"id": "pet_shiba", "name": "Kronos", "species": "shiba", "room": "room_bedroom", "energy": 80.0, "joy": 50.0, "hunger": 100.0, "equipped_cosmetics": {}}
 	]
 	unlocked_achievements.clear()
 	achievement_progress.clear()

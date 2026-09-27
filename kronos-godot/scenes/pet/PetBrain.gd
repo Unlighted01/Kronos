@@ -26,7 +26,10 @@ enum State {
 	SOCIALIZING,
 	FOLLOWING,
 	FETCHING,
-	DEPARTING_OUTSIDE
+	DEPARTING_OUTSIDE,
+	EATING,
+	ASK_FOOD,
+	HANGRY
 }
 
 # ==============================================================================
@@ -153,6 +156,15 @@ var _fetching_target_pet_id: String = ""
 # Autonomous Outdoor Stroll / Expedition State
 var _expedition_check_timer: float = 0.0
 var _next_expedition_check: float = 90.0
+
+# 🍴 Hunger & Feeding State
+var _hunger_prompt_cooldown: float = 0.0
+const HUNGER_PROMPT_COOLDOWN_TIME: float = 300.0 # 5 minutes between food prompts
+var _hunger_check_timer: float = 0.0
+const HUNGER_CHECK_INTERVAL: float = 5.0 # Check hunger level every 5 seconds
+var _eating_timer: float = 0.0
+const EATING_DURATION: float = 2.4
+var _fed_item_id: String = ""
 
 # ==============================================================================
 # 🎲 WEIGHTED-RANDOM IDLE INTERACTION SYSTEM
@@ -915,6 +927,14 @@ func _physics_process(delta: float) -> void:
 		if _pet_spam_timer <= 0.0:
 			_pet_click_count = 0
 			
+	if _hunger_prompt_cooldown > 0.0:
+		_hunger_prompt_cooldown -= delta
+
+	_hunger_check_timer += delta
+	if _hunger_check_timer >= HUNGER_CHECK_INTERVAL:
+		_hunger_check_timer = 0.0
+		_check_hunger_state()
+			
 	# Process autonomous roaming across connected rooms
 	_process_autonomous_room_roaming(delta)
 	
@@ -963,6 +983,12 @@ func _physics_process(delta: float) -> void:
 			_process_fetching_state(delta)
 		State.DEPARTING_OUTSIDE:
 			_process_departing_outside_state(delta)
+		State.EATING:
+			_process_eating_state(delta)
+		State.ASK_FOOD:
+			_process_ask_food_state(delta)
+		State.HANGRY:
+			_process_hangry_state(delta)
 			
 	# Enforce room boundaries & target y level (including dynamic floor bobbing)
 	var is_exiting_bounds: bool = (
@@ -1230,6 +1256,12 @@ func _process_walk_state(_delta: float) -> void:
 				renderer.facing_right = false
 		elif current_state == State.EXITING_ROOM:
 			_execute_room_transition_fade(_pending_target_room)
+		elif current_state == State.EATING:
+			# Reset eating animation on arrival (for drinks walking to drink_x)
+			_eating_timer = 0.0
+			if renderer:
+				renderer.feeding_item_id = _fed_item_id
+				renderer.feeding_stage = 0
 	else:
 		var dir: float = signf(diff)
 		velocity.x = dir * walk_speed
@@ -1367,6 +1399,75 @@ func _process_victory_state(_delta: float) -> void:
 func _process_exiting_room_state(_delta: float) -> void:
 	velocity.x = 0.0
 	# Held during exit tween
+
+# ------------------------------------------------------------------------------
+# 🍴 HUNGER STATE HANDLERS
+# ------------------------------------------------------------------------------
+func _process_eating_state(delta: float) -> void:
+	velocity.x = 0.0
+	_set_renderer_state(PetRenderer.AnimState.FEEDING)
+	_eating_timer += delta
+	# Advance through 3 stages: 0→1 at 0.8s, 1→2 at 1.6s
+	if renderer:
+		if _eating_timer >= 1.6:
+			renderer.feeding_stage = 2
+		elif _eating_timer >= 0.8:
+			renderer.feeding_stage = 1
+		else:
+			renderer.feeding_stage = 0
+	if _eating_timer >= EATING_DURATION:
+		_eating_timer = 0.0
+		# Celebration after eating
+		if renderer:
+			renderer.feeding_stage = 0
+		if thought_bubble and visible:
+			thought_bubble.show_random_thought("fed_happy_" + species.to_upper(), 3.0)
+		current_state = State.VICTORY
+		state_timer = 0.0
+		if renderer:
+			renderer._spawn_particle("heart")
+			renderer._spawn_particle("star")
+
+func _process_ask_food_state(delta: float) -> void:
+	velocity.x = 0.0
+	_set_renderer_state(PetRenderer.AnimState.ASK_FOOD)
+	if state_timer >= 4.0:
+		state_timer = 0.0
+		current_state = State.IDLE
+
+func _process_hangry_state(delta: float) -> void:
+	velocity.x = 0.0
+	_set_renderer_state(PetRenderer.AnimState.HANGRY)
+	if state_timer >= 4.5:
+		state_timer = 0.0
+		current_state = State.IDLE
+
+## Checks hunger level and enters ASK_FOOD or HANGRY states if appropriate.
+## Only fires if pet is visible, idle-ish, and not already in a food-related state.
+func _check_hunger_state() -> void:
+	if not visible or not GameState:
+		return
+	# Don't interrupt critical states
+	var interruptible_states: Array = [State.IDLE, State.WANDER, State.WALK_TO_TARGET, State.DRINK, State.NAP]
+	if not (current_state in interruptible_states):
+		return
+	if _hunger_prompt_cooldown > 0.0:
+		return
+	var h: float = GameState.get_pet_hunger(pet_index)
+	if h <= 15.0:
+		# Hangry — pet is very hungry and upset
+		if thought_bubble and visible:
+			thought_bubble.show_random_thought("hangry_" + species.to_upper(), 4.5)
+		current_state = State.HANGRY
+		state_timer = 0.0
+		_hunger_prompt_cooldown = HUNGER_PROMPT_COOLDOWN_TIME
+	elif h <= 40.0:
+		# Asking for food politely
+		if thought_bubble and visible:
+			thought_bubble.show_random_thought("ask_food_" + species.to_upper(), 4.0)
+		current_state = State.ASK_FOOD
+		state_timer = 0.0
+		_hunger_prompt_cooldown = HUNGER_PROMPT_COOLDOWN_TIME
 
 # ==============================================================================
 # 🚶 NAVIGATION & COMMANDS
@@ -1780,56 +1881,52 @@ func _on_item_used(item_id: String, item_data: Dictionary) -> void:
 	_react_to_food_item(item_id, item_data)
 
 func _react_to_food_item(item_id: String, _item_data: Dictionary) -> void:
-	match item_id:
-		"snack_coffee":
-			if thought_bubble:
-				thought_bubble.show_thought("Delicious espresso! ☕ +25⚡", 3.5)
-			walk_to(drink_x, State.DRINK, floor_y)
-		"snack_matcha":
-			if thought_bubble:
-				thought_bubble.show_thought("Zen focus... fragrant matcha! 🍵✨", 3.5)
-			walk_to(drink_x, State.DRINK, floor_y)
-		"snack_boba":
-			if thought_bubble:
-				thought_bubble.show_thought("Tapioca pearls! Slurp~ 🧋❤️", 3.5)
-			walk_to(drink_x, State.DRINK, floor_y)
-		"snack_croissant":
-			if thought_bubble:
-				thought_bubble.show_thought("Crispy & buttery flake! 🥐💖", 3.2)
-			_play_snack_bounce()
-		"snack_donut":
-			if thought_bubble:
-				thought_bubble.show_thought("Sprinkles & strawberry glaze! 🍩✨", 3.2)
-			_play_snack_bounce()
-		"snack_pancake":
-			if thought_bubble:
-				thought_bubble.show_thought("Fluffy souffle cloud pancakes! 🥞🍯", 3.5)
-			_play_snack_bounce()
-		"snack_onigiri":
-			if thought_bubble:
-				thought_bubble.show_thought("Tasty salmon filling! 🍙🐾", 3.2)
-			_play_snack_bounce()
-		"snack_ramen":
-			if thought_bubble:
-				thought_bubble.show_thought("Steaming midnight tonkotsu! 🍜🔥", 3.5)
-			_play_snack_bounce()
-		"snack_bento":
-			if thought_bubble:
-				thought_bubble.show_thought("Deluxe feast of champions! 🍱👑", 4.0)
-			_play_snack_bounce()
-		_:
-			if thought_bubble:
-				thought_bubble.show_thought("Yum! So tasty! ❤️🐾", 3.0)
-			_play_snack_bounce()
-
-func _play_snack_bounce() -> void:
-	if current_state != State.PETTED and current_state != State.TYPE:
-		if current_state != State.PETTED:
-			_previous_state = current_state
-		current_state = State.PETTED
-		state_timer = 0.0
+	# Reset hunger prompt cooldown since pet is now being fed
+	_hunger_prompt_cooldown = HUNGER_PROMPT_COOLDOWN_TIME
+	
+	# Drinks walk to the drink spot and use DRINK state
+	var is_drink: bool = item_id in ["snack_coffee", "snack_matcha", "snack_boba"]
+	if is_drink:
+		var drink_thought: String = ""
+		match item_id:
+			"snack_coffee": drink_thought = "Delicious espresso! ☕ +25⚡"
+			"snack_matcha": drink_thought = "Zen focus... fragrant matcha! 🍵✨"
+			"snack_boba":   drink_thought = "Tapioca pearls! Slurp~ 🧋❤️"
+		if thought_bubble:
+			thought_bubble.show_thought(drink_thought, 3.5)
+		# After walking to drink_x, start EATING animation with drink overlay
+		_fed_item_id = item_id
 		if renderer:
-			renderer._spawn_particle("heart")
+			renderer.feeding_item_id = item_id
+			renderer.feeding_stage = 0
+		walk_to(drink_x, State.EATING, floor_y)
+		return
+	
+	# Solid food: show thought and start eating in-place
+	var food_thought: String = ""
+	match item_id:
+		"snack_croissant":    food_thought = "Crispy & buttery flake! 🥐💖"
+		"snack_donut":        food_thought = "Sprinkles & strawberry glaze! 🍩✨"
+		"snack_pancake":      food_thought = "Fluffy souffle cloud pancakes! 🥞🍯"
+		"snack_onigiri":      food_thought = "Tasty salmon filling! 🍙🐾"
+		"snack_ramen":        food_thought = "Steaming midnight tonkotsu! 🍜🔥"
+		"snack_bento":        food_thought = "Deluxe feast of champions! 🍱👑"
+		"snack_energy_drink": food_thought = "SUPER CHARGED! 🥤⚡"
+		"snack_mystery_box":  food_thought = "Woah, surprise snack! 🎁✨"
+		_:                    food_thought = "Yum! So tasty! ❤️🐾"
+	if thought_bubble:
+		thought_bubble.show_thought(food_thought, 3.2)
+	_play_eating_animation(item_id)
+
+func _play_eating_animation(item_id: String) -> void:
+	_fed_item_id = item_id
+	_eating_timer = 0.0
+	if renderer:
+		renderer.feeding_item_id = item_id
+		renderer.feeding_stage = 0
+	_previous_state = current_state
+	current_state = State.EATING
+	state_timer = 0.0
 
 func _on_energy_changed(new_energy: float, _max: float, _is_buffed: bool) -> void:
 	if new_energy <= 20.0 and current_state == State.IDLE and randf() < 0.3:
@@ -2369,4 +2466,3 @@ func _process_fetching_state(_delta: float) -> void:
 		queue_free()
 	)
 	current_state = State.IDLE
-

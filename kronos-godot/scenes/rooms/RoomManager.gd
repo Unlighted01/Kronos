@@ -44,6 +44,10 @@ var _drag_start_x: float = 0.0
 var _cam_start_x: float = 0.0
 var _expedition_poll_timer: float = 0.0
 
+var current_zoom: float = 0.85
+const MIN_ZOOM: float = 0.55
+const MAX_ZOOM: float = 1.50
+
 # ==============================================================================
 # ⚙️ LIFECYCLE
 # ==============================================================================
@@ -54,6 +58,7 @@ func _ready() -> void:
 	# Setup Camera
 	room_camera = Camera2D.new()
 	room_camera.position = Vector2(120, 70)
+	room_camera.zoom = Vector2(current_zoom, current_zoom)
 	sub_viewport.add_child(room_camera)
 	
 	if transition_overlay:
@@ -84,11 +89,16 @@ func _process(delta: float) -> void:
 		_check_matured_expeditions()
 
 func _on_viewport_gui_input(event: InputEvent) -> void:
-	if current_room_width <= 240.0:
-		return # No need to scroll
-		
 	if event is InputEventMouseButton:
-		if event.button_index == MOUSE_BUTTON_LEFT:
+		if event.button_index == MOUSE_BUTTON_WHEEL_UP and event.pressed:
+			_adjust_camera_zoom(0.08)
+			get_viewport().set_input_as_handled()
+			return
+		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN and event.pressed:
+			_adjust_camera_zoom(-0.08)
+			get_viewport().set_input_as_handled()
+			return
+		elif event.button_index == MOUSE_BUTTON_LEFT:
 			if event.pressed:
 				_is_dragging_cam = true
 				_drag_start_x = event.global_position.x
@@ -99,9 +109,21 @@ func _on_viewport_gui_input(event: InputEvent) -> void:
 		var dx = event.global_position.x - _drag_start_x
 		# Moving mouse right should move camera left
 		var target_x = _cam_start_x - dx
-		# Clamp camera
-		target_x = clampf(target_x, 120.0, current_room_width - 120.0)
-		room_camera.position.x = target_x
+		_clamp_camera_position(target_x)
+
+func _adjust_camera_zoom(delta_zoom: float) -> void:
+	current_zoom = clampf(current_zoom + delta_zoom, MIN_ZOOM, MAX_ZOOM)
+	if room_camera:
+		var tw = create_tween().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tw.tween_property(room_camera, "zoom", Vector2(current_zoom, current_zoom), 0.12)
+		_clamp_camera_position(room_camera.position.x)
+
+func _clamp_camera_position(target_x: float) -> void:
+	if not room_camera: return
+	var half_w = (120.0 / current_zoom)
+	var min_c = half_w
+	var max_c = maxf(half_w, current_room_width - half_w)
+	room_camera.position.x = clampf(target_x, min_c, max_c)
 
 # ==============================================================================
 # 🚪 ROOM SWITCHING & TRANSITIONS
@@ -418,4 +440,3 @@ func _on_pet_fetch_started(fetcher_idx: int, target_idx: int) -> void:
 					p.thought_bubble.show_fetch_return(t_name)
 				p._play_happy_hop_tween()
 	)
-

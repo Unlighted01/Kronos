@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://g1r2e3e4n5h6s"]
+
+[ext_resource type="Script" path="res://tests/test_greenhouse_visual.gd" id="1_test_green"]
+
+[node name="TestGreenhouseVisual" type="Node2D"]
+script = ExtResource("1_test_green")

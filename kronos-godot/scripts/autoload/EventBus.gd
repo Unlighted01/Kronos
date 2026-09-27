@@ -220,4 +220,3 @@ signal flashcard_reviewed(card_id: String, rating: String)
 
 ## Emitted when a new flashcard is created
 signal flashcard_created(card_id: String)
-

@@ -31,6 +31,11 @@ var _highlight_timer: float = 0.0
 var _bloomed_pots: Array[bool] = [false, false, false, false]
 var _bloom_scales: Array[float] = [0.0, 0.0, 0.0, 0.0]
 var _particles: Array[Dictionary] = []
+var _flower_textures: Array[Texture2D] = []
+var _pot_normal_tex: Texture2D = null
+var _pot_glow_tex: Texture2D = null
+var _pot_sprout_tex: Texture2D = null
+var _watering_can_tex: Texture2D = null
 
 @onready var round_label: Label = $HUD/HBox/RoundLabel
 @onready var status_label: Label = $HUD/HBox/StatusLabel
@@ -48,12 +53,30 @@ func _ready() -> void:
 	mouse_filter = MOUSE_FILTER_STOP
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	
+	_load_botanical_textures()
+	
 	if close_btn: close_btn.pressed.connect(_on_exit_pressed)
 	if replay_btn: replay_btn.pressed.connect(start_new_game)
 	if exit_btn: exit_btn.pressed.connect(_on_exit_pressed)
 	if result_panel: result_panel.visible = false
 		
 	start_new_game()
+
+func _load_botanical_textures() -> void:
+	_flower_textures.clear()
+	var fnames = ["flower_rose", "flower_sunflower", "flower_bluebell", "flower_orchid"]
+	for fn in fnames:
+		var path = "res://assets/sprites/plants/%s.png" % fn
+		if ResourceLoader.exists(path):
+			_flower_textures.append(load(path))
+	if ResourceLoader.exists("res://assets/sprites/plants/pot_normal.png"):
+		_pot_normal_tex = load("res://assets/sprites/plants/pot_normal.png")
+	if ResourceLoader.exists("res://assets/sprites/plants/pot_glow.png"):
+		_pot_glow_tex = load("res://assets/sprites/plants/pot_glow.png")
+	if ResourceLoader.exists("res://assets/sprites/plants/pot_sprout.png"):
+		_pot_sprout_tex = load("res://assets/sprites/plants/pot_sprout.png")
+	if ResourceLoader.exists("res://assets/sprites/plants/watering_can.png"):
+		_watering_can_tex = load("res://assets/sprites/plants/watering_can.png")
 
 func start_new_game() -> void:
 	current_round = 0
@@ -229,24 +252,42 @@ func _draw() -> void:
 		var py: float = start_y
 		var is_highlight: bool = (_active_highlight_pot == i)
 		var col: Color = POT_COLORS[i]
+		var tex_x: float = px + (pot_w - 32.0) * 0.5
 		
-		# Pot body (Terracotta base)
-		var pot_body_col: Color = Color(0.72, 0.42, 0.22) if not is_highlight else Color(0.92, 0.62, 0.32)
-		draw_rect(Rect2(px + 4, py + 18, pot_w - 8, 22), pot_body_col)
-		draw_rect(Rect2(px + 2, py + 14, pot_w - 4, 6), Color(0.58, 0.30, 0.12)) # Rim
-		
-		# Plant stem & Blooming Flower
-		var stem_x: float = px + pot_w * 0.5
-		draw_line(Vector2(stem_x, py + 14), Vector2(stem_x, py + 4), Color(0.2, 0.65, 0.3), 2.0)
-		
-		# Flower Blossom (Scale with bloom scale)
-		var bloom_r: float = 8.0 * maxf(0.3, _bloom_scales[i])
-		if is_highlight:
-			bloom_r *= 1.25
-			draw_circle(Vector2(stem_x, py + 2), bloom_r + 3.0, Color(col.r, col.g, col.b, 0.4))
+		var has_custom_art: bool = (_flower_textures.size() == 4 and _pot_normal_tex != null)
+		if has_custom_art:
+			# Glow halo on active highlight
+			if is_highlight and _pot_glow_tex:
+				draw_texture(_pot_glow_tex, Vector2(tex_x, py + 14))
 			
-		draw_circle(Vector2(stem_x, py + 2), bloom_r, col)
-		draw_circle(Vector2(stem_x, py + 2), bloom_r * 0.4, Color(1.0, 0.9, 0.4)) # Center
+			# Blooming flower vs sprout vs base pot
+			if _bloomed_pots[i] or _bloom_scales[i] > 0.35:
+				var fl_tex: Texture2D = _flower_textures[i]
+				var b_scale: float = clampf(_bloom_scales[i], 0.3, 1.0)
+				# 32x48 flower drawn with bottom aligned to pot
+				draw_set_transform(Vector2(px + pot_w * 0.5, py + 40), 0.0, Vector2(b_scale, b_scale))
+				draw_texture(fl_tex, Vector2(-16, -48))
+				draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			elif _pot_sprout_tex:
+				draw_texture(_pot_sprout_tex, Vector2(tex_x, py + 14))
+			else:
+				draw_texture(_pot_normal_tex, Vector2(tex_x, py + 14))
+		else:
+			# Fallback procedural rendering
+			var pot_body_col: Color = Color(0.72, 0.42, 0.22) if not is_highlight else Color(0.92, 0.62, 0.32)
+			draw_rect(Rect2(px + 4, py + 18, pot_w - 8, 22), pot_body_col)
+			draw_rect(Rect2(px + 2, py + 14, pot_w - 4, 6), Color(0.58, 0.30, 0.12)) # Rim
+			
+			var stem_x: float = px + pot_w * 0.5
+			draw_line(Vector2(stem_x, py + 14), Vector2(stem_x, py + 4), Color(0.2, 0.65, 0.3), 2.0)
+			
+			var bloom_r: float = 8.0 * maxf(0.3, _bloom_scales[i])
+			if is_highlight:
+				bloom_r *= 1.25
+				draw_circle(Vector2(stem_x, py + 2), bloom_r + 3.0, Color(col.r, col.g, col.b, 0.4))
+				
+			draw_circle(Vector2(stem_x, py + 2), bloom_r, col)
+			draw_circle(Vector2(stem_x, py + 2), bloom_r * 0.4, Color(1.0, 0.9, 0.4))
 		
 	# Particles
 	for pt in _particles:

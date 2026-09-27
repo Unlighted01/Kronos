@@ -9,9 +9,9 @@ room_name = "Banks of the Styx"
 room_width = 720.0
 min_x = 50.0
 max_x = 670.0
-desk_x = 180.0
-nap_x = 580.0
-drink_x = 360.0
+desk_x = 220.0
+nap_x = 110.0
+drink_x = 340.0
 
 [node name="AmbientModulate" type="CanvasModulate" parent="."]
 color = Color(1, 1, 1, 1)

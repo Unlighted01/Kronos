@@ -20,7 +20,10 @@ enum AnimState {
 	STUDY,
 	WINDOW_GAZE,
 	TUCKED_IN,
-	CHEF_SNIFF
+	CHEF_SNIFF,
+	FEEDING,
+	ASK_FOOD,
+	HANGRY
 }
 
 # ==============================================================================
@@ -47,12 +50,57 @@ const COL_STAR_GOLD: Color = Color(1.0, 0.84, 0.0, 0.9)      # Golden Star
 const COL_ZZZ_BLUE: Color = Color(0.55, 0.75, 0.98, 0.85)    # Sleep Zzz
 
 # ==============================================================================
+# 🖼️ PNG SPRITE CACHE & ASSET PIPELINE
+# ==============================================================================
+const SPRITE_BASE_PATH: String = "res://assets/sprites/pets/"
+var _sprite_cache: Dictionary = {}
+static var _feeding_cache: Dictionary = {}
+const FEEDING_ITEMS: Array[String] = [
+	"croissant", "donut", "sushi", "onigiri", "coffee", "matcha",
+	"boba", "energy_drink", "pancake", "ramen", "bento", "mystery_box"
+]
+
+static func _preload_feeding_sprites() -> void:
+	if not _feeding_cache.is_empty():
+		return
+	for item in FEEDING_ITEMS:
+		for stage in range(3):
+			var path: String = "res://assets/sprites/items/feeding/%s_stage_%d.png" % [item, stage]
+			if ResourceLoader.exists(path):
+				var tex: Texture2D = load(path) as Texture2D
+				if tex:
+					_feeding_cache["%s_%d" % [item, stage]] = tex
+
+func _load_species_sprites(sp: String) -> void:
+	if _sprite_cache.has(sp):
+		return
+	var cache_entry: Dictionary = {}
+	var path_prefix = SPRITE_BASE_PATH + sp + "/"
+	for anim_name in ["idle", "walk", "nap", "victory", "eat", "loaf", "warm_paws", "gaze"]:
+		var frame_list: Array[Texture2D] = []
+		var idx: int = 0
+		while true:
+			var frame_path: String = "%s%s_%d.png" % [path_prefix, anim_name, idx]
+			if ResourceLoader.exists(frame_path):
+				var tex: Texture2D = load(frame_path) as Texture2D
+				if tex:
+					frame_list.append(tex)
+				idx += 1
+			else:
+				break
+		if not frame_list.is_empty():
+			cache_entry[anim_name] = frame_list
+	if not cache_entry.is_empty():
+		_sprite_cache[sp] = cache_entry
+
+# ==============================================================================
 # ⏱️ ANIMATION STATE & TIMERS
 # ==============================================================================
 @export var species: String = "shiba":
 	set(value):
 		if species != value:
 			species = value
+			_load_species_sprites(species)
 			queue_redraw()
 
 @export var current_state: AnimState = AnimState.IDLE:
@@ -106,6 +154,10 @@ var anim_frame: int = 0
 var anim_timer: float = 0.0
 var frame_duration: float = 0.15
 
+# Feeding & Snack State Overlays
+var feeding_item_id: String = ""
+var feeding_stage: int = 0 # 0 = Full, 1 = Half, 2 = Finished/Crumbs
+
 # Floating particle tracking (hearts, steam, Zzz, stars)
 var _particles: Array[Dictionary] = []
 var _particle_timer: float = 0.0
@@ -128,6 +180,22 @@ func _update_animation_frame() -> void:
 		anim_frame = (anim_frame + 1) % max_frames
 
 func _get_frame_count_for_state(state: AnimState) -> int:
+	if not _sprite_cache.has(species):
+		_load_species_sprites(species)
+	var sp_data: Dictionary = _sprite_cache.get(species, {})
+	if not sp_data.is_empty():
+		var anim_name: String = "idle"
+		match state:
+			AnimState.WALK: anim_name = "walk"
+			AnimState.NAP, AnimState.TUCKED_IN: anim_name = "loaf" if sp_data.has("loaf") else "nap"
+			AnimState.VICTORY, AnimState.PETTED: anim_name = "victory"
+			AnimState.STUDY, AnimState.FEEDING: anim_name = "eat" if sp_data.has("eat") else "idle"
+			AnimState.WARM_PAWS: anim_name = "warm_paws" if sp_data.has("warm_paws") else "idle"
+			AnimState.WINDOW_GAZE: anim_name = "gaze" if sp_data.has("gaze") else "idle"
+			_: anim_name = "idle"
+		if sp_data.has(anim_name) and not sp_data[anim_name].is_empty():
+			return sp_data[anim_name].size()
+
 	match state:
 		AnimState.IDLE: return 4
 		AnimState.WALK: return 4
@@ -142,6 +210,9 @@ func _get_frame_count_for_state(state: AnimState) -> int:
 		AnimState.WINDOW_GAZE: return 4
 		AnimState.TUCKED_IN: return 4
 		AnimState.CHEF_SNIFF: return 4
+		AnimState.FEEDING: return 4
+		AnimState.ASK_FOOD: return 4
+		AnimState.HANGRY: return 4
 	return 4
 
 func _get_frame_speed_for_state(state: AnimState) -> float:
@@ -159,6 +230,9 @@ func _get_frame_speed_for_state(state: AnimState) -> float:
 		AnimState.WINDOW_GAZE: return 0.30
 		AnimState.TUCKED_IN: return 0.45
 		AnimState.CHEF_SNIFF: return 0.20
+		AnimState.FEEDING: return 0.16
+		AnimState.ASK_FOOD: return 0.25
+		AnimState.HANGRY: return 0.20
 	return 0.20
 
 # ==============================================================================
@@ -182,6 +256,21 @@ func _update_particles(delta: float) -> void:
 	elif (current_state == AnimState.VICTORY or current_state == AnimState.STUDY or current_state == AnimState.WATCH_TV) and _particle_timer >= 0.30:
 		_particle_timer = 0.0
 		_spawn_particle("star", Vector2(randf_range(-10, 10), randf_range(-18, -8)))
+	elif current_state == AnimState.FEEDING and _particle_timer >= 0.25:
+		_particle_timer = 0.0
+		var clean_id: String = feeding_item_id.replace("snack_", "").replace("item_", "")
+		if clean_id in ["coffee", "matcha", "ramen"]:
+			_spawn_particle("steam", Vector2(randf_range(-2, 6), -14))
+		elif clean_id in ["croissant", "donut", "sushi", "pancake", "bento"]:
+			_spawn_particle("crumb", Vector2(randf_range(-2, 6), -8))
+		elif clean_id in ["boba", "energy_drink", "mystery_box"]:
+			_spawn_particle("star", Vector2(randf_range(-4, 6), -14))
+	elif current_state == AnimState.ASK_FOOD and _particle_timer >= 0.7:
+		_particle_timer = 0.0
+		_spawn_particle("exclamation", Vector2(randf_range(2, 6), -22))
+	elif current_state == AnimState.HANGRY and _particle_timer >= 0.8:
+		_particle_timer = 0.0
+		_spawn_particle("anger", Vector2(randf_range(-4, 4), -26))
 		
 	for i in range(_particles.size() - 1, -1, -1):
 		var p: Dictionary = _particles[i]
@@ -200,6 +289,9 @@ func _spawn_particle(type: String, origin: Vector2 = Vector2.ZERO) -> void:
 	elif type == "star":
 		vel = Vector2(randf_range(-10, 10), randf_range(-18, -10))
 		max_life = 0.9
+	elif type == "crumb":
+		vel = Vector2(randf_range(-4, 4), randf_range(8, 18))
+		max_life = 0.7
 		
 	_particles.append({
 		"type": type,
@@ -214,6 +306,109 @@ func _spawn_particle(type: String, origin: Vector2 = Vector2.ZERO) -> void:
 # ==============================================================================
 # 🎨 CUSTOM CANVAS DRAWING
 # ==============================================================================
+func _draw_sprite_frame() -> bool:
+	if not _sprite_cache.has(species):
+		_load_species_sprites(species)
+	var sp_data: Dictionary = _sprite_cache.get(species, {})
+	if sp_data.is_empty():
+		return false
+		
+	var anim_name: String = "idle"
+	match current_state:
+		AnimState.WALK:
+			anim_name = "walk"
+		AnimState.NAP, AnimState.TUCKED_IN:
+			anim_name = "loaf" if sp_data.has("loaf") else "nap"
+		AnimState.VICTORY, AnimState.PETTED:
+			anim_name = "victory"
+		AnimState.STUDY:
+			anim_name = "eat" if sp_data.has("eat") else "idle"
+		AnimState.WARM_PAWS:
+			anim_name = "warm_paws" if sp_data.has("warm_paws") else "idle"
+		AnimState.WINDOW_GAZE:
+			anim_name = "gaze" if sp_data.has("gaze") else "idle"
+		AnimState.FEEDING:
+			anim_name = "eat" if sp_data.has("eat") else "idle"
+		AnimState.ASK_FOOD:
+			anim_name = "idle"
+		AnimState.HANGRY:
+			anim_name = "idle"
+		_:
+			anim_name = "idle"
+			
+	var frames: Array = sp_data.get(anim_name, [])
+	if frames.is_empty():
+		frames = sp_data.get("idle", [])
+	if frames.is_empty():
+		return false
+		
+	var tex_idx: int = anim_frame % frames.size()
+	var tex: Texture2D = frames[tex_idx]
+	if tex:
+		# Draw 32x32 frame centered horizontally at -16, feet baseline at y=0
+		draw_texture(tex, Vector2(-16, -30))
+		
+		# Overlay props for special states
+		if current_state == AnimState.TYPE:
+			var screen_flicker: bool = (anim_frame % 2 == 1)
+			_draw_pixel_rect(Rect2(5, 0, 11, 2), COL_LAPTOP_BODY)
+			_draw_pixel_rect(Rect2(12, -10, 2, 10), COL_LAPTOP_BODY)
+			_draw_pixel_rect(Rect2(10, -9, 2, 8), COL_SCREEN_CODE if screen_flicker else COL_LAPTOP_SCREEN)
+		elif current_state == AnimState.DRINK:
+			_draw_pixel_rect(Rect2(5, -4, 6, 6), COL_MUG_BODY)
+			_draw_pixel_rect(Rect2(6, -4, 4, 1), COL_COFFEE)
+			_draw_pixel_rect(Rect2(11, -3, 2, 4), COL_MUG_BODY)
+		elif current_state == AnimState.STUDY:
+			if not sp_data.has("eat"):
+				_draw_pixel_rect(Rect2(4, -2, 10, 4), Color(0.35, 0.22, 0.15))
+				_draw_pixel_rect(Rect2(5, -4, 8, 3), Color(0.95, 0.92, 0.85))
+		elif current_state == AnimState.FEEDING:
+			_draw_feeding_overlay()
+		elif current_state == AnimState.ASK_FOOD:
+			_draw_begging_overlay()
+		elif current_state == AnimState.HANGRY:
+			_draw_hangry_overlay()
+		return true
+	return false
+
+## Overlays 3-stage feeding snack sprite at companion paws or on plate
+func _draw_feeding_overlay() -> void:
+	var clean_id: String = feeding_item_id.replace("snack_", "").replace("item_", "")
+	if clean_id.is_empty():
+		clean_id = "croissant"
+	elif clean_id == "onigiri":
+		clean_id = "sushi"
+	var stage: int = clampi(feeding_stage, 0, 2)
+	
+	if _feeding_cache.is_empty():
+		_preload_feeding_sprites()
+		
+	var key: String = "%s_%d" % [clean_id, stage]
+	var tex: Texture2D = _feeding_cache.get(key, null)
+	if tex:
+		var food_pos: Vector2 = Vector2(-2, -14)
+		if clean_id in ["ramen", "pancake", "bento"]:
+			food_pos = Vector2(2, -10)
+		elif clean_id in ["coffee", "matcha", "boba", "energy_drink"]:
+			food_pos = Vector2(0, -13)
+		elif clean_id == "mystery_box":
+			food_pos = Vector2(1, -12)
+		elif clean_id in ["sushi", "onigiri"]:
+			food_pos = Vector2(1, -11)
+		draw_texture(tex, food_pos)
+
+## Draws front paws lifted together in begging gesture
+func _draw_begging_overlay() -> void:
+	var fur_c: Color = _get_fur_main()
+	var fur_s: Color = _get_fur_shadow()
+	_draw_pixel_rect(Rect2(3, -12, 3, 3), fur_s)
+	_draw_pixel_rect(Rect2(2, -11, 4, 3), fur_c)
+	_draw_pixel_rect(Rect2(4, -13, 3, 2), fur_c)
+
+## Draws grumpy pouting brow
+func _draw_hangry_overlay() -> void:
+	_draw_pixel_rect(Rect2(0, -22, 5, 1), Color(0.2, 0.15, 0.15, 0.85))
+
 func _draw() -> void:
 	var flip: float = 1.0 if facing_right else -1.0
 	
@@ -221,33 +416,44 @@ func _draw() -> void:
 	
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2(flip, 1.0))
 	
-	match current_state:
-		AnimState.IDLE:
-			_draw_idle_anim()
-		AnimState.WALK:
-			_draw_walk_anim()
-		AnimState.TYPE:
-			_draw_type_anim()
-		AnimState.DRINK:
-			_draw_drink_anim()
-		AnimState.NAP:
-			_draw_nap_anim()
-		AnimState.PETTED:
-			_draw_petted_anim()
-		AnimState.VICTORY:
-			_draw_victory_anim()
-		AnimState.WATCH_TV:
-			_draw_watch_tv_anim()
-		AnimState.WARM_PAWS:
-			_draw_warm_paws_anim()
-		AnimState.STUDY:
-			_draw_study_anim()
-		AnimState.WINDOW_GAZE:
-			_draw_window_gaze_anim()
-		AnimState.TUCKED_IN:
-			_draw_tucked_in_anim()
-		AnimState.CHEF_SNIFF:
-			_draw_chef_sniff_anim()
+	var drew_sprite: bool = _draw_sprite_frame()
+	if not drew_sprite:
+		match current_state:
+			AnimState.IDLE:
+				_draw_idle_anim()
+			AnimState.WALK:
+				_draw_walk_anim()
+			AnimState.TYPE:
+				_draw_type_anim()
+			AnimState.DRINK:
+				_draw_drink_anim()
+			AnimState.NAP:
+				_draw_nap_anim()
+			AnimState.PETTED:
+				_draw_petted_anim()
+			AnimState.VICTORY:
+				_draw_victory_anim()
+			AnimState.WATCH_TV:
+				_draw_watch_tv_anim()
+			AnimState.WARM_PAWS:
+				_draw_warm_paws_anim()
+			AnimState.STUDY:
+				_draw_study_anim()
+			AnimState.WINDOW_GAZE:
+				_draw_window_gaze_anim()
+			AnimState.TUCKED_IN:
+				_draw_tucked_in_anim()
+			AnimState.CHEF_SNIFF:
+				_draw_chef_sniff_anim()
+			AnimState.FEEDING:
+				_draw_idle_anim()
+				_draw_feeding_overlay()
+			AnimState.ASK_FOOD:
+				_draw_idle_anim()
+				_draw_begging_overlay()
+			AnimState.HANGRY:
+				_draw_idle_anim()
+				_draw_hangry_overlay()
 			
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	_draw_all_particles()
@@ -1226,6 +1432,13 @@ func _draw_all_particles() -> void:
 				_draw_pixel_anger(pos, alpha)
 			"exclamation":
 				_draw_pixel_exclamation(pos, alpha)
+			"crumb":
+				_draw_pixel_crumb(pos, alpha)
+
+func _draw_pixel_crumb(pos: Vector2, alpha: float) -> void:
+	var col: Color = Color(0.92, 0.68, 0.32, alpha)
+	_draw_pixel_rect(Rect2(pos.x, pos.y, 2, 2), col)
+	_draw_pixel_rect(Rect2(pos.x + 1, pos.y + 1, 1, 1), Color(1.0, 0.85, 0.50, alpha))
 
 func _draw_pixel_heart(pos: Vector2, alpha: float) -> void:
 	var col: Color = Color(COL_HEART_PINK.r, COL_HEART_PINK.g, COL_HEART_PINK.b, alpha)

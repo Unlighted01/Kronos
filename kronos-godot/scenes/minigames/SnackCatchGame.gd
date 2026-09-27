@@ -33,6 +33,8 @@ var _spawn_interval: float = 0.65
 var _active_items: Array[Dictionary] = []
 var _popups: Array[Dictionary] = []
 var _particles: Array[Dictionary] = []
+var _item_textures: Dictionary = {}
+var _player_texture: Texture2D = null
 
 @onready var hud_timer_label: Label = $HUD/HBox/TimerLabel
 @onready var hud_score_label: Label = $HUD/HBox/ScoreLabel
@@ -49,12 +51,24 @@ func _ready() -> void:
 	mouse_filter = MOUSE_FILTER_STOP
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	
+	_load_textures()
+	
 	if close_btn: close_btn.pressed.connect(_on_exit_pressed)
 	if replay_btn: replay_btn.pressed.connect(start_game)
 	if exit_btn: exit_btn.pressed.connect(_on_exit_pressed)
 	if game_over_panel: game_over_panel.visible = false
 		
 	start_game()
+
+func _load_textures() -> void:
+	var item_names = ["croissant", "boba", "sushi", "star", "alarm"]
+	for iname in item_names:
+		var path = "res://assets/sprites/items/%s.png" % iname
+		if ResourceLoader.exists(path):
+			_item_textures[iname] = load(path)
+	var p_path = "res://assets/sprites/pets/shiba/idle_0.png"
+	if ResourceLoader.exists(p_path):
+		_player_texture = load(p_path)
 
 func start_game() -> void:
 	time_left = GAME_DURATION
@@ -276,20 +290,27 @@ func _draw() -> void:
 	for it in _active_items:
 		var ix: float = it["x"]
 		var iy: float = it["y"]
-		draw_circle(Vector2(ix, iy), 8.0, it["color"])
-		draw_circle(Vector2(ix, iy), 6.0, Color(0.1, 0.1, 0.1, 0.85))
-		# Draw mini icon dot
-		draw_circle(Vector2(ix, iy), 3.0, it["color"])
+		var iname: String = it.get("name", "")
+		var tex: Texture2D = _item_textures.get(iname, null)
+		if tex:
+			draw_texture(tex, Vector2(ix - 8, iy - 8))
+		else:
+			draw_circle(Vector2(ix, iy), 8.0, it["color"])
+			draw_circle(Vector2(ix, iy), 6.0, Color(0.1, 0.1, 0.1, 0.85))
+			draw_circle(Vector2(ix, iy), 3.0, it["color"])
 		
 	# Draw Player Shiba & Basket
 	var py: float = FLOOR_Y - 8.0
-	# Basket
+	if _player_texture:
+		draw_texture(_player_texture, Vector2(player_x - 16, py - 24))
+	else:
+		draw_circle(Vector2(player_x, py + 3), 7.0, Color(0.96, 0.62, 0.04))
+		draw_circle(Vector2(player_x - 2, py + 2), 1.5, Color(0.1, 0.1, 0.1))
+		draw_circle(Vector2(player_x + 2, py + 2), 1.5, Color(0.1, 0.1, 0.1))
+		
+	# Basket in front
 	draw_rect(Rect2(player_x - 12, py - 4, 24, 8), Color(0.72, 0.45, 0.20))
 	draw_rect(Rect2(player_x - 10, py - 2, 20, 4), Color(0.45, 0.25, 0.10))
-	# Shiba Head
-	draw_circle(Vector2(player_x, py + 3), 7.0, Color(0.96, 0.62, 0.04))
-	draw_circle(Vector2(player_x - 2, py + 2), 1.5, Color(0.1, 0.1, 0.1))
-	draw_circle(Vector2(player_x + 2, py + 2), 1.5, Color(0.1, 0.1, 0.1))
 	
 	# Draw Popups
 	var font: Font = ThemeDB.fallback_font

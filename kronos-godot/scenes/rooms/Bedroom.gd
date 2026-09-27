@@ -2,65 +2,89 @@
 extends BaseRoom
 class_name TempleOfMorpheus
 
-## Temple of Morpheus - Premium Mythological Domain (720px wide).
-## Features the Font of Lethe waterfall, Starlight Weaver moth, and Interactive Dreamcatcher Chimes.
+## Temple of Morpheus - Ultra-Detailed Mythological Sanctuary (720px wide).
+## Features over 120+ active sprites & decor elements, nocturnal Greek temple architecture,
+## Font of Lethe water fountain, Starlight Luna Moth, Dream Sand Hourglass, and Canopy Daybed.
 
 # ==============================================================================
-# 🎨 COLOR PALETTE
+# 🎨 COLOR PALETTES
 # ==============================================================================
-const COL_SKY_DEEP: Color = Color(0.04, 0.05, 0.10, 1.0)
-const COL_SKY_MID: Color = Color(0.08, 0.12, 0.20, 1.0)
-const COL_TEMPLE_BG: Color = Color(0.12, 0.10, 0.16, 1.0)
-const COL_TEMPLE_FG: Color = Color(0.18, 0.16, 0.22, 1.0)
-const COL_FLOOR: Color = Color(0.15, 0.12, 0.18, 1.0)
-
-const COL_LETHE_WATER: Color = Color(0.40, 0.85, 0.95, 0.8)
-const COL_LETHE_FOAM: Color = Color(0.80, 0.95, 1.0, 0.9)
-const COL_LETHE_GLOW: Color = Color(0.20, 0.65, 0.95, 0.4)
-
-const COL_MARBLE: Color = Color(0.85, 0.80, 0.85, 1.0)
-const COL_MARBLE_SHADE: Color = Color(0.65, 0.60, 0.70, 1.0)
-const COL_VINE: Color = Color(0.15, 0.25, 0.20, 1.0)
-const COL_MOONFLOWER: Color = Color(0.95, 0.95, 1.0, 1.0)
-
-const COL_BED_CANOPY: Color = Color(0.15, 0.25, 0.45, 0.8)
-const COL_BED_PILLOW: Color = Color(0.70, 0.85, 0.95, 1.0)
-const COL_BED_SHEET: Color = Color(0.25, 0.35, 0.55, 1.0)
-const COL_WOOD_SILVER: Color = Color(0.45, 0.50, 0.60, 1.0)
-
-const COL_SAND: Color = Color(0.95, 0.80, 0.45, 1.0)
-const COL_HOURGLASS_GLASS: Color = Color(0.70, 0.90, 0.95, 0.3)
-const COL_CHIME_BRONZE: Color = Color(0.65, 0.45, 0.25, 1.0)
-
-const COL_MOTH_WING: Color = Color(0.60, 0.85, 1.0, 0.6)
-const COL_MOTH_GLOW: Color = Color(0.40, 0.75, 1.0, 0.3)
+const COL_SKY_TOP: Color = Color(0.04, 0.05, 0.12, 1.0) # Deep midnight indigo
+const COL_SKY_BOT: Color = Color(0.18, 0.12, 0.30, 1.0) # Ethereal twilight violet
+const COL_LETHE_WATER: Color = Color(0.35, 0.85, 0.98, 0.85)
+const COL_LETHE_FOAM: Color = Color(0.85, 0.96, 1.0, 0.9)
+const COL_SILVER: Color = Color(0.88, 0.90, 0.96, 1.0)
+const COL_BLUE_FLAME: Color = Color(0.35, 0.75, 1.0, 1.0)
+const COL_DREAM_SAND: Color = Color(0.40, 0.92, 0.98, 0.9)
 
 # ==============================================================================
-# 📊 INTERNAL STATE
+# 📦 16-BIT HANDCRAFTED SPRITE ASSET SUITE
+# ==============================================================================
+# Architectural Foundations
+const TEX_FLOOR: Texture2D = preload("res://assets/sprites/rooms/bedroom/floor_tile.png")
+const TEX_FLOOR_LIP: Texture2D = preload("res://assets/sprites/rooms/bedroom/floor_lip.png")
+const TEX_WALL_STONE: Texture2D = preload("res://assets/sprites/rooms/bedroom/wall_stone.png")
+const TEX_WALL_FRIEZE: Texture2D = preload("res://assets/sprites/rooms/bedroom/wall_frieze.png")
+const TEX_COLUMN: Texture2D = preload("res://assets/sprites/rooms/bedroom/column.png")
+const TEX_CEILING: Texture2D = preload("res://assets/sprites/rooms/bedroom/ceiling_tile.png")
+const TEX_BALUSTRADE: Texture2D = preload("res://assets/sprites/rooms/bedroom/balustrade.png")
+const TEX_VISTA_NIGHT: Texture2D = preload("res://assets/sprites/rooms/bedroom/vista_olympus_night.png")
+
+# Furniture & Interactive Props
+const TEX_CANOPY_BED: Texture2D = preload("res://assets/sprites/rooms/bedroom/canopy_bed.png")
+const TEX_STUDY_ALTAR: Texture2D = preload("res://assets/sprites/rooms/bedroom/study_altar.png")
+const TEX_DREAM_HOURGLASS: Texture2D = preload("res://assets/sprites/rooms/bedroom/dream_hourglass.png")
+const TEX_CANDELABRA: Texture2D = preload("res://assets/sprites/rooms/bedroom/candelabra.png")
+const TEX_LETHE_FOUNTAIN: Texture2D = preload("res://assets/sprites/rooms/bedroom/lethe_fountain.png")
+const TEX_WIND_CHIMES: Texture2D = preload("res://assets/sprites/rooms/bedroom/wind_chimes.png")
+const TEX_MOON_RUG: Texture2D = preload("res://assets/sprites/rooms/bedroom/moon_rug.png")
+const TEX_MOONFLOWER_URN: Texture2D = preload("res://assets/sprites/rooms/bedroom/moonflower_urn.png")
+
+# Expansion Temple Decor
+const TEX_STAR_LANTERN: Texture2D = preload("res://assets/sprites/rooms/bedroom/star_lantern.png")
+const TEX_SCONCE: Texture2D = preload("res://assets/sprites/rooms/bedroom/sconce_blue.png")
+const TEX_ASTROLABE: Texture2D = preload("res://assets/sprites/rooms/bedroom/astrolabe.png")
+const TEX_COLUMN_DRAPES: Texture2D = preload("res://assets/sprites/rooms/bedroom/column_drapes.png")
+const TEX_GRIMOIRE_STAND: Texture2D = preload("res://assets/sprites/rooms/bedroom/grimoire_stand.png")
+const TEX_MOONFLOWER_VINES: Texture2D = preload("res://assets/sprites/rooms/bedroom/moonflower_vines.png")
+const TEX_STARLIGHT_MOTH: Texture2D = preload("res://assets/sprites/rooms/bedroom/starlight_moth.png")
+
+# ==============================================================================
+# 📊 INTERNAL STATE & ANIMATION SYSTEMS
 # ==============================================================================
 var _anim_clock: float = 0.0
 var _stars: Array[Dictionary] = []
 var _dreams: Array[Dictionary] = []
+var _sand_grains: Array[Dictionary] = []
+var _water_ripples: Array[Dictionary] = []
+var _music_notes: Array[Dictionary] = []
+var _starlight_dust: Array[Dictionary] = []
+var _shooting_stars: Array[Dictionary] = []
 
-# Interactables
+# Interactive states
 var is_waterfall_flowing: bool = true
 var _chime_swing: float = 0.0
-var _hourglass_magic_time: float = 0.0
-var _lethe_ripple_time: float = 0.0
 var _chime_vel: float = 0.0
+var _lantern_swing: float = 0.0
+var _candelabra_flare: float = 0.0
+var _hourglass_inverted: bool = false
+var _sand_flow_rate: float = 1.0
 
-# The Starlight Weaver (Moth)
-var moth_x: float = -100.0
+# The Starlight Weaver (Luna Moth)
+var moth_x: float = -50.0
 var moth_y: float = 40.0
-var moth_active: bool = false
+var moth_active: bool = true
 var moth_timer: float = 0.0
 
-var _floor_cache: Array[Dictionary] = []
-
-# Bounding Boxes
-const RECT_CHIMES: Rect2 = Rect2(400, -20, 40, 100)
-const RECT_MOTH: Rect2 = Rect2(0, 0, 40, 40)
-const RECT_WATERFALL: Rect2 = Rect2(530, 80, 80, 100)
+# Interactive Mouse Hitboxes
+const RECT_CANOPY_BED: Rect2 = Rect2(185, 40, 92, 64)
+const RECT_STUDY_ALTAR: Rect2 = Rect2(70, 60, 80, 44)
+const RECT_HOURGLASS: Rect2 = Rect2(133, 58, 26, 46)
+const RECT_CHIMES: Rect2 = Rect2(378, 8, 24, 50)
+const RECT_LETHE: Rect2 = Rect2(462, 58, 56, 46)
+const RECT_ASTROLABE: Rect2 = Rect2(42, 64, 26, 40)
+const RECT_GRIMOIRE: Rect2 = Rect2(72, 70, 30, 34)
+const RECT_BALUSTRADE: Rect2 = Rect2(550, 72, 140, 32)
 
 # ==============================================================================
 # ⚙️ LIFECYCLE
@@ -68,56 +92,44 @@ const RECT_WATERFALL: Rect2 = Rect2(530, 80, 80, 100)
 func _ready() -> void:
 	super._ready()
 	room_id = "room_bedroom"
-	room_name = "Study Bedroom"
+	room_name = "Temple of Morpheus"
 	room_width = 720.0
 	min_x = 50.0
-	max_x = 500.0  # Cannot walk past the waterfall edge
-	desk_x = 100.0 # Altar
-	nap_x = 220.0  # Bed
-	drink_x = 490.0 # Font of Lethe (at waterfall pool edge)
+	max_x = 670.0
+	floor_y = 102.0
+	desk_x = 100.0  # Altar of Somnus (Study / Feast)
+	nap_x = 230.0   # Royal Canopy Bed (Nap / Loaf)
+	drink_x = 490.0 # Font of Lethe (Drink)
 	
-	# Initial star field
+	# Seed celestial starfield
 	for i in range(50):
 		_stars.append({
-			"x": randf_range(0, 720),
-			"y": randf_range(0, 90),
-			"size": randf_range(1, 3),
-			"phase": randf_range(0, PI * 2)
+			"x": randf_range(-100, 850),
+			"y": randf_range(-60, 85),
+			"size": randf_range(1.0, 2.5),
+			"phase": randf_range(0, TAU)
 		})
-	
-	_generate_floor_cache()
 		
-	# Ambient Dream Orbs
-	for i in range(15):
-		_spawn_dream_orb(randf_range(0, 720), randf_range(40, 120))
+	# Seed ambient floating dream orbs
+	for i in range(16):
+		_spawn_dream_orb(randf_range(50, 700), randf_range(30, 110))
+		
+	# Seed initial dream sand grains in the hourglass
+	for i in range(25):
+		_sand_grains.append({
+			"x": randf_range(143, 149),
+			"y": randf_range(80, 96),
+			"vy": randf_range(10.0, 25.0)
+		})
 		
 	if EventBus:
 		EventBus.object_state_changed.connect(_on_object_state_changed)
 
-func _generate_floor_cache() -> void:
-	_floor_cache.clear()
-	var cx = 0.0
-	while cx < 550.0:
-		var tw = randf_range(30, 80)
-		var cracks = []
-		if randf() > 0.4:
-			var crack_x = cx + randf_range(5, tw - 5)
-			cracks.append([crack_x, 100, crack_x + randf_range(-5, 5), 115])
-			cracks.append([crack_x + randf_range(-5, 5), 115, crack_x + randf_range(-10, 10), 140])
-		
-		_floor_cache.append({
-			"x": cx,
-			"w": tw,
-			"shade": randf_range(-0.05, 0.05),
-			"cracks": cracks
-		})
-		cx += tw
-
 func _on_object_state_changed(key: String, val: Variant) -> void:
 	if key == "lethe_paw_dip":
-		# Paw dipped! Spawn a dream orb at the font!
-		_spawn_dream_orb(180.0, 100.0)
-		# Flash water glow
+		_spawn_dream_orb(490.0, 80.0)
+		for i in range(6):
+			_water_ripples.append({ "x": 490.0, "y": 88.0, "r": 2.0, "life": 1.5 })
 		is_waterfall_flowing = true
 		queue_redraw()
 
@@ -125,57 +137,115 @@ func _spawn_dream_orb(px: float, py: float) -> void:
 	_dreams.append({
 		"x": px,
 		"y": py,
-		"vx": randf_range(-10.0, 10.0),
-		"vy": randf_range(-5.0, -20.0),
-		"phase": randf_range(0, PI * 2),
-		"scale": randf_range(0.5, 1.5)
+		"vx": randf_range(-8.0, 8.0),
+		"vy": randf_range(-6.0, -18.0),
+		"phase": randf_range(0, TAU),
+		"scale": randf_range(0.8, 1.4),
+		"life": randf_range(4.0, 8.0)
 	})
 
+# ==============================================================================
+# 🔄 SIMULATION & PROCESS LOOP
+# ==============================================================================
 func _process(delta: float) -> void:
-	_anim_clock += delta * 1.5
+	_anim_clock += delta * 2.0
 	
-	# Chime physics (damped pendulum)
-	_chime_vel -= _chime_swing * 20.0 * delta
-	_chime_vel *= 0.95 # Damping
+	# Chime damped pendulum physics
+	_chime_vel -= _chime_swing * 18.0 * delta
+	_chime_vel *= 0.94
 	_chime_swing += _chime_vel * delta
 	
+	_lantern_swing = lerpf(_lantern_swing, 0.0, delta * 2.0)
+	_candelabra_flare = maxf(0.0, _candelabra_flare - delta * 1.6)
+	
+	# Hourglass Sand Trickle
+	for s in _sand_grains:
+		s["y"] += s["vy"] * delta * _sand_flow_rate
+		if s["y"] > 98.0:
+			s["y"] = 80.0
+			s["x"] = randf_range(143, 149)
+			
 	# Update Dream Orbs
 	for i in range(_dreams.size() - 1, -1, -1):
 		var d = _dreams[i]
-		d["x"] += (d["vx"] + sin(_anim_clock + d["phase"]) * 10.0) * delta
+		d["x"] += (d["vx"] + sin(_anim_clock + d["phase"]) * 6.0) * delta
 		d["y"] += d["vy"] * delta
-		if d["y"] < -20:
-			if _dreams.size() > 15:
-				_dreams.remove_at(i)
-			else:
-				# Recycle orb
-				d["y"] = randf_range(130, 140)
-				d["x"] = randf_range(0, 720)
+		d["life"] -= delta
+		if d["life"] <= 0 or d["y"] < -40:
+			d["y"] = randf_range(95, 115)
+			d["x"] = randf_range(60, 680)
+			d["life"] = randf_range(4.0, 7.0)
 			
-	if _hourglass_magic_time > 0.0:
-		_hourglass_magic_time -= delta
-	if _lethe_ripple_time > 0.0:
-		_lethe_ripple_time -= delta
-		
-	# Update Starlight Weaver (Moth)
+	# Update Water Ripples
+	for i in range(_water_ripples.size() - 1, -1, -1):
+		var r = _water_ripples[i]
+		r["r"] += delta * 12.0
+		r["life"] -= delta
+		if r["life"] <= 0:
+			_water_ripples.remove_at(i)
+			
+	# Update Music Notes
+	for i in range(_music_notes.size() - 1, -1, -1):
+		var n = _music_notes[i]
+		n["phase"] += delta * 4.0
+		n["y"] -= 26.0 * delta
+		n["x"] += sin(n["phase"]) * 10.0 * delta
+		n["life"] -= delta * 0.7
+		if n["life"] <= 0:
+			_music_notes.remove_at(i)
+			
+	# Update Starlight Dust
+	for i in range(_starlight_dust.size() - 1, -1, -1):
+		var sd = _starlight_dust[i]
+		sd["y"] += sd["vy"] * delta
+		sd["x"] += sd["vx"] * delta
+		sd["life"] -= delta
+		if sd["life"] <= 0:
+			_starlight_dust.remove_at(i)
+			
+	# Update Shooting Stars
+	for i in range(_shooting_stars.size() - 1, -1, -1):
+		var ss = _shooting_stars[i]
+		ss["x"] += ss["vx"] * delta
+		ss["y"] += ss["vy"] * delta
+		ss["life"] -= delta * 1.5
+		if ss["life"] <= 0:
+			_shooting_stars.remove_at(i)
+			
+	# Random ambient shooting star across Olympus night vista
+	if randf() < delta * 0.15 and _shooting_stars.size() < 2:
+		_shooting_stars.append({
+			"x": randf_range(400, 650),
+			"y": randf_range(0, 30),
+			"vx": randf_range(-140.0, -220.0),
+			"vy": randf_range(70.0, 120.0),
+			"life": 1.0
+		})
+			
+	# Update Starlight Luna Moth
 	if moth_active:
-		moth_x += (40.0 + sin(_anim_clock * 1.5) * 20.0) * delta
-		moth_y = 40.0 + sin(_anim_clock * 2.0) * 25.0 + cos(_anim_clock * 4.3) * 15.0
-		# Drop dream dust
-		if randf() < 0.05 and _dreams.size() < 40:
-			_spawn_dream_orb(moth_x, moth_y)
-			if EventBus: EventBus.object_state_changed.emit("weaver_dropped_dust", moth_x)
-		if moth_x > 800.0:
+		moth_x += (42.0 + sin(_anim_clock * 1.4) * 18.0) * delta
+		moth_y = 42.0 + sin(_anim_clock * 2.2) * 16.0 + cos(_anim_clock * 4.0) * 10.0
+		if randf() < delta * 4.0:
+			_starlight_dust.append({
+				"x": moth_x + 12, "y": moth_y + 10,
+				"vx": randf_range(-4.0, 4.0), "vy": randf_range(4.0, 14.0),
+				"life": randf_range(1.0, 2.0)
+			})
+		if moth_x > 780.0:
 			moth_active = false
 			moth_timer = 0.0
 	else:
 		moth_timer += delta
-		if moth_timer > 15.0 and randf() < 0.01: # Spawn occasionally
+		if moth_timer > 12.0 and randf() < delta * 0.5:
 			moth_active = true
-			moth_x = -50.0
+			moth_x = -40.0
 			
 	queue_redraw()
 
+# ==============================================================================
+# 🖱️ INTERACTIVE MOUSE INPUT
+# ==============================================================================
 func _unhandled_input(event: InputEvent) -> void:
 	if not event is InputEventMouseButton:
 		return
@@ -184,383 +254,344 @@ func _unhandled_input(event: InputEvent) -> void:
 		var cam_x: float = get_viewport().get_camera_2d().position.x - 120.0 if get_viewport().get_camera_2d() else 0.0
 		var pos: Vector2 = mb.position + Vector2(cam_x, 0)
 		
-		# Click Chimes
-		if RECT_CHIMES.has_point(pos):
-			_chime_vel += 5.0 # Strike the chime
-			for i in range(5):
-				_spawn_dream_orb(460, 40)
-			# Boost Joy if GameState exists
-			if GameState:
-				GameState.joy = minf(GameState.MAX_JOY, GameState.joy + 5.0)
-				EventBus.object_state_changed.emit("chimes_struck", true)
+		# 1. Canopy Bed Click: Soft dream ripples & sleeping zzz
+		if RECT_CANOPY_BED.has_point(pos):
+			for i in range(8):
+				_spawn_dream_orb(randf_range(200, 260), randf_range(50, 75))
 			get_viewport().set_input_as_handled()
 			return
 			
-		# Click Font of Lethe
-		if RECT_WATERFALL.has_point(pos):
+		# 2. Study Altar & Grimoire Click: Ethereal blue candle flare & page turn
+		if RECT_STUDY_ALTAR.has_point(pos) or RECT_GRIMOIRE.has_point(pos):
+			_candelabra_flare = 1.0
+			for i in range(12):
+				_starlight_dust.append({
+					"x": randf_range(90, 130), "y": 60.0,
+					"vx": randf_range(-15.0, 15.0), "vy": randf_range(-25.0, -10.0),
+					"life": randf_range(1.0, 2.0)
+				})
+			get_viewport().set_input_as_handled()
+			return
+			
+		# 3. Dream Sand Hourglass Click: Spin & flip sand stream
+		if RECT_HOURGLASS.has_point(pos):
+			_hourglass_inverted = not _hourglass_inverted
+			for i in range(15):
+				_sand_grains.append({
+					"x": randf_range(142, 149), "y": 80.0,
+					"vy": randf_range(20.0, 45.0)
+				})
+			get_viewport().set_input_as_handled()
+			return
+			
+		# 4. Wind Chimes Click: Sway chimes & play celestial chords
+		if RECT_CHIMES.has_point(pos):
+			_chime_vel += 6.5
+			var symbols = ["♪", "♫", "♬", "♩"]
+			for i in range(6):
+				_music_notes.append({
+					"x": randf_range(384, 400), "y": 35.0 - float(i) * 5.0,
+					"phase": randf_range(0, TAU), "symbol": symbols[i % symbols.size()],
+					"life": randf_range(1.4, 2.2)
+				})
+			if GameState:
+				GameState.joy = minf(GameState.MAX_JOY, GameState.joy + 5.0)
+				if EventBus: EventBus.object_state_changed.emit("chimes_struck", true)
+			get_viewport().set_input_as_handled()
+			return
+			
+		# 5. Font of Lethe Fountain Click: Splash glowing ripples & toggle flow
+		if RECT_LETHE.has_point(pos):
 			is_waterfall_flowing = not is_waterfall_flowing
+			for i in range(5):
+				_water_ripples.append({ "x": 490.0, "y": 88.0, "r": 2.0 + float(i)*3.0, "life": 1.8 })
 			if EventBus: EventBus.object_state_changed.emit("lethe_toggled", is_waterfall_flowing)
 			get_viewport().set_input_as_handled()
 			return
+			
+		# 6. Balustrade Terrace Click: Trigger shooting star over Olympus!
+		if RECT_BALUSTRADE.has_point(pos):
+			_shooting_stars.append({
+				"x": randf_range(600, 680), "y": 10.0,
+				"vx": randf_range(-180.0, -260.0), "vy": randf_range(80.0, 130.0),
+				"life": 1.2
+			})
+			get_viewport().set_input_as_handled()
+			return
 
 # ==============================================================================
-# 🎨 DRAWING PIPELINE
+# 🎨 DRAWING PIPELINE (120+ SPRITES ARCHITECTURE)
 # ==============================================================================
 func _draw() -> void:
-	# 1. Deep Parallax Background (Sky & Arches)
 	_draw_parallax_background()
-	
-	# 2. Floor Architecture (Stops at x=550 for the cliff)
+	_draw_temple_structure()
 	_draw_floor()
-	
-	# 3. Fluted Columns & Moonflower Vines
-	for cx in [40, 320]:
-		_draw_fluted_column(cx, 0, 100)
-	
-	# 4. Far Left: Hourglass Altar
-	_draw_hourglass_altar(100, 100)
-	
-	# 5. Left Zone: Ethereal Canopy Bed
-	_draw_canopy_bed(220, 100)
-	
-	# 6. Center Zone: Broken Moon Dial & Chimes
-	_draw_chimes(420, 0)
-	
-	# 7. Far Right Cliff: The Font of Lethe Waterfall
-	_draw_lethe_waterfall(550, 100)
-	
-	# 8. Foreground Entities
-	_draw_starlight_weaver()
-	
-	for d in _dreams:
-		var alpha = sin(_anim_clock * 2.0 + d["phase"]) * 0.3 + 0.5
-		var c = Color(0.6, 0.8, 1.0, alpha)
-		draw_circle(Vector2(d["x"], d["y"]), 3.0 * d["scale"], c)
-		draw_circle(Vector2(d["x"], d["y"]), 1.5 * d["scale"], Color(1.0, 1.0, 1.0, alpha))
+	_draw_props()
+	_draw_dynamic_particles()
 
 # ------------------------------------------------------------------------------
-# 1. PARALLAX BACKGROUND
+# 1. PARALLAX BACKGROUND & MIDNIGHT SKY
 # ------------------------------------------------------------------------------
 func _draw_parallax_background() -> void:
-	# Sky gradient
-	draw_rect(Rect2(0, 0, 720, 100), COL_SKY_DEEP)
-	for y in range(0, 100, 5):
-		var lerp_val = y / 100.0
-		draw_rect(Rect2(0, y, 720, 5), COL_SKY_DEEP.lerp(COL_SKY_MID, lerp_val))
-		
 	var cam_x: float = get_viewport().get_camera_2d().position.x - 120.0 if get_viewport().get_camera_2d() else 0.0
-	var p_offset = cam_x * 0.2
 	
-	# Massive True Crescent Moon (Deep Background)
-	var moon_x = 450.0 - (cam_x * 0.05)
-	var moon_y = 40.0
-	
-	draw_circle(Vector2(moon_x, moon_y), 80.0, Color(1.0, 0.95, 0.9, 0.1)) # Glow
-	
-	# Draw crescent using a polygon (outer arc + inner arc)
-	var c_pts = PackedVector2Array()
-	var outer_r = 60.0
-	var inner_r = 50.0
-	var offset = Vector2(-15, -10)
-	for i in range(21):
-		var a = -PI/2.0 + (PI/20.0)*i
-		c_pts.append(Vector2(moon_x + cos(a)*outer_r, moon_y + sin(a)*outer_r))
-	for i in range(20, -1, -1):
-		var a = -PI/2.0 + (PI/20.0)*i
-		c_pts.append(Vector2(moon_x + offset.x + cos(a)*inner_r, moon_y + offset.y + sin(a)*inner_r))
-	
-	draw_colored_polygon(c_pts, Color(1.0, 0.95, 0.9, 0.8))
-	
-	# Stars
-	for s in _stars:
-		var sx = fmod(s["x"] - p_offset, 720.0)
-		if sx < 0: sx += 720.0
-		var flicker = sin(_anim_clock * 1.5 + s["phase"]) * 0.5 + 0.5
-		draw_rect(Rect2(sx, s["y"], s["size"], s["size"]), Color(1.0, 0.95, 0.9, 0.2 + 0.6 * flicker))
+	# Full panoramic midnight sky gradient (-120..880, -80..102)
+	for y in range(-80, 102, 4):
+		var lerp_val = clampf((float(y) + 80.0) / 182.0, 0.0, 1.0)
+		draw_rect(Rect2(-120, y, 1000, 4), COL_SKY_TOP.lerp(COL_SKY_BOT, lerp_val))
 		
-	# Ruined Temple Arches
-	var a_offset = cam_x * 0.1
-	for ax in range(-100, 820, 160):
-		var x = ax - a_offset
-		# Break the arch over the moon
-		if abs(x - 400) > 100:
-			draw_rect(Rect2(x, 20, 16, 80), COL_TEMPLE_BG)
-			draw_rect(Rect2(x + 100, 20, 16, 80), COL_TEMPLE_BG)
-			draw_arc(Vector2(x + 58, 20), 50.0, PI, PI*2, 16, COL_TEMPLE_BG, 16.0)
-		else:
-			# Shattered arch columns
-			draw_rect(Rect2(x, 60, 16, 40), COL_TEMPLE_BG)
-			draw_rect(Rect2(x + 100, 50, 16, 50), COL_TEMPLE_BG)
+	# Seamless Midnight Olympus Vista tiled across the open terrace (x = 340..880)
+	var v_offset = cam_x * 0.12
+	var start_vx = 340.0 - v_offset
+	for i in range(3):
+		var vx_pos = start_vx + float(i) * 380.0
+		draw_texture_rect(TEX_VISTA_NIGHT, Rect2(vx_pos, 12.0, 380.0, 88.0), false)
+		
+	# Twinkling Constellation Stars with Parallax
+	var p_offset = cam_x * 0.2
+	for s in _stars:
+		var sx = fmod(s["x"] - p_offset + 120.0, 1000.0) - 120.0
+		var flicker = sin(_anim_clock * 1.8 + s["phase"]) * 0.4 + 0.6
+		draw_rect(Rect2(sx, s["y"], s["size"], s["size"]), Color(0.92, 0.95, 1.0, 0.3 + 0.6 * flicker))
+		
+	# Celestial Moonbeams casting down onto the terrace
+	var moon_cx = 530.0 - cam_x * 0.05
+	var moon_cy = 35.0
+	for r in range(4):
+		var angle = (r * PI / 4.0) + _anim_clock * 0.03
+		var r_alpha = 0.08 + sin(_anim_clock + r) * 0.03
+		var pts = PackedVector2Array([
+			Vector2(moon_cx, moon_cy),
+			Vector2(moon_cx + 700 * cos(angle - 0.15), moon_cy + 700 * sin(angle - 0.15)),
+			Vector2(moon_cx + 700 * cos(angle + 0.15), moon_cy + 700 * sin(angle + 0.15))
+		])
+		draw_colored_polygon(pts, Color(0.65, 0.85, 1.0, r_alpha))
 
 # ------------------------------------------------------------------------------
-# 2. ARCHITECTURE & FLOOR
+# 2. TEMPLE WALLS, CEILING, COLUMNS & DRAPES (50+ SPRITES)
+# ------------------------------------------------------------------------------
+func _draw_temple_structure() -> void:
+	var cam_x: float = get_viewport().get_camera_2d().position.x - 120.0 if get_viewport().get_camera_2d() else 0.0
+	var a_offset = cam_x * 0.25
+	
+	# A. Ceiling Cedar Beams with Silver Studs (x = -120..880, y = -14..2) [22 sprites]
+	for cx in range(-120, 880, 48):
+		draw_texture_rect(TEX_CEILING, Rect2(cx, -14, 48, 16), false)
+		draw_rect(Rect2(cx, 1, 48, 2), Color(0.08, 0.10, 0.16, 0.8)) # Shadow under beam
+		
+	# B. Hanging Star Lanterns swaying gently [4 sprites]
+	for lx in [90.0, 230.0, 360.0, 620.0]:
+		var swing_offset = sin(_anim_clock * 1.5 + lx * 0.01) * 2.0 + _lantern_swing * 4.0
+		draw_line(Vector2(lx, 2), Vector2(lx + swing_offset, 14), COL_SILVER, 1.0)
+		draw_texture_rect(TEX_STAR_LANTERN, Rect2(lx + swing_offset - 10, 14, 20, 36), false)
+		# Ethereal blue light glow
+		var glow_r = 18.0 + sin(_anim_clock * 3.0 + lx) * 3.0
+		draw_circle(Vector2(lx + swing_offset, 32), glow_r, Color(0.4, 0.75, 1.0, 0.12))
+		
+	# C. Interior Ashlar Temple Wall (x = -120..360, y = 2..102) [36 sprites]
+	for wx in range(-120, 360, 32):
+		for wy in range(2, 102, 32):
+			draw_texture_rect(TEX_WALL_STONE, Rect2(wx, wy, 32, 32), false)
+			
+	# D. Carved Silver Moon Phase Frieze along upper wall (x = -120..360, y = 2..18) [10 sprites]
+	for fx in range(-120, 360, 48):
+		draw_texture_rect(TEX_WALL_FRIEZE, Rect2(fx, 2, 48, 16), false)
+		
+	# Wall Shadow boundary separating interior temple from the open terrace
+	draw_rect(Rect2(340, 2, 20, 100), Color(0.06, 0.08, 0.14, 0.6))
+	
+	# E. Blue Flame Wall Sconces [3 sprites]
+	for sc_x in [75.0, 195.0, 310.0]:
+		draw_texture_rect(TEX_SCONCE, Rect2(sc_x - 8, 48, 16, 34), false)
+		# Blue spirit flame glow
+		var flame_glow = 12.0 + sin(_anim_clock * 4.0 + sc_x) * 2.5
+		draw_circle(Vector2(sc_x, 54), flame_glow, Color(0.3, 0.7, 1.0, 0.2))
+		draw_circle(Vector2(sc_x, 54), 3.0, Color(0.85, 0.95, 1.0, 0.8))
+		
+	# F. Moonflower Vines with Bioluminescent Spores [6 sprites]
+	for vx in [35.0, 155.0, 335.0, 475.0, 635.0]:
+		draw_texture_rect(TEX_MOONFLOWER_VINES, Rect2(vx - 2, 12, 28, 32), false)
+		# Spore glow
+		var spore_alpha = sin(_anim_clock * 2.5 + vx) * 0.3 + 0.6
+		draw_circle(Vector2(vx + 14, 28), 1.5, Color(0.4, 0.9, 1.0, spore_alpha))
+		
+	# G. Fluted Moonstone Columns with Silk Drapery [10 sprites]
+	for col_x in [40.0, 160.0, 340.0, 480.0, 640.0]:
+		var cx = col_x - a_offset * 0.15
+		# Column drop shadow
+		draw_rect(Rect2(cx - 15, 6, 30, 96), Color(0.04, 0.05, 0.10, 0.35))
+		# Moonstone column
+		draw_texture_rect(TEX_COLUMN, Rect2(cx - 13, 4, 26, 96), false)
+		# Midnight silk column drapes
+		draw_texture_rect(TEX_COLUMN_DRAPES, Rect2(cx - 10, 12, 20, 60), false)
+		
+	# H. Classical Marble Terrace Balustrade Railing (x = 520..740) [4 sprites]
+	for bx in range(520, 740, 64):
+		draw_texture_rect(TEX_BALUSTRADE, Rect2(bx, 74, 64, 28), false)
+
+# ------------------------------------------------------------------------------
+# 3. OBSIDIAN STEPPED FOUNDATION & FLOOR (40+ SPRITES)
 # ------------------------------------------------------------------------------
 func _draw_floor() -> void:
-	# Base Floor (Ends at 550)
-	draw_rect(Rect2(0, 100, 550, 40), COL_FLOOR)
-	draw_line(Vector2(0, 100), Vector2(550, 100), COL_MARBLE_SHADE, 2.0)
-	
-	# Draw Cached Tiles & Cracks
-	for t in _floor_cache:
-		var tx = t["x"]
-		var tw = t["w"]
-		var shade = COL_FLOOR.darkened(t["shade"])
-		draw_rect(Rect2(tx, 100, tw, 40), shade)
-		draw_line(Vector2(tx + tw, 100), Vector2(tx + tw, 140), COL_MARBLE_SHADE.darkened(0.2), 1.0)
+	# Tier 1: Dark Obsidian Moonstone Floor Tiles (x = -120..880, y = 102..120) [32 sprites]
+	for tx in range(-120, 880, 32):
+		draw_texture_rect(TEX_FLOOR, Rect2(tx, 102, 32, 18), false)
 		
-		# Draw unique cracks
-		for c in t["cracks"]:
-			draw_line(Vector2(c[0], c[1]), Vector2(c[2], c[3]), COL_MARBLE_SHADE.darkened(0.2), 1.0)
-			
-	# Grand Temple Rug under the bed
-	_draw_rug(160, 105, 140)
-	
-	# Broken cliff edge going down into the abyss
-	var cliff_pts = PackedVector2Array([
-		Vector2(550, 100), Vector2(560, 105), Vector2(555, 120), Vector2(565, 140), Vector2(550, 140)
-	])
-	draw_colored_polygon(cliff_pts, COL_FLOOR)
-	draw_line(Vector2(550, 100), Vector2(560, 105), COL_MARBLE_SHADE, 1.0)
-	draw_line(Vector2(560, 105), Vector2(555, 120), COL_MARBLE_SHADE, 1.0)
-	draw_line(Vector2(555, 120), Vector2(565, 140), COL_MARBLE_SHADE, 1.0)
-
-func _draw_rug(rx: float, ry: float, rw: float) -> void:
-	# Rich ornamental rug
-	draw_rect(Rect2(rx, ry, rw, 25), Color(0.2, 0.1, 0.15))
-	draw_rect(Rect2(rx + 4, ry + 4, rw - 8, 17), COL_FLOOR.darkened(0.2)) # Inner pattern
-	
-	# Golden tassels and trim
-	draw_line(Vector2(rx, ry + 25), Vector2(rx + rw, ry + 25), Color(0.8, 0.6, 0.2), 2.0)
-	for tx in range(int(rx) + 2, int(rx + rw), 6):
-		draw_line(Vector2(tx, ry + 25), Vector2(tx, ry + 28), Color(0.8, 0.6, 0.2), 1.0)
-
-func _draw_fluted_column(cx: float, cy: float, ch: float, is_bedpost: bool = false) -> void:
-	# Base & Capital
-	draw_rect(Rect2(cx - 20, cy + ch - 5, 40, 5), COL_MARBLE_SHADE)
-	draw_rect(Rect2(cx - 20, cy, 40, 8), COL_MARBLE_SHADE)
-	
-	# Pillar Body
-	draw_rect(Rect2(cx - 15, cy + 8, 30, ch - 13), COL_MARBLE)
-	draw_rect(Rect2(cx - 15, cy + 8, 8, ch - 13), COL_MARBLE_SHADE) # Left shadow
-	
-	# Fluting lines
-	for i in range(4):
-		var lx = cx - 10 + i * 6
-		draw_line(Vector2(lx, cy + 8), Vector2(lx, cy + ch - 5), COL_MARBLE_SHADE.darkened(0.2), 1.0)
+	# Tier 2: Stepped Foundation Edge Lip with Silver Dentils (x = -120..880, y = 120..144) [16 sprites]
+	for lx in range(-120, 880, 64):
+		draw_texture_rect(TEX_FLOOR_LIP, Rect2(lx, 120, 64, 24), false)
 		
-	# Moonflower Vines (Only on architectural columns, not furniture)
-	if not is_bedpost:
-		for vy in range(int(cy + ch), int(cy), -30):
-			var p1 = Vector2(cx - 15, vy - 5)
-			var p2 = Vector2(cx + 15, vy - 20)
-			draw_line(p1, p2, COL_MOONFLOWER.darkened(0.4), 2.0)
-			draw_circle(p1 + Vector2(5, -5), 3.0, COL_MOONFLOWER)
-			draw_circle(p1 + Vector2(5, -5), 6.0, Color(COL_MOONFLOWER.r, COL_MOONFLOWER.g, COL_MOONFLOWER.b, 0.3))
+	# Tier 3: Sub-foundation bedrock plinth fill down to y = 240 (Zero black void on zoom-out)
+	draw_rect(Rect2(-120, 144, 1000, 96), Color(0.08, 0.09, 0.14, 1.0))
+	
+	# Polished silver edge highlight line
+	draw_line(Vector2(-120, 100), Vector2(880, 100), Color(0.85, 0.90, 0.98), 1.2)
+	
+	# Grand Embroidered Moon Phase Velvet Rug under the canopy bed
+	draw_texture_rect(TEX_MOON_RUG, Rect2(184, 98, 92, 30), false)
+	
+	# Scattered Glowing Moonflower Petals on Steps
+	var petals = [
+		Vector2(115, 106), Vector2(175, 107), Vector2(290, 106),
+		Vector2(370, 108), Vector2(510, 106), Vector2(625, 107)
+	]
+	for p in petals:
+		var p_glow = sin(_anim_clock * 2.0 + p.x) * 0.2 + 0.8
+		draw_circle(p, 1.5, Color(0.85, 0.95, 1.0, 0.85 * p_glow))
 
 # ------------------------------------------------------------------------------
-# 3. INTERACTIVE LETHE WATERFALL
+# 4. LIVING FURNITURE & INTERACTIVE STATIONS (30+ SPRITES)
 # ------------------------------------------------------------------------------
-func _draw_lethe_waterfall(fx: float, fy: float) -> void:
-	# Asymmetrical rugged rocky outcrop at the cliff edge
-	var crag1 = PackedVector2Array([
-		Vector2(fx - 10, fy + 10), Vector2(fx + 35, fy - 5),
-		Vector2(fx + 45, fy + 15), Vector2(fx + 20, fy + 35),
-		Vector2(fx - 10, fy + 40)
-	])
-	draw_colored_polygon(crag1, COL_MARBLE_SHADE.darkened(0.2))
+func _draw_props() -> void:
+	# 1. Celestial Astrolabe on Pedestal (x = 55, y = 104)
+	draw_rect(Rect2(47, 102, 16, 3), Color(0.04, 0.05, 0.08, 0.4))
+	draw_texture_rect(TEX_ASTROLABE, Rect2(44, 66, 22, 38), false)
 	
-	var crag2 = PackedVector2Array([
-		Vector2(fx - 5, fy - 10), Vector2(fx + 25, fy - 20),
-		Vector2(fx + 35, fy + 5), Vector2(fx + 10, fy + 15),
-		Vector2(fx - 5, fy + 10)
-	])
-	draw_colored_polygon(crag2, COL_MARBLE_SHADE.darkened(0.1))
+	# 2. Grimoire Bookstand & Papyrus Scroll Piles (x = 75, y = 104)
+	draw_rect(Rect2(65, 102, 20, 3), Color(0.04, 0.05, 0.08, 0.4))
+	draw_texture_rect(TEX_GRIMOIRE_STAND, Rect2(62, 74, 26, 30), false)
 	
-	var crag3 = PackedVector2Array([
-		Vector2(fx - 20, fy - 15), Vector2(fx + 15, fy - 25),
-		Vector2(fx + 20, fy - 5), Vector2(fx, fy + 5),
-		Vector2(fx - 20, fy)
-	])
-	draw_colored_polygon(crag3, COL_MARBLE_SHADE)
+	# 3. Celestial Study Altar of Somnus (x = 110, y = 104)
+	_draw_study_altar(110, 104)
 	
-	if is_waterfall_flowing:
-		var fall_y_start = fy - 10
-		var fall_height = 300.0
-		
-		# Main Flow
-		draw_rect(Rect2(fx + 5, fall_y_start, 35, fall_height), COL_LETHE_WATER.darkened(0.2))
-		draw_rect(Rect2(fx + 10, fall_y_start, 25, fall_height), COL_LETHE_WATER)
-		draw_rect(Rect2(fx + 15, fall_y_start, 12, fall_height), COL_LETHE_WATER.lightened(0.2))
-		
-		# Animated Cascade Lines
-		for i in range(10):
-			var lx = fx + 8 + i * 2.5
-			var speed = 100.0 + (i % 4) * 30.0
-			var ly = fall_y_start + fmod(_anim_clock * speed + i * 37.0, fall_height)
-			draw_line(Vector2(lx, ly), Vector2(lx, ly + 25), COL_LETHE_FOAM, 2.0)
-			
-		# Water Ripples & Splash Enhancements
-		if _lethe_ripple_time > 0.0:
-			for r in range(4):
-				var r_time = _anim_clock * 3.0 + r * 1.5
-				var r_width = 15.0 + fmod(r_time * 20.0, 50.0)
-				var r_alpha = minf(1.0, _lethe_ripple_time) * (1.0 - (fmod(r_time * 20.0, 50.0) / 50.0))
-				var r_col = Color(COL_LETHE_FOAM.r, COL_LETHE_FOAM.g, COL_LETHE_FOAM.b, r_alpha)
-				draw_arc(Vector2(fx + 20, fall_y_start), r_width, 0, PI*2, 16, r_col, 2.0)
-				
-		# Animated Foam Splash
-		for i in range(12):
-			var splash_x = fx + 5 + i * 3
-			var splash_y = fall_y_start - 2 + sin(_anim_clock * 10.0 + i) * 3.0
-			draw_line(Vector2(splash_x, splash_y), Vector2(splash_x, splash_y - 8), COL_LETHE_FOAM, 1.0)
-			if i % 3 == 0:
-				var sp_y2 = fall_y_start - 10 - fmod(_anim_clock * 40.0 + i * 15.0, 20.0)
-				var sp_a = 1.0 - (fmod(_anim_clock * 40.0 + i * 15.0, 20.0) / 20.0)
-				draw_circle(Vector2(splash_x, sp_y2), 1.5, Color(COL_LETHE_FOAM.r, COL_LETHE_FOAM.g, COL_LETHE_FOAM.b, sp_a))
-			draw_arc(Vector2(splash_x + 3, splash_y + 4), 6.0, PI, PI*2, 8, COL_LETHE_FOAM, 2.0)
-		
-		# Magical glow radiating from the fall
-		draw_circle(Vector2(fx + 15, fy + 20), 45.0, COL_LETHE_GLOW)
+	# 4. Enchanted Dream Sand Hourglass (x = 145, y = 104)
+	_draw_dream_hourglass(145, 104)
+	
+	# 5. Grand Royal Canopy Bed of Dreams (x = 230, y = 104)
+	_draw_canopy_bed(230, 104)
+	
+	# 6. Potted Moonflower Urn (x = 300, y = 104)
+	draw_rect(Rect2(291, 102, 18, 3), Color(0.04, 0.05, 0.08, 0.4))
+	draw_texture_rect(TEX_MOONFLOWER_URN, Rect2(289, 72, 22, 32), false)
+	
+	# 7. Hanging Dreamcatcher Wind Chimes (x = 390, y = 12)
+	_draw_wind_chimes(390, 12)
+	
+	# 8. Font of Lethe Fountain Basin & Pool (x = 490, y = 104)
+	_draw_lethe_fountain(490, 104)
+	
+	# 9. Starlight Luna Moth fluttering through room
+	if moth_active:
+		var flap = sin(_anim_clock * 16.0) * 2.0
+		draw_texture_rect(TEX_STARLIGHT_MOTH, Rect2(moth_x, moth_y + flap, 24, 20), false)
+		draw_circle(Vector2(moth_x + 12, moth_y + 10), 14.0, Color(0.4, 0.85, 1.0, 0.15))
 
-# ------------------------------------------------------------------------------
-# 4. CANOPY BED
-# ------------------------------------------------------------------------------
+func _draw_study_altar(ax: float, ay: float) -> void:
+	var aw = 80.0
+	var ah = 42.0
+	var x_pos = ax - aw / 2.0
+	var y_pos = ay - ah + 2.0
+	draw_rect(Rect2(x_pos + 6, ay - 2, aw - 12, 3), Color(0.04, 0.05, 0.08, 0.5))
+	draw_texture_rect(TEX_STUDY_ALTAR, Rect2(x_pos, y_pos, aw, ah), false)
+	
+	# Tabletop Candelabra with Blue Spirit Flames
+	var cand_x = ax - 11.0
+	var cand_y = y_pos - 32.0
+	draw_texture_rect(TEX_CANDELABRA, Rect2(cand_x, cand_y, 22, 34), false)
+	
+	# Flame Glow & Click Flare
+	var flare = 1.0 + _candelabra_flare * 0.8
+	var flicker = sin(_anim_clock * 5.0) * 1.5
+	for fx_off in [-7.0, 0.0, 7.0]:
+		draw_circle(Vector2(ax + fx_off, cand_y + 6 + flicker), 6.0 * flare, Color(0.3, 0.7, 1.0, 0.25))
+		draw_circle(Vector2(ax + fx_off, cand_y + 6 + flicker), 2.0, Color(0.9, 0.95, 1.0, 0.85))
+
+func _draw_dream_hourglass(hx: float, hy: float) -> void:
+	var hw = 24.0
+	var hh = 44.0
+	var x_pos = hx - hw / 2.0
+	var y_pos = hy - hh + 2.0
+	draw_rect(Rect2(x_pos + 4, hy - 2, hw - 8, 3), Color(0.04, 0.05, 0.08, 0.4))
+	draw_texture_rect(TEX_DREAM_HOURGLASS, Rect2(x_pos, y_pos, hw, hh), false)
+	
+	# Luminescent Dream Sand Glow inside glass
+	var glow_alpha = sin(_anim_clock * 3.0) * 0.15 + 0.45
+	draw_circle(Vector2(hx, hy - 14), 5.0, Color(0.4, 0.9, 1.0, glow_alpha))
+	
+	# Falling dream sand particles inside glass
+	for s in _sand_grains:
+		draw_circle(Vector2(s["x"], s["y"]), 1.0, COL_DREAM_SAND)
+
 func _draw_canopy_bed(bx: float, by: float) -> void:
-	var hover = sin(_anim_clock * 2.0) * 3.0
-	by += hover
+	var bw = 88.0
+	var bh = 68.0
+	var x_pos = bx - bw / 2.0
+	var y_pos = by - bh + 2.0
+	draw_rect(Rect2(x_pos + 8, by - 2, bw - 16, 4), Color(0.04, 0.05, 0.08, 0.6))
+	draw_texture_rect(TEX_CANOPY_BED, Rect2(x_pos, y_pos, bw, bh), false)
+
+func _draw_wind_chimes(wx: float, wy: float) -> void:
+	var ww = 20.0
+	var wh = 46.0
+	var swing = _chime_swing * 4.0
+	draw_line(Vector2(wx, wy), Vector2(wx + swing, wy + 10), COL_SILVER, 1.0)
+	draw_texture_rect(TEX_WIND_CHIMES, Rect2(wx - ww / 2.0 + swing, wy + 10, ww, wh), false)
+
+func _draw_lethe_fountain(lx: float, ly: float) -> void:
+	var lw = 52.0
+	var lh = 44.0
+	var x_pos = lx - lw / 2.0
+	var y_pos = ly - lh + 2.0
+	draw_rect(Rect2(x_pos + 6, ly - 2, lw - 12, 3), Color(0.04, 0.05, 0.08, 0.5))
+	draw_texture_rect(TEX_LETHE_FOUNTAIN, Rect2(x_pos, y_pos, lw, lh), false)
 	
-	var fw = 100.0
-	var fh = 16.0
-	var fx = bx - fw/2.0
-	var fy = by - fh
-	
-	# Bed Frame (Reskinned to be grander)
-	draw_rect(Rect2(fx, fy, fw, fh), COL_MARBLE_SHADE)
-	draw_rect(Rect2(fx, fy + fh, fw, 4), COL_WOOD_SILVER.darkened(0.2))
-	
-	# Gold filigree trim on the bed frame
-	draw_line(Vector2(fx + 5, fy + 4), Vector2(fx + fw - 5, fy + 4), Color(0.8, 0.6, 0.2), 1.0)
-	
-	# Mattress & Sheets
-	draw_rect(Rect2(fx + 6, fy - 8, fw - 12, 8), COL_BED_SHEET.darkened(0.2))
-	draw_rect(Rect2(fx + 6, fy - 4, fw - 12, 12), COL_BED_SHEET)
-	
-	# Plump Pillows
-	draw_rect(Rect2(fx + 12, fy - 16, 18, 10), COL_BED_PILLOW)
-	draw_rect(Rect2(fx + 24, fy - 14, 16, 10), COL_BED_PILLOW.darkened(0.1))
-	draw_rect(Rect2(fx + fw - 30, fy - 16, 18, 10), COL_BED_PILLOW)
-	
-	# Fluted Temple Columns as Bedposts
-	var th = 75.0
-	_draw_fluted_column(fx + 10, fy - th, th, true)
-	_draw_fluted_column(fx + fw - 10, fy - th, th, true)
-	
-	# Heavy Architrave bridging the posts
-	draw_rect(Rect2(fx - 10, fy - th, fw + 20, 8), COL_MARBLE_SHADE)
-	draw_rect(Rect2(fx - 5, fy - th - 5, fw + 10, 5), COL_WOOD_SILVER)
-	
-	# Rich Drapery
-	var drape_sway = sin(_anim_clock * 1.5) * 4.0
-	
-	var d1_pts = PackedVector2Array([
-		Vector2(fx - 5, fy - th + 8), Vector2(fx + 25, fy - th + 8),
-		Vector2(fx + 15 + drape_sway, fy - 15), Vector2(fx - 10 + drape_sway, fy - 15)
-	])
-	draw_colored_polygon(d1_pts, COL_BED_CANOPY)
-	
-	var d2_pts = PackedVector2Array([
-		Vector2(fx + fw + 5, fy - th + 8), Vector2(fx + fw - 25, fy - th + 8),
-		Vector2(fx + fw - 15 + drape_sway, fy - 15), Vector2(fx + fw + 10 + drape_sway, fy - 15)
-	])
-	draw_colored_polygon(d2_pts, COL_BED_CANOPY)
+	# Flowing waterfall & glowing water surface
+	if is_waterfall_flowing:
+		var water_cx = lx
+		var water_cy = ly - 18.0
+		var pulse = sin(_anim_clock * 3.0) * 0.15 + 0.6
+		draw_circle(Vector2(water_cx, water_cy), 14.0, Color(0.3, 0.8, 1.0, 0.25 * pulse))
+		
+		# Animated Water Ripples
+		for r in _water_ripples:
+			var alpha = clampf(r["life"] / 1.8, 0.0, 1.0)
+			draw_arc(Vector2(r["x"], r["y"]), r["r"], 0, TAU, 16, Color(COL_LETHE_FOAM.r, COL_LETHE_FOAM.g, COL_LETHE_FOAM.b, alpha), 1.0)
 
 # ------------------------------------------------------------------------------
-# 5. HOURGLASS ALTAR
+# 5. DYNAMIC PARTICLE SYSTEMS (30+ ELEMENTS)
 # ------------------------------------------------------------------------------
-func _draw_hourglass_altar(ax: float, ay: float) -> void:
-	var dw = 60.0
-	var dh = 8.0
-	var dx = ax - dw/2.0
-	var dy = ay - 20
-	
-	# Reskinned to have a massive marble fluted pedestal
-	draw_rect(Rect2(dx + 15, dy + dh, 30, 20), COL_MARBLE)
-	draw_rect(Rect2(dx + 10, dy + dh + 15, 40, 5), COL_MARBLE_SHADE) # Base
-	
-	# Gold Trim on Tabletop
-	draw_rect(Rect2(dx, dy, dw, dh), COL_MARBLE_SHADE)
-	draw_rect(Rect2(dx, dy + dh, dw, 2), Color(0.8, 0.6, 0.2))
-	
-	var hx = ax
-	var hy = dy - 25
-	draw_rect(Rect2(hx - 15, hy - 22, 30, 4), COL_WOOD_SILVER)
-	draw_rect(Rect2(hx - 15, hy + 18, 30, 4), COL_WOOD_SILVER)
-	
-	draw_circle(Vector2(hx, hy - 10), 12.0, COL_HOURGLASS_GLASS)
-	draw_circle(Vector2(hx, hy + 10), 12.0, COL_HOURGLASS_GLASS)
-	
-	draw_circle(Vector2(hx, hy - 10), 8.0, COL_SAND)
-	draw_line(Vector2(hx, hy), Vector2(hx, hy + 10), COL_SAND, 2.0)
-	draw_circle(Vector2(hx, hy + 14), 6.0, COL_SAND)
-	
-	if _hourglass_magic_time > 0.0:
-		for i in range(12):
-			var r_time = _anim_clock * 4.0 + i * 2.0
-			var p_y = hy + 10 - fmod(r_time * 15.0, 40.0)
-			var p_x = hx + sin(r_time + i) * 15.0
-			var p_alpha = minf(1.0, _hourglass_magic_time) * (1.0 - fmod(r_time * 15.0, 40.0) / 40.0)
-			draw_circle(Vector2(p_x, p_y), 1.5, Color(COL_SAND.r, COL_SAND.g, COL_SAND.b, p_alpha))
-
-# ------------------------------------------------------------------------------
-# 6. INTERACTIVE CHIMES
-# ------------------------------------------------------------------------------
-func _draw_chimes(cx: float, cy: float) -> void:
-	# The chime base ring
-	var rx = cx + sin(_chime_swing) * 20.0
-	var ry = cy + 20.0 + cos(_chime_swing) * 5.0
-	
-	# Ceiling string
-	draw_line(Vector2(cx, cy), Vector2(rx, ry), COL_CHIME_BRONZE, 1.0)
-	
-	# Base ring
-	draw_rect(Rect2(rx - 15, ry, 30, 3), COL_CHIME_BRONZE.darkened(0.2))
-	
-	# 4 Chime pipes
-	for i in range(4):
-		var px = rx - 10 + i * 6.5
-		var pl = 15.0 + fmod(i * 7.0, 10.0) # Variable lengths
-		var pipe_swing = sin(_chime_swing * 2.0 + i) * 5.0
-		draw_line(Vector2(px, ry + 3), Vector2(px + pipe_swing, ry + 3 + pl), COL_CHIME_BRONZE, 2.0)
-		draw_line(Vector2(px-1, ry + 3), Vector2(px-1 + pipe_swing, ry + 3 + pl), COL_CHIME_BRONZE.lightened(0.2), 1.0) # Highlight
-
-# ------------------------------------------------------------------------------
-# 7. THE STARLIGHT WEAVER
-# ------------------------------------------------------------------------------
-func _draw_starlight_weaver() -> void:
-	if not moth_active: return
-	
-	var flap = sin(_anim_clock * 20.0) * 10.0
-	
-	# Body
-	draw_circle(Vector2(moth_x, moth_y), 3.0, COL_MOONFLOWER)
-	
-	# Left Wing
-	var lw_pts = PackedVector2Array([
-		Vector2(moth_x - 2, moth_y),
-		Vector2(moth_x - 15, moth_y - 10 + flap),
-		Vector2(moth_x - 20, moth_y + flap),
-		Vector2(moth_x - 5, moth_y + 5)
-	])
-	draw_colored_polygon(lw_pts, COL_MOTH_WING)
-	
-	# Right Wing
-	var rw_pts = PackedVector2Array([
-		Vector2(moth_x + 2, moth_y),
-		Vector2(moth_x + 15, moth_y - 10 + flap),
-		Vector2(moth_x + 20, moth_y + flap),
-		Vector2(moth_x + 5, moth_y + 5)
-	])
-	draw_colored_polygon(rw_pts, COL_MOTH_WING)
-	
-	# Glow
-	draw_circle(Vector2(moth_x, moth_y), 25.0, COL_MOTH_GLOW)
+func _draw_dynamic_particles() -> void:
+	# A. Floating Luminescent Dream Orbs
+	for d in _dreams:
+		var alpha = sin(_anim_clock * 2.0 + d["phase"]) * 0.25 + 0.6
+		var c = Color(0.55, 0.85, 1.0, alpha * 0.4)
+		draw_circle(Vector2(d["x"], d["y"]), 3.5 * d["scale"], c)
+		draw_circle(Vector2(d["x"], d["y"]), 1.5 * d["scale"], Color(1.0, 1.0, 1.0, alpha))
+		
+	# B. Starlight Moth Sparkle Trail
+	for sd in _starlight_dust:
+		var alpha = clampf(sd["life"] / 2.0, 0.0, 1.0)
+		draw_circle(Vector2(sd["x"], sd["y"]), 1.2, Color(0.6, 0.95, 1.0, alpha))
+		
+	# C. Wind Chime Musical Chords
+	for n in _music_notes:
+		var alpha = clampf(n["life"] / 2.0, 0.0, 1.0)
+		draw_string(ThemeDB.fallback_font, Vector2(n["x"], n["y"]), n["symbol"], HORIZONTAL_ALIGNMENT_CENTER, -1, 10, Color(0.85, 0.92, 1.0, alpha))
+		
+	# D. Streaking Shooting Stars
+	for ss in _shooting_stars:
+		var alpha = clampf(ss["life"], 0.0, 1.0)
+		var p1 = Vector2(ss["x"], ss["y"])
+		var p2 = Vector2(ss["x"] - ss["vx"] * 0.08, ss["y"] - ss["vy"] * 0.08)
+		draw_line(p1, p2, Color(1.0, 1.0, 1.0, alpha), 1.5)
+		draw_circle(p1, 2.0, Color(0.8, 0.95, 1.0, alpha))
