@@ -180,44 +180,97 @@ def clean_owl():
     
     cells = {
         "idle": [
-            (50, 48, 205, 246),
-            (255, 40, 460, 246),
-            (560, 48, 715, 246),
-            (810, 45, 965, 246)
+            (50, 52, 205, 254),
+            (255, 52, 460, 254),
+            (560, 52, 715, 254),
+            (810, 52, 965, 254)
         ],
         "walk": [
-            (12, 280, 180, 502),
-            (178, 280, 340, 502),
-            (348, 300, 510, 502),
-            (514, 300, 665, 502),
-            (680, 300, 840, 502),
-            (850, 300, 1005, 502)
+            (12, 310, 180, 510),
+            (178, 310, 340, 510),
+            (348, 310, 510, 510),
+            (514, 310, 665, 486),
+            (680, 310, 840, 510),
+            (850, 310, 1005, 510)
         ],
         "nap": [
-            (25, 535, 220, 745),
-            (285, 550, 480, 745),
-            (545, 545, 745, 745),
-            (800, 545, 995, 745)
+            (25, 568, 220, 766),
+            (285, 568, 480, 766),
+            (545, 568, 745, 766),
+            (800, 568, 995, 766)
         ],
         "victory": [
-            (25, 775, 245, 1020),
-            (248, 775, 485, 1020),
-            (520, 800, 755, 1020),
-            (805, 800, 985, 1020)
+            (25, 812, 245, 1022),
+            (248, 812, 485, 1022),
+            (520, 812, 755, 1022),
+            (805, 812, 985, 1022)
         ]
     }
     
-    # Grid paper and white background detector
-    is_bg = lambda r, g, b, a: (r > 210 and g > 210 and b > 210) or (abs(r - g) < 18 and abs(g - b) < 18 and r > 105)
-    
+    def clean_owl_frame(crop):
+        crop = crop.convert("RGBA")
+        w, h = crop.size
+        pix = crop.load()
+        visited = [[False]*w for _ in range(h)]
+        q = deque()
+        for x in range(w):
+            q.append((x, 0))
+            q.append((x, h-1))
+        for y in range(h):
+            q.append((0, y))
+            q.append((w-1, y))
+            
+        is_bg = lambda r, g, b, a: (r > 210 and g > 210 and b > 210) or (abs(r - g) < 18 and abs(g - b) < 18 and r > 105)
+        while q:
+            x, y = q.popleft()
+            if visited[y][x]: continue
+            visited[y][x] = True
+            r, g, b, a = pix[x, y]
+            if is_bg(r, g, b, a):
+                pix[x, y] = (0, 0, 0, 0)
+                for dx, dy in [(-1,0),(1,0),(0,-1),(0,1)]:
+                    nx, ny = x+dx, y+dy
+                    if 0 <= nx < w and 0 <= ny < h and not visited[ny][nx]:
+                        q.append((nx, ny))
+                        
+        fg_visited = [[False]*w for _ in range(h)]
+        components = []
+        for y in range(h):
+            for x in range(w):
+                if pix[x, y][3] > 0 and not fg_visited[y][x]:
+                    comp = []
+                    cq = deque([(x, y)])
+                    fg_visited[y][x] = True
+                    while cq:
+                        cx, cy = cq.popleft()
+                        comp.append((cx, cy))
+                        for dx in [-1, 0, 1]:
+                            for dy in [-1, 0, 1]:
+                                if dx == 0 and dy == 0: continue
+                                nx, ny = cx + dx, cy + dy
+                                if 0 <= nx < w and 0 <= ny < h and pix[nx, ny][3] > 0 and not fg_visited[ny][nx]:
+                                    fg_visited[ny][nx] = True
+                                    cq.append((nx, ny))
+                    components.append(comp)
+                    
+        if components:
+            components.sort(key=lambda c: len(c), reverse=True)
+            for comp in components[1:]:
+                if len(comp) < 25:
+                    for cx, cy in comp:
+                        pix[cx, cy] = (0, 0, 0, 0)
+                        
+        bbox = crop.getbbox()
+        return crop.crop(bbox) if bbox else crop
+
     for action_name, boxes in cells.items():
         for f_idx, box in enumerate(boxes):
             crop = full_img.crop(box)
-            cleaned = flood_remove_bg(crop, is_bg, filter_components=True)
+            cleaned = clean_owl_frame(crop)
             frame = fit_pet_frame(cleaned, max_dim=26.0, target_y=30)
             out_file = os.path.join(out_dir, f"{action_name}_{f_idx}.png")
             frame.save(out_file)
-    print("Cleaned Owl sprites (idle, walk, nap, victory - grid removed)")
+    print("Cleaned Owl sprites (idle, walk, nap, victory - grid and header specks removed)")
 
 def clean_penguin():
     src_path = os.path.join(BRAIN_DIR, "penguin_pixel_spritesheet_1790256024938.jpg")
@@ -241,10 +294,10 @@ def clean_penguin():
             (849, 280, 984, 490)
         ],
         "nap": [
-            (30, 540, 236, 710),
-            (281, 540, 497, 710),
-            (537, 540, 758, 710),
-            (788, 540, 999, 710)
+            (30, 605, 236, 715),
+            (281, 605, 497, 715),
+            (537, 605, 758, 715),
+            (788, 605, 999, 715)
         ],
         "victory": [
             (40, 750, 205, 990),
@@ -263,12 +316,93 @@ def clean_penguin():
             frame = fit_pet_frame(cleaned, max_dim=25.0, target_y=30)
             out_file = os.path.join(out_dir, f"{action_name}_{f_idx}.png")
             frame.save(out_file)
-    print("Cleaned Penguin sprites (idle, walk, nap, victory - halos removed)")
+    print("Cleaned Penguin sprites (idle, walk, nap, victory - halos and nap noise removed)")
+
+def clean_fox():
+    src_path = os.path.join(BRAIN_DIR, "fox_pixel_spritesheet_1790256574522.jpg")
+    out_dir = os.path.join(BASE_PET_DIR, "fox")
+    os.makedirs(out_dir, exist_ok=True)
+    full_img = Image.open(src_path).convert("RGB")
+    
+    def clean_fox_generic(crop):
+        crop = crop.convert("RGBA")
+        w, h = crop.size
+        pix = crop.load()
+        visited = [[False]*w for _ in range(h)]
+        q = deque()
+        for x in range(w):
+            q.append((x, 0))
+            q.append((x, h-1))
+        for y in range(h):
+            q.append((0, y))
+            q.append((w-1, y))
+        is_bg = lambda r, g, b, a: (abs(r-g)<22 and abs(g-b)<22 and r > 85)
+        while q:
+            x, y = q.popleft()
+            if visited[y][x]: continue
+            visited[y][x] = True
+            r, g, b, a = pix[x, y]
+            if is_bg(r, g, b, a):
+                pix[x, y] = (0, 0, 0, 0)
+                for dx, dy in [(-1,0),(1,0),(0,-1),(0,1)]:
+                    nx, ny = x+dx, y+dy
+                    if 0 <= nx < w and 0 <= ny < h and not visited[ny][nx]:
+                        q.append((nx, ny))
+        fg_visited = [[False]*w for _ in range(h)]
+        for y in range(h):
+            for x in range(w):
+                if pix[x, y][3] > 0 and not fg_visited[y][x]:
+                    comp = []
+                    cq = deque([(x, y)])
+                    fg_visited[y][x] = True
+                    while cq:
+                        cx, cy = cq.popleft()
+                        comp.append((cx, cy))
+                        for dx in [-1, 0, 1]:
+                            for dy in [-1, 0, 1]:
+                                if dx == 0 and dy == 0: continue
+                                nx, ny = cx + dx, cy + dy
+                                if 0 <= nx < w and 0 <= ny < h and pix[nx, ny][3] > 0 and not fg_visited[ny][nx]:
+                                    fg_visited[ny][nx] = True
+                                    cq.append((nx, ny))
+                    if len(comp) < 100:
+                        for cx, cy in comp:
+                            pix[cx, cy] = (0, 0, 0, 0)
+        bbox = crop.getbbox()
+        return crop.crop(bbox) if bbox else crop
+
+    def clean_fox_walk2():
+        crop = full_img.crop((435, 270, 660, 490)).convert("RGBA")
+        w, h = crop.size
+        pix = crop.load()
+        for y in range(h):
+            if y >= 118:
+                for x in range(209, w):
+                    pix[x, y] = (255, 255, 255, 255)
+        for x in range(11):
+            for y in range(h):
+                pix[x, y] = (255, 255, 255, 255)
+        return clean_fox_generic(crop)
+
+    walk_crops = [
+        clean_fox_generic(full_img.crop((13, 270, 205, 490))),
+        clean_fox_generic(full_img.crop((220, 270, 425, 490))),
+        clean_fox_walk2(),
+        clean_fox_generic(full_img.crop((795, 270, 1005, 490))),
+        clean_fox_generic(full_img.crop((220, 270, 425, 490))),
+        clean_fox_generic(full_img.crop((13, 270, 205, 490)))
+    ]
+
+    for idx, c in enumerate(walk_crops):
+        f = fit_pet_frame(c, max_dim=26.0, target_y=30)
+        f.save(os.path.join(out_dir, f"walk_{idx}.png"))
+    print("Cleaned Fox walk cycle (seamless 6-frame loop, perfect muzzle and tail)")
 
 def main():
     clean_bunny()
     clean_owl()
     clean_penguin()
+    clean_fox()
 
 if __name__ == "__main__":
     main()
