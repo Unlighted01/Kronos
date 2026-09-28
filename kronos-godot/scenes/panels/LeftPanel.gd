@@ -87,12 +87,17 @@ func _connect_ui_signals() -> void:
 		add_task_btn.pressed.connect(_on_add_task_submitted)
 	if task_line_edit:
 		task_line_edit.text_submitted.connect(func(_text): _on_add_task_submitted())
+	visibility_changed.connect(func():
+		if visible:
+			_refresh_active_tab()
+	)
 
 func _connect_event_bus() -> void:
 	EventBus.coins_changed.connect(_on_coins_changed)
 	EventBus.energy_changed.connect(_on_energy_changed)
 	EventBus.inventory_changed.connect(_on_inventory_changed)
 	EventBus.room_unlocked.connect(func(_r): _populate_all_shop_tabs())
+	EventBus.room_changed.connect(func(_r): _populate_all_shop_tabs())
 	EventBus.pet_adopted.connect(func(_p, _h): _populate_all_shop_tabs())
 	EventBus.pet_list_changed.connect(func(_l): _populate_all_shop_tabs())
 	EventBus.level_up.connect(func(_lvl): _populate_all_shop_tabs())
