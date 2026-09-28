@@ -154,4 +154,9 @@ release/
 
 # Documentation (local only)
 docs/
-assets.zip
+
+# Assets archive tracked, unzipped assets directory ignored
+kronos-godot/assets/
+!assets.zip
+
+

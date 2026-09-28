@@ -117,10 +117,12 @@ Kronos is a portable desktop widget. You do **not** need to install Godot or any
 
 ### 💻 Development (For Contributors)
 
-1. Open **Godot Engine**.
-2. Click **Import** and select the [`kronos-godot/project.godot`](file:///c:/Users/netne/Kronos/Kronos%20Project/kronos-godot/project.godot) file.
-3. Click **Import & Edit**.
-4. Press **F5** (or click the Play button in the top right) to launch Kronos!
+1. Clone the repository.
+2. Run **`setup.bat`** (or `setup.ps1` in PowerShell) in the root folder to unpack `assets.zip` into `kronos-godot/assets`.
+3. Open **Godot Engine**.
+4. Click **Import** and select the [`kronos-godot/project.godot`](file:///c:/Users/netne/Kronos/Kronos%20Project/kronos-godot/project.godot) file.
+5. Click **Import & Edit**.
+6. Press **F5** (or click the Play button in the top right) to launch Kronos!
 
 ## 📄 License
 This project is open-source under the [MIT License](LICENSE).
