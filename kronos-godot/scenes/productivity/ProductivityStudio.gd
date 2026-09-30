@@ -50,7 +50,7 @@ var drag_start_window_pos: Vector2i = Vector2i.ZERO
 # ==============================================================================
 func _ready() -> void:
 	# Configure window properties matching Kronos pixel aesthetic
-	title = "📊 Kronos Productivity Studio"
+	title = "Kronos Productivity Studio"
 	size = SCALE_SIZES[1.25]
 	min_size = Vector2i(720, 460)
 	content_scale_size = Vector2i(780, 500)
@@ -270,7 +270,7 @@ func _refresh_status_bar() -> void:
 		
 	# 1. Level & Coins Badge
 	if stats_badge_label:
-		stats_badge_label.text = "👑 LVL %d  •  🪙 %d G  •  ⭐ %d KP" % [
+		stats_badge_label.text = "LVL %d  •  %d Gold  •  %d KP" % [
 			GameState.level,
 			GameState.coins,
 			GameState.knowledge_points
@@ -292,14 +292,14 @@ func _refresh_status_bar() -> void:
 				phase_col = Color(0.9, 0.4, 0.9)
 				
 		var running_str: String = "RUNNING" if TimerEngine.status == TimerEngine.TimerStatus.RUNNING else "STOPPED"
-		timer_status_label.text = "⏱️ %s: %s (%s)" % [phase_str, TimerEngine.get_formatted_time(), running_str]
+		timer_status_label.text = "%s: %s (%s)" % [phase_str, TimerEngine.get_formatted_time(), running_str]
 		timer_status_label.modulate = phase_col
 		
 	# 3. Active Task & Category
 	if sprint_status_label and TimerEngine:
 		var t_name: String = TimerEngine.active_task_name if not TimerEngine.active_task_name.is_empty() else "General Deep Work"
 		var c_name: String = TimerEngine.active_category if not TimerEngine.active_category.is_empty() else "Development"
-		sprint_status_label.text = "🎯 %s [%s]" % [t_name, c_name]
+		sprint_status_label.text = "%s [%s]" % [t_name, c_name]
 
 # ==============================================================================
 # 📡 EVENT BUS HANDLERS

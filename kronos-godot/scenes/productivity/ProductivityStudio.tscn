@@ -1,31 +1,38 @@
-[gd_scene load_steps=6 format=3 uid="uid://p7r8o9d0u1c2t"]
+[gd_scene load_steps=12 format=3 uid="uid://p7r8o9d0u1c2t"]
 
 [ext_resource type="Theme" uid="uid://b5g2j8k1m3n4p" path="res://themes/pixel_theme.tres" id="1_theme"]
 [ext_resource type="Script" path="res://scenes/productivity/ProductivityStudio.gd" id="1_studio"]
 [ext_resource type="PackedScene" uid="uid://b8m9k0p1q2r3s" path="res://scenes/productivity/DTRStudioTab.tscn" id="2_dtr_tab"]
 [ext_resource type="PackedScene" uid="uid://c8m7k2p9q1r4s" path="res://scenes/productivity/DeckStudioTab.tscn" id="3_deck_tab"]
 [ext_resource type="PackedScene" uid="uid://b7v8k4n2m1x9y" path="res://scenes/productivity/TasksStudioTab.tscn" id="4_tasks_tab"]
+[ext_resource type="Texture2D" path="res://assets/sprites/ui/frames/frame_window_9slice.png" id="5_win_frame"]
+[ext_resource type="Texture2D" path="res://assets/sprites/ui/frames/frame_dock_9slice.png" id="6_dock_frame"]
+[ext_resource type="Texture2D" path="res://assets/sprites/ui/icons/icon_ledger.png" id="7_ico_ledger"]
+[ext_resource type="Texture2D" path="res://assets/sprites/ui/icons/icon_scroll.png" id="8_ico_scroll"]
+[ext_resource type="Texture2D" path="res://assets/sprites/ui/icons/icon_target.png" id="9_ico_target"]
+[ext_resource type="Texture2D" path="res://assets/sprites/ui/icons/icon_close.png" id="10_ico_close"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_root"]
-bg_color = Color(0.027451, 0.0313726, 0.0588235, 0.98)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.145098, 0.164706, 0.25098, 1)
-corner_radius_top_left = 4
-corner_radius_top_right = 4
-corner_radius_bottom_right = 4
-corner_radius_bottom_left = 4
-shadow_color = Color(0, 0, 0, 0.7)
-shadow_size = 12
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_root"]
+content_margin_left = 6.0
+content_margin_top = 6.0
+content_margin_right = 6.0
+content_margin_bottom = 6.0
+texture = ExtResource("5_win_frame")
+texture_margin_left = 6.0
+texture_margin_top = 6.0
+texture_margin_right = 6.0
+texture_margin_bottom = 6.0
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_header"]
-bg_color = Color(0.0509804, 0.0588235, 0.101961, 1)
-border_width_bottom = 2
-border_color = Color(0.145098, 0.164706, 0.25098, 1)
-corner_radius_top_left = 4
-corner_radius_top_right = 4
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_header"]
+content_margin_left = 6.0
+content_margin_top = 4.0
+content_margin_right = 6.0
+content_margin_bottom = 4.0
+texture = ExtResource("6_dock_frame")
+texture_margin_left = 5.0
+texture_margin_top = 5.0
+texture_margin_right = 5.0
+texture_margin_bottom = 5.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_status"]
 bg_color = Color(0.027451, 0.0313726, 0.0588235, 1)
@@ -35,7 +42,7 @@ corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 
 [node name="ProductivityStudio" type="Window"]
-title = "📊 Kronos Productivity Studio"
+title = "Kronos Productivity Studio"
 initial_position = 2
 size = Vector2i(780, 500)
 min_size = Vector2i(720, 460)
@@ -55,7 +62,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme = ExtResource("1_theme")
-theme_override_styles/panel = SubResource("StyleBoxFlat_root")
+theme_override_styles/panel = SubResource("StyleBoxTexture_root")
 
 [node name="VBox" type="VBoxContainer" parent="RootPanel"]
 layout_mode = 2
@@ -64,7 +71,7 @@ theme_override_constants/separation = 0
 [node name="HeaderBar" type="PanelContainer" parent="RootPanel/VBox"]
 custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_header")
+theme_override_styles/panel = SubResource("StyleBoxTexture_header")
 
 [node name="HBox" type="HBoxContainer" parent="RootPanel/VBox/HeaderBar"]
 layout_mode = 2
@@ -78,7 +85,7 @@ layout_mode = 2
 layout_mode = 2
 theme_override_colors/font_color = Color(0.960784, 0.803922, 0.47451, 1)
 theme_override_font_sizes/font_size = 12
-text = "📊 KRONOS PRODUCTIVITY STUDIO"
+text = "KRONOS PRODUCTIVITY STUDIO"
 
 [node name="Spacer" type="Control" parent="RootPanel/VBox/HeaderBar/HBox"]
 layout_mode = 2
@@ -94,7 +101,8 @@ layout_mode = 2
 focus_mode = 0
 mouse_default_cursor_shape = 2
 theme_override_font_sizes/font_size = 10
-text = "📊 DTR & Analytics"
+icon = ExtResource("7_ico_ledger")
+text = "DTR & Analytics"
 
 [node name="BtnDeck" type="Button" parent="RootPanel/VBox/HeaderBar/HBox/TabBar"]
 custom_minimum_size = Vector2(130, 24)
@@ -102,7 +110,8 @@ layout_mode = 2
 focus_mode = 0
 mouse_default_cursor_shape = 2
 theme_override_font_sizes/font_size = 10
-text = "🧠 Study Deck & SRS"
+icon = ExtResource("8_ico_scroll")
+text = "Study Deck & SRS"
 
 [node name="BtnTasks" type="Button" parent="RootPanel/VBox/HeaderBar/HBox/TabBar"]
 custom_minimum_size = Vector2(130, 24)
@@ -110,7 +119,8 @@ layout_mode = 2
 focus_mode = 0
 mouse_default_cursor_shape = 2
 theme_override_font_sizes/font_size = 10
-text = "📋 Tasks & Forecast"
+icon = ExtResource("9_ico_target")
+text = "Tasks & Forecast"
 
 [node name="ScaleHBox" type="HBoxContainer" parent="RootPanel/VBox/HeaderBar/HBox"]
 layout_mode = 2
@@ -146,7 +156,8 @@ layout_mode = 2
 focus_mode = 0
 mouse_default_cursor_shape = 2
 theme_override_font_sizes/font_size = 11
-text = "✕"
+icon = ExtResource("10_ico_close")
+text = ""
 
 [node name="MarginEnd" type="Control" parent="RootPanel/VBox/HeaderBar/HBox"]
 custom_minimum_size = Vector2(4, 0)
@@ -206,21 +217,21 @@ layout_mode = 2
 layout_mode = 2
 theme_override_colors/font_color = Color(0.309804, 0.819608, 0.909804, 1)
 theme_override_font_sizes/font_size = 8
-text = "🎯 General Deep Work [Development]"
+text = "General Deep Work [Development]"
 
 [node name="StatsBadgeLabel" type="Label" parent="RootPanel/VBox/StatusBar/HBox"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.960784, 0.784314, 0.258824, 1)
 theme_override_font_sizes/font_size = 8
-text = "👑 LVL 1  •  🪙 0 G  •  ⭐ 0 KP"
+text = "LVL 1  •  0 Gold  •  0 KP"
 horizontal_alignment = 1
 
 [node name="TimerStatusLabel" type="Label" parent="RootPanel/VBox/StatusBar/HBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.309804, 0.819608, 0.909804, 1)
 theme_override_font_sizes/font_size = 8
-text = "⏱️ FOCUS: 25:00 (STOPPED)"
+text = "FOCUS: 25:00 (STOPPED)"
 
 [node name="MarginEnd" type="Control" parent="RootPanel/VBox/StatusBar/HBox"]
 custom_minimum_size = Vector2(6, 0)

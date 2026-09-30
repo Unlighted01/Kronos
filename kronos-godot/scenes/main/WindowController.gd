@@ -8,13 +8,24 @@ class_name WindowController
 # ==============================================================================
 # 📐 CONSTANTS & BASE DIMENSIONS (1x scale)
 # ==============================================================================
-const BASE_MIDDLE_WIDTH: int = 270
-const BASE_LEFT_WIDTH: int = 235
-const BASE_RIGHT_WIDTH: int = 200
-const BASE_HEIGHT: int = 320
+const BASE_MIDDLE_WIDTH: int = 290
+const BASE_LEFT_WIDTH: int = 240
+const BASE_RIGHT_WIDTH: int = 240
+const BASE_HEIGHT: int = 330
 
 const SCALE_PRESETS: Array[float] = [1.25, 1.5, 2.0]
 const SCALE_LABELS: Array[String] = ["1.25x", "1.5x", "2x"]
+
+# ==============================================================================
+# 🎨 ICON PRELOADS
+# ==============================================================================
+const ICON_PLAY = preload("res://assets/sprites/ui/icons/icon_play.png")
+const ICON_PAUSE = preload("res://assets/sprites/ui/icons/icon_pause.png")
+const ICON_RESET = preload("res://assets/sprites/ui/icons/icon_reset.png")
+const ICON_PRESET = preload("res://assets/sprites/ui/icons/icon_preset.png")
+const ICON_PIN = preload("res://assets/sprites/ui/icons/icon_pin.png")
+const ICON_DRAWER_L = preload("res://assets/sprites/ui/icons/icon_drawer_l.png")
+const ICON_DRAWER_R = preload("res://assets/sprites/ui/icons/icon_drawer_r.png")
 
 # ==============================================================================
 # 🎛️ NODE REFERENCES
@@ -204,7 +215,7 @@ func _on_achievement_unlocked(_ach_id: String, ach_def: Dictionary) -> void:
 func _refresh_ui_from_state() -> void:
 	if GameState:
 		if coins_label:
-			coins_label.text = "🪙 %d G" % GameState.coins
+			coins_label.text = "%d G" % GameState.coins
 		if level_label:
 			level_label.text = "Lv.%d" % GameState.level
 		if energy_bar:
@@ -224,8 +235,9 @@ func _refresh_ui_from_state() -> void:
 			sprint_progress_bar.value = TimerEngine.get_progress() * 100.0
 		
 	if pin_btn:
+		pin_btn.icon = ICON_PIN
+		pin_btn.text = ""
 		pin_btn.modulate = Color(1.0, 0.84, 0.0, 1.0) if is_pinned else Color(1.0, 1.0, 1.0, 0.6)
-		pin_btn.text = "📌" if is_pinned else "📍"
 
 func _update_active_task_display(task_title: String) -> void:
 	if active_task_label:
@@ -283,7 +295,8 @@ func toggle_left_panel() -> void:
 	if left_panel_container:
 		left_panel_container.visible = is_left_open
 	if toggle_left_btn:
-		toggle_left_btn.text = "▶" if is_left_open else "◀"
+		toggle_left_btn.icon = ICON_DRAWER_L if is_left_open else ICON_DRAWER_R
+		toggle_left_btn.text = ""
 	EventBus.panel_visibility_changed.emit("left", is_left_open)
 	_update_layout()
 
@@ -292,7 +305,8 @@ func toggle_right_panel() -> void:
 	if right_panel_container:
 		right_panel_container.visible = is_right_open
 	if toggle_right_btn:
-		toggle_right_btn.text = "◀" if is_right_open else "▶"
+		toggle_right_btn.icon = ICON_DRAWER_R if is_right_open else ICON_DRAWER_L
+		toggle_right_btn.text = ""
 	EventBus.panel_visibility_changed.emit("right", is_right_open)
 	_update_layout()
 
@@ -302,22 +316,25 @@ func _on_panel_visibility_changed(panel_id: String, is_visible: bool) -> void:
 		if left_panel_container:
 			left_panel_container.visible = is_left_open
 		if toggle_left_btn:
-			toggle_left_btn.text = "▶" if is_left_open else "◀"
+			toggle_left_btn.icon = ICON_DRAWER_L if is_left_open else ICON_DRAWER_R
+			toggle_left_btn.text = ""
 		_update_layout()
 	elif panel_id == "right" and is_right_open != is_visible:
 		is_right_open = is_visible
 		if right_panel_container:
 			right_panel_container.visible = is_right_open
 		if toggle_right_btn:
-			toggle_right_btn.text = "◀" if is_right_open else "▶"
+			toggle_right_btn.icon = ICON_DRAWER_R if is_right_open else ICON_DRAWER_L
+			toggle_right_btn.text = ""
 		_update_layout()
 
 ## Toggles the on-screen position lock (disables dragging)
 func toggle_position_lock() -> void:
 	is_position_locked = not is_position_locked
 	if pin_btn:
+		pin_btn.icon = ICON_PIN
+		pin_btn.text = ""
 		pin_btn.modulate = Color(1.0, 0.84, 0.0, 1.0) if is_position_locked else Color(1.0, 1.0, 1.0, 0.6)
-		pin_btn.text = "📌" if is_position_locked else "📍"
 
 ## Toggles Always-on-Top pin state (called by Settings panel)
 func toggle_always_on_top() -> void:
@@ -337,8 +354,9 @@ func _apply_always_on_top(pinned: bool) -> void:
 		OS.create_process(exe_path, [str(hwnd), state_str])
 		
 	if pin_btn:
-		pin_btn.modulate = Color(1.0, 0.84, 0.0, 1.0) if is_pinned else Color(1.0, 1.0, 1.0, 0.6)
-		pin_btn.text = "📌" if is_pinned else "📍" 
+		pin_btn.icon = ICON_PIN
+		pin_btn.text = ""
+		pin_btn.modulate = Color(1.0, 0.84, 0.0, 1.0) if is_pinned else Color(1.0, 1.0, 1.0, 0.6) 
 
 ## Recalculates dimensions, applies scaling, resizes OS window, and re-clamps to screen
 func _update_layout() -> void:
@@ -459,7 +477,7 @@ func _update_room_and_pet_hud() -> void:
 		room_label.add_theme_color_override("font_color", Color(0.95, 0.70, 0.35, 1.0))
 		if call_pet_btn:
 			call_pet_btn.visible = true
-			call_pet_btn.text = "Call Pets"
+			call_pet_btn.text = "Call"
 			call_pet_btn.tooltip_text = "Some pets are away in %s\nClick to call everyone here!" % missing_loc
 
 func _get_room_display_name(room_id: String) -> String:
@@ -510,7 +528,8 @@ func _update_preset_button_display() -> void:
 		return
 	var preset = TimerEngine.get_active_preset() if TimerEngine.has_method("get_active_preset") else {"short_name": "25/5"}
 	var short_name = preset.get("short_name", "25/5")
-	preset_btn.text = "⚙ %s" % short_name
+	preset_btn.icon = ICON_PRESET
+	preset_btn.text = " %s" % short_name
 
 func _ensure_studio_window() -> void:
 	if studio_window:
@@ -561,10 +580,10 @@ func _update_minigame_button_state() -> void:
 	minigame_btn.disabled = not is_break
 	if is_break:
 		minigame_btn.modulate = Color(1.0, 0.85, 0.2, 1.0)
-		minigame_btn.tooltip_text = "🎮 Break Time! Play Arcade Minigames"
+		minigame_btn.tooltip_text = "Break Time! Play Arcade Minigames"
 	else:
 		minigame_btn.modulate = Color(0.6, 0.6, 0.7, 0.35)
-		minigame_btn.tooltip_text = "☕ Minigames unlock during Break Time!"
+		minigame_btn.tooltip_text = "Minigames unlock during Break Time!"
 		
 		if pet_slot:
 			for m_name in ["MinigameHub", "SnackCatchGame", "PlantBloomGame", "MemoryMatchGame"]:
@@ -575,27 +594,32 @@ func _update_play_pause_button_text() -> void:
 	if not play_pause_btn or not TimerEngine:
 		return
 	if TimerEngine.status == TimerEngine.TimerStatus.ALARMING:
-		play_pause_btn.text = "⏹ Stop Alarm"
+		play_pause_btn.icon = ICON_RESET
+		play_pause_btn.text = " Stop"
 		play_pause_btn.modulate = Color(1.0, 0.35, 0.35, 1.0)
 	elif TimerEngine.status == TimerEngine.TimerStatus.RUNNING:
-		play_pause_btn.text = "⏸ Pause"
+		play_pause_btn.icon = ICON_PAUSE
+		play_pause_btn.text = " Pause"
 		play_pause_btn.modulate = Color(1.0, 0.7, 0.2, 1.0)
 	elif TimerEngine.status == TimerEngine.TimerStatus.PAUSED:
-		play_pause_btn.text = "▶  Resume"
+		play_pause_btn.icon = ICON_PLAY
+		play_pause_btn.text = " Resume"
 		play_pause_btn.modulate = Color(0.4, 0.8, 1.0, 1.0)
 	else:
+		play_pause_btn.icon = ICON_PLAY
 		if TimerEngine.current_phase == TimerEngine.TimerPhase.WORK:
-			play_pause_btn.text = "▶  Start Focus"
+			play_pause_btn.text = " Focus"
 		else:
-			play_pause_btn.text = "▶  Start Break"
+			play_pause_btn.text = " Break"
 		play_pause_btn.modulate = Color(0.35, 0.75, 1.0, 1.0)
 		
 	if reset_btn:
+		reset_btn.icon = ICON_RESET
 		if TimerEngine.current_mode == TimerEngine.TimerMode.FLOWMODORO and TimerEngine.current_phase == TimerEngine.TimerPhase.WORK:
-			reset_btn.text = "Finish & Break"
+			reset_btn.text = " Finish"
 			reset_btn.modulate = Color(0.3, 1.0, 0.5)
 		else:
-			reset_btn.text = "Stop"
+			reset_btn.text = " Stop"
 			reset_btn.modulate = Color(1.0, 1.0, 1.0)
 
 func _on_timer_state_changed(_is_running: bool, _is_paused: bool) -> void:
@@ -604,7 +628,7 @@ func _on_timer_state_changed(_is_running: bool, _is_paused: bool) -> void:
 
 func _on_coins_changed(new_balance: int, _delta: int, _reason: String) -> void:
 	if coins_label:
-		coins_label.text = "🪙 %d G" % new_balance
+		coins_label.text = "%d G" % new_balance
 
 func _on_energy_changed(new_energy: float, max_energy: float, is_buffed: bool) -> void:
 	if energy_bar:

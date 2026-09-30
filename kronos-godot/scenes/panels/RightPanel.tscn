@@ -1,14 +1,26 @@
-[gd_scene load_steps=3 format=3 uid="uid://e4f7a8b9c0d1e"]
+[gd_scene load_steps=8 format=3 uid="uid://e4f7a8b9c0d1e"]
 
 [ext_resource type="Theme" uid="uid://b5g2j8k1m3n4p" path="res://themes/pixel_theme.tres" id="1_theme"]
 [ext_resource type="Script" path="res://scenes/panels/RightPanel.gd" id="2_rpanel"]
+[ext_resource type="Texture2D" path="res://assets/sprites/ui/frames/frame_panel_9slice.png" id="3_pnl_9s"]
+[ext_resource type="Texture2D" path="res://assets/sprites/ui/icons/icon_close.png" id="4_ico_close"]
+[ext_resource type="Texture2D" path="res://assets/sprites/ui/icons/icon_drawer_l.png" id="5_ico_drw_l"]
+[ext_resource type="Texture2D" path="res://assets/sprites/ui/icons/icon_drawer_r.png" id="6_ico_drw_r"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_right_panel"]
+texture = ExtResource("3_pnl_9s")
+texture_margin_left = 5.0
+texture_margin_top = 5.0
+texture_margin_right = 5.0
+texture_margin_bottom = 5.0
 
 [node name="RightPanel" type="PanelContainer"]
 clip_contents = true
-custom_minimum_size = Vector2(200, 320)
+custom_minimum_size = Vector2(240, 330)
 layout_mode = 2
 size_flags_vertical = 3
 theme = ExtResource("1_theme")
+theme_override_styles/panel = SubResource("StyleBoxTexture_right_panel")
 script = ExtResource("2_rpanel")
 
 [node name="VBox" type="VBoxContainer" parent="."]
@@ -36,7 +48,8 @@ size_flags_horizontal = 3
 [node name="CloseButton" type="Button" parent="VBox/Header/HBox"]
 custom_minimum_size = Vector2(20, 20)
 layout_mode = 2
-text = "✕"
+icon = ExtResource("4_ico_close")
+icon_alignment = 1
 
 [node name="PetSelectorHBox" type="HBoxContainer" parent="VBox"]
 layout_mode = 2
@@ -46,7 +59,8 @@ alignment = 1
 [node name="PetPrevBtn" type="Button" parent="VBox/PetSelectorHBox"]
 custom_minimum_size = Vector2(24, 20)
 layout_mode = 2
-text = "<"
+icon = ExtResource("5_ico_drw_l")
+icon_alignment = 1
 
 [node name="PetNameLbl" type="Label" parent="VBox/PetSelectorHBox"]
 layout_mode = 2
@@ -59,7 +73,8 @@ text = "Kronos"
 [node name="PetNextBtn" type="Button" parent="VBox/PetSelectorHBox"]
 custom_minimum_size = Vector2(24, 20)
 layout_mode = 2
-text = ">"
+icon = ExtResource("6_ico_drw_r")
+icon_alignment = 1
 
 [node name="TabBarScroll" type="ScrollContainer" parent="VBox"]
 custom_minimum_size = Vector2(0, 24)

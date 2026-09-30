@@ -74,6 +74,10 @@ var _active_search_query: String = ""
 var _editing_session_unix: int = 0
 var _daily_goal_minutes: float = 240.0 # Default 4.0h
 
+const ICON_EDIT = preload("res://assets/sprites/ui/icons/icon_edit.png")
+const ICON_TRASH = preload("res://assets/sprites/ui/icons/icon_trash.png")
+const FRAME_CARD = preload("res://assets/sprites/ui/frames/frame_card_9slice.png")
+
 const CATEGORY_COLORS: Dictionary = {
 	"Development": Color(0.31, 0.82, 0.91, 1.0), # Cyan
 	"Dev": Color(0.31, 0.82, 0.91, 1.0),
@@ -129,11 +133,11 @@ func _connect_signals() -> void:
 	if btn_bullet_dot:
 		btn_bullet_dot.pressed.connect(func(): _insert_bullet_prefix("• "))
 	if btn_bullet_feat:
-		btn_bullet_feat.pressed.connect(func(): _insert_bullet_prefix("✨ [Feature] "))
+		btn_bullet_feat.pressed.connect(func(): _insert_bullet_prefix("+ [Feature] "))
 	if btn_bullet_fix:
-		btn_bullet_fix.pressed.connect(func(): _insert_bullet_prefix("🐛 [Fix] "))
+		btn_bullet_fix.pressed.connect(func(): _insert_bullet_prefix("+ [Fix] "))
 	if btn_bullet_learn:
-		btn_bullet_learn.pressed.connect(func(): _insert_bullet_prefix("📚 [Learned] "))
+		btn_bullet_learn.pressed.connect(func(): _insert_bullet_prefix("+ [Learned] "))
 		
 	# Modal signals
 	if modal_save_btn:
@@ -163,24 +167,24 @@ func _init_dropdown_options() -> void:
 	if table_category_filter:
 		table_category_filter.clear()
 		table_category_filter.add_item("All Categories", 0)
-		table_category_filter.add_item("💻 Dev", 1)
-		table_category_filter.add_item("📚 Study", 2)
-		table_category_filter.add_item("✍️ Writing", 3)
-		table_category_filter.add_item("🎨 Design", 4)
-		table_category_filter.add_item("📋 Admin", 5)
-		table_category_filter.add_item("🎮 Gaming", 6)
-		table_category_filter.add_item("🎯 General", 7)
+		table_category_filter.add_item("Dev", 1)
+		table_category_filter.add_item("Study", 2)
+		table_category_filter.add_item("Writing", 3)
+		table_category_filter.add_item("Design", 4)
+		table_category_filter.add_item("Admin", 5)
+		table_category_filter.add_item("Gaming", 6)
+		table_category_filter.add_item("General", 7)
 		table_category_filter.selected = 0
 		
 	if modal_cat_option:
 		modal_cat_option.clear()
-		modal_cat_option.add_item("💻 Development", 0)
-		modal_cat_option.add_item("📚 Study / SRS", 1)
-		modal_cat_option.add_item("✍️ Writing / Notes", 2)
-		modal_cat_option.add_item("🎨 Art / Design", 3)
-		modal_cat_option.add_item("📋 Admin / Planning", 4)
-		modal_cat_option.add_item("🎮 Gaming / Rest", 5)
-		modal_cat_option.add_item("🎯 General Focus", 6)
+		modal_cat_option.add_item("Development", 0)
+		modal_cat_option.add_item("Study / SRS", 1)
+		modal_cat_option.add_item("Writing / Notes", 2)
+		modal_cat_option.add_item("Art / Design", 3)
+		modal_cat_option.add_item("Admin / Planning", 4)
+		modal_cat_option.add_item("Gaming / Rest", 5)
+		modal_cat_option.add_item("General Focus", 6)
 
 func _on_goal_target_selected(idx: int) -> void:
 	match idx:
@@ -194,7 +198,7 @@ func _on_goal_target_selected(idx: int) -> void:
 
 func _on_focus_now_pressed() -> void:
 	if NotificationManager:
-		NotificationManager.show_toast("⏱️ Focus session punches automatically log upon timer completion!", NotificationManager.ToastType.INFO)
+		NotificationManager.show_toast("Focus session punches automatically log upon timer completion!", NotificationManager.ToastType.INFO)
 
 func _insert_bullet_prefix(prefix: String) -> void:
 	if not modal_notes_input:
@@ -246,17 +250,17 @@ func _refresh_top_metrics() -> void:
 	var streak: int = GameState.streak if GameState else 0
 	
 	if streak_badge_label:
-		streak_badge_label.text = "🔥 %d Days" % streak
+		streak_badge_label.text = "Streak: %d Days" % streak
 	if weekly_velocity_label:
 		var pct = velocity.get("pct_change", 0.0)
 		var sign_str = "+" if pct >= 0 else ""
-		weekly_velocity_label.text = "⚡ %.1fh (%s%.0f%% vs lw)" % [velocity.get("this_week_hours", 0.0), sign_str, pct]
+		weekly_velocity_label.text = "Velocity: %.1fh (%s%.0f%% vs lw)" % [velocity.get("this_week_hours", 0.0), sign_str, pct]
 	if peak_flow_label:
-		peak_flow_label.text = "🕒 %s" % hourly.get("peak_label", "Balanced Flow")
+		peak_flow_label.text = "Peak: %s" % hourly.get("peak_label", "Balanced Flow")
 	if total_hours_label:
-		total_hours_label.text = "⏱️ %.1fh Total" % stats.get("total_hours", 0.0)
+		total_hours_label.text = "Total: %.1fh" % stats.get("total_hours", 0.0)
 	if sprints_count_label:
-		sprints_count_label.text = "⚡ %d Sprints" % stats.get("total_sprints", 0)
+		sprints_count_label.text = "Sprints: %d" % stats.get("total_sprints", 0)
 
 # ==============================================================================
 # 🗓️ SECTION 2A: 60-DAY INTERACTIVE HEATMAP
@@ -301,7 +305,7 @@ func _refresh_heatmap() -> void:
 		cell_btn.add_theme_stylebox_override("hover", style)
 		cell_btn.add_theme_stylebox_override("pressed", style)
 		
-		cell_btn.tooltip_text = "📅 %s\n⏱️ %d mins (%d Sprints)" % [date_key, mins, sprints]
+		cell_btn.tooltip_text = "%s\n%d mins (%d Sprints)" % [date_key, mins, sprints]
 		
 		var captured_date: String = date_key
 		cell_btn.pressed.connect(func(): _on_heatmap_cell_clicked(captured_date, mins, sprints))
@@ -327,17 +331,17 @@ func _on_heatmap_cell_clicked(date_key: String, minutes: int, sprints: int) -> v
 	if _active_date_filter == date_key:
 		_active_date_filter = ""
 		if selected_day_label:
-			selected_day_label.text = "💡 Click any square above to filter sessions for that date."
+			selected_day_label.text = "Select any square above to filter sessions for that date."
 	else:
 		_active_date_filter = date_key
 		if selected_day_label:
-			selected_day_label.text = "📅 Filtered: %s • %d mins (%d Sprints)" % [date_key, minutes, sprints]
+			selected_day_label.text = "Filtered: %s • %d mins (%d Sprints)" % [date_key, minutes, sprints]
 			
 	_refresh_heatmap()
 	_refresh_session_table()
 
 # ==============================================================================
-# ⚡ SECTION 2B: 24-HOUR CHRONOTYPE / PEAK FLOW HISTOGRAM
+# SECTION 2B: 24-HOUR CHRONOTYPE / PEAK FLOW HISTOGRAM
 # ==============================================================================
 func _refresh_chronotype_histogram() -> void:
 	if not hourly_bars_hbox or not DatabaseManager:
@@ -379,7 +383,7 @@ func _refresh_chronotype_histogram() -> void:
 		style.corner_radius_top_left = 1
 		style.corner_radius_top_right = 1
 		bar_panel.add_theme_stylebox_override("panel", style)
-		bar_panel.tooltip_text = "%02d:00 - %02d:00\n⏱️ %d mins" % [h, (h + 1) % 24, m]
+		bar_panel.tooltip_text = "%02d:00 - %02d:00\n%d mins" % [h, (h + 1) % 24, m]
 		
 		col_vbox.add_child(bar_panel)
 		
@@ -513,7 +517,7 @@ func _refresh_session_table() -> void:
 		
 	if filter_status_label:
 		if not _active_date_filter.is_empty():
-			filter_status_label.text = "📅 [%s]" % _active_date_filter
+			filter_status_label.text = "[%s]" % _active_date_filter
 			filter_status_label.visible = true
 		else:
 			filter_status_label.visible = false
@@ -557,6 +561,17 @@ func _create_session_row(session: Dictionary) -> Control:
 			
 	var card: PanelContainer = PanelContainer.new()
 	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var row_style: StyleBoxTexture = StyleBoxTexture.new()
+	row_style.texture = FRAME_CARD
+	row_style.texture_margin_left = 4.0
+	row_style.texture_margin_top = 4.0
+	row_style.texture_margin_right = 4.0
+	row_style.texture_margin_bottom = 4.0
+	row_style.content_margin_left = 6.0
+	row_style.content_margin_top = 4.0
+	row_style.content_margin_right = 6.0
+	row_style.content_margin_bottom = 4.0
+	card.add_theme_stylebox_override("panel", row_style)
 	
 	var vbox: VBoxContainer = VBoxContainer.new()
 	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -570,7 +585,7 @@ func _create_session_row(session: Dictionary) -> Control:
 	
 	# 1. Date & Time Pill (Immutable Biometric Timestamp)
 	var dt_lbl: Label = Label.new()
-	dt_lbl.text = "🔒 %s %s" % [date_key, time_str]
+	dt_lbl.text = "%s %s" % [date_key, time_str]
 	dt_lbl.add_theme_font_size_override("font_size", 8)
 	dt_lbl.modulate = Color(0.55, 0.60, 0.70)
 	dt_lbl.custom_minimum_size = Vector2(115, 0)
@@ -595,7 +610,7 @@ func _create_session_row(session: Dictionary) -> Control:
 	
 	# 4. Duration Pill (Verified Minutes)
 	var dur_lbl: Label = Label.new()
-	dur_lbl.text = "⏱️ %dm" % duration
+	dur_lbl.text = "%dm" % duration
 	dur_lbl.add_theme_font_size_override("font_size", 8)
 	dur_lbl.modulate = Color(0.85, 0.90, 0.95)
 	dur_lbl.custom_minimum_size = Vector2(48, 0)
@@ -603,7 +618,7 @@ func _create_session_row(session: Dictionary) -> Control:
 	
 	# 5. Rewards Badge
 	var rewards_lbl: Label = Label.new()
-	rewards_lbl.text = "+%d🪙 +%dxp" % [coins, xp]
+	rewards_lbl.text = "+%d coins  +%dxp" % [coins, xp]
 	rewards_lbl.add_theme_font_size_override("font_size", 8)
 	rewards_lbl.modulate = Color(0.96, 0.75, 0.20)
 	rewards_lbl.custom_minimum_size = Vector2(80, 0)
@@ -611,21 +626,21 @@ func _create_session_row(session: Dictionary) -> Control:
 	
 	# 6. Action Buttons (Edit Notes / Delete)
 	var edit_btn: Button = Button.new()
-	edit_btn.text = "✏️"
+	edit_btn.icon = ICON_EDIT
+	edit_btn.text = ""
 	edit_btn.flat = true
-	edit_btn.custom_minimum_size = Vector2(22, 20)
+	edit_btn.custom_minimum_size = Vector2(20, 20)
 	edit_btn.focus_mode = Control.FOCUS_NONE
-	edit_btn.add_theme_font_size_override("font_size", 9)
 	edit_btn.tooltip_text = "Edit Task & Standup Notes"
 	edit_btn.pressed.connect(func(): _open_edit_session_modal(session))
 	hbox.add_child(edit_btn)
 	
 	var del_btn: Button = Button.new()
-	del_btn.text = "🗑️"
+	del_btn.icon = ICON_TRASH
+	del_btn.text = ""
 	del_btn.flat = true
-	del_btn.custom_minimum_size = Vector2(22, 20)
+	del_btn.custom_minimum_size = Vector2(20, 20)
 	del_btn.focus_mode = Control.FOCUS_NONE
-	del_btn.add_theme_font_size_override("font_size", 9)
 	del_btn.tooltip_text = "Delete biometric punch"
 	del_btn.pressed.connect(func(): _delete_session(created_unix))
 	hbox.add_child(del_btn)
@@ -636,7 +651,7 @@ func _create_session_row(session: Dictionary) -> Control:
 		notes_hbox.add_theme_constant_override("separation", 4)
 		
 		var icon_lbl: Label = Label.new()
-		icon_lbl.text = "  ↳ 📝"
+		icon_lbl.text = "  ↳ Notes:"
 		icon_lbl.add_theme_font_size_override("font_size", 8)
 		icon_lbl.modulate = Color(0.40, 0.70, 1.0, 0.8)
 		notes_hbox.add_child(icon_lbl)
@@ -666,7 +681,7 @@ func _clear_filters() -> void:
 	if table_category_filter:
 		table_category_filter.selected = 0
 	if selected_day_label:
-		selected_day_label.text = "💡 Click any square above to filter sessions for that date."
+		selected_day_label.text = "Select any square above to filter sessions for that date."
 	_refresh_heatmap()
 	_refresh_session_table()
 
@@ -682,7 +697,7 @@ func _on_copy_standup_pressed() -> void:
 	
 	DisplayServer.clipboard_set(markdown)
 	if NotificationManager:
-		NotificationManager.show_toast("📋 Standup Markdown copied to clipboard!", NotificationManager.ToastType.SUCCESS)
+		NotificationManager.show_toast("Standup Markdown copied to clipboard!", NotificationManager.ToastType.SUCCESS)
 
 func _on_copy_retrospective_pressed() -> void:
 	if not DatabaseManager:
@@ -691,7 +706,7 @@ func _on_copy_retrospective_pressed() -> void:
 	var retro_md: String = DatabaseManager.generate_weekly_retrospective_markdown()
 	DisplayServer.clipboard_set(retro_md)
 	if NotificationManager:
-		NotificationManager.show_toast("📓 Weekly Retrospective Report copied to clipboard!", NotificationManager.ToastType.SUCCESS)
+		NotificationManager.show_toast("Weekly Retrospective Report copied to clipboard!", NotificationManager.ToastType.SUCCESS)
 
 func _on_export_csv_pressed() -> void:
 	if not DatabaseManager:
@@ -701,7 +716,7 @@ func _on_export_csv_pressed() -> void:
 	if res.get("success", false):
 		var path: String = res.get("path", "")
 		if NotificationManager:
-			NotificationManager.show_toast("📊 Exported %d verified punches to CSV: %s" % [res.get("count", 0), path.get_file()], NotificationManager.ToastType.SUCCESS)
+			NotificationManager.show_toast("Exported %d verified punches to CSV: %s" % [res.get("count", 0), path.get_file()], NotificationManager.ToastType.SUCCESS)
 
 func _on_backup_json_pressed() -> void:
 	if not DatabaseManager:
@@ -710,7 +725,7 @@ func _on_backup_json_pressed() -> void:
 	var json_str: String = DatabaseManager.export_dtr_json()
 	DisplayServer.clipboard_set(json_str)
 	if NotificationManager:
-		NotificationManager.show_toast("💾 Full DTR JSON backup copied to clipboard!", NotificationManager.ToastType.INFO)
+		NotificationManager.show_toast("Full DTR JSON backup copied to clipboard!", NotificationManager.ToastType.INFO)
 
 # ==============================================================================
 # ✏️ BIOMETRIC ACCOMPLISHMENT & NOTE EDITOR
@@ -735,11 +750,11 @@ func _open_edit_session_modal(session: Dictionary) -> void:
 		time_range = "Sprint (%dm)" % duration
 		
 	if modal_title:
-		modal_title.text = "📝 Session Accomplishments & Standup Notes"
+		modal_title.text = "Session Accomplishments & Standup Notes"
 	if punch_time_label:
-		punch_time_label.text = "📅 Date: %s  |  ⏱️ Time: %s (%dm verified)" % [date_key, time_range, duration]
+		punch_time_label.text = "Date: %s  |  Time: %s (%dm verified)" % [date_key, time_range, duration]
 	if punch_rewards_label:
-		punch_rewards_label.text = "🪙 +%d Coins  |  ✨ +%d EXP  |  🔒 Immutable Biometric Punch" % [coins, xp]
+		punch_rewards_label.text = "+%d Coins  |  +%d EXP  |  Verified Biometric Punch" % [coins, xp]
 		
 	if modal_task_input:
 		modal_task_input.text = session.get("task_name", "")
@@ -790,7 +805,7 @@ func _on_modal_save_pressed() -> void:
 	
 	if DatabaseManager.update_session(_editing_session_unix, update_payload):
 		if NotificationManager:
-			NotificationManager.show_toast("💾 Session accomplishments saved: %s" % task_name, NotificationManager.ToastType.INFO)
+			NotificationManager.show_toast("Session accomplishments saved: %s" % task_name, NotificationManager.ToastType.INFO)
 			
 	_close_modal()
 	refresh_all()
@@ -804,5 +819,5 @@ func _delete_session(created_unix: int) -> void:
 		return
 	if DatabaseManager.delete_session(created_unix):
 		if NotificationManager:
-			NotificationManager.show_toast("🗑️ Biometric punch deleted.", NotificationManager.ToastType.INFO)
+			NotificationManager.show_toast("Biometric punch deleted.", NotificationManager.ToastType.INFO)
 		refresh_all()
